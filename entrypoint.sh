@@ -38,8 +38,6 @@ GLIDEIN_Site = "$GLIDEIN_Site\"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
 OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 
-START = TARGET.Owner == "rynge"
-
 EOF
 
 mkdir -p `condor_config_val EXECUTE`
