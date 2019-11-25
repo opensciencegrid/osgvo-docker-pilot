@@ -25,11 +25,16 @@ echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
 chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
 
 # extra HTCondor config
+# pick one ccb port and stick with it for the lifetime of the glidein
+CCB_PORT=$(python -S -c "import random; print random.randrange(9700,9899)")
 LOCAL_DIR="/tmp/osgvo-pilot-$RANDOM"
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
 cat >~/.condor/user_config <<EOF
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
+
+# random, but static port for the lifetime of the glidein
+CCB_ADDRESS = \$(CONDOR_HOST):$CCB_PORT
 
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
