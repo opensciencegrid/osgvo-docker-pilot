@@ -18,6 +18,9 @@ if [ "x$GLIDEIN_ResourceName" = "x" ]; then
     echo "Please specify GLIDEIN_ResourceName as an environment variable" 1>&2
     exit 1
 fi
+if [ "x$GLIDEIN_Start_Extra" = "x" ]; then
+    export GLIDEIN_Start_Extra="True"
+fi
 
 # token auth
 mkdir -p ~/.condor/tokens.d
@@ -38,6 +41,9 @@ CCB_ADDRESS = \$(CONDOR_HOST):$CCB_PORT
 
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
+
+# additioanl start expression requirements - this will be &&ed to the base one
+START_EXTRA = $GLIDEIN_Start_Extra
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"

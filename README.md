@@ -13,6 +13,8 @@ In order to successfully start payload jobs:
 3. Set the `OSG_SQUID_LOCATION` environment variable to the HTTP address to a valid Squid location.
 4. Optional: Pick a directory where jobs can do I/O, and map it to /tmp inside with `-v /somelocaldir:/tmp`
    This is only required if you do not want the I/O inside the container instance.
+5. Optional: add to the START expression with `GLIDEIN_Start_Extra`. This is useful to limit
+   the pilot to only run certain jobs.
 
 Example invocation utilizing a grid proxy:
 
@@ -24,6 +26,7 @@ docker run -it --rm --user osg \
        -e TOKEN="..." \
        -e GLIDEIN_Site="..." \
        -e GLIDEIN_ResourceName="..." \
+       -e GLIDEIN_Start_Extra="True" \
        -e OSG_SQUID_LOCATION="..." \
        opensciencegrid/osgvo-docker-pilot:latest
 ```
