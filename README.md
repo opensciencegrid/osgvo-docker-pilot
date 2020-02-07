@@ -16,7 +16,7 @@ In order to successfully start payload jobs:
 5. Optional: add to the START expression with `GLIDEIN_Start_Extra`. This is useful to limit
    the pilot to only run certain jobs.
 
-Example invocation utilizing a grid proxy:
+Example invocation utilizing a token for authentication:
 
 ```
 docker run -it --rm --user osg \
