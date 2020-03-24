@@ -21,6 +21,9 @@ fi
 if [ "x$GLIDEIN_Start_Extra" = "x" ]; then
     export GLIDEIN_Start_Extra="True"
 fi
+if [ "x$ANNEX_NAME" = "x" ]; then
+    export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
+fi
 
 # token auth
 mkdir -p ~/.condor/tokens.d
@@ -42,12 +45,15 @@ CCB_ADDRESS = \$(CONDOR_HOST):$CCB_PORT
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
-# additioanl start expression requirements - this will be &&ed to the base one
+# additional start expression requirements - this will be &&ed to the base one
 START_EXTRA = $GLIDEIN_Start_Extra
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
 OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
+
+AnnexName = "$ANNEX_NAME"
+STARTD_EXPRS = \$(STARTD_EXPRS) AnnexName
 
 EOF
 
