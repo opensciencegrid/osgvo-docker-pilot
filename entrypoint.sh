@@ -35,7 +35,12 @@ chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
 CCB_PORT=$(python -S -c "import random; print random.randrange(9700,9899)")
 LOCAL_DIR="/tmp/osgvo-pilot-$RANDOM"
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
-cat >~/.condor/user_config <<EOF
+
+# to avoid collisions when ~ is shared, write the config file to /tmp
+export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
+
+mkdir -p $LOCAL_DIR
+cat >$PILOT_CONFIG_FILE <<EOF
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
 
@@ -70,4 +75,3 @@ tail -F `condor_config_val LOG`/MasterLog `condor_config_val LOG`/StartLog &
 condor_master -f
 
 rm -rf $LOCAL_DIR
-
