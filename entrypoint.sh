@@ -30,6 +30,9 @@ mkdir -p ~/.condor/tokens.d
 echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
 chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
 
+# glorious hack
+export _CONDOR_SEC_PASSWORD_FILE=~/.condor/tokens.d/flock.opensciencegrid.org
+
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
 CCB_PORT=$(python -S -c "import random; print random.randrange(9700,9899)")
