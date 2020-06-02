@@ -31,4 +31,48 @@ docker run -it --rm --user osg \
        opensciencegrid/osgvo-docker-pilot:latest
 ```
 
+## Singularity / Bring Your Own Resources
+
+This container can also be used by users who want to use non-OSG resources for their
+computations, such as campus clusters or clusters with user specific allocations. The
+example below is a generic Slurm/Singularity example, but can be modified for other
+schedulers. You still need to request a token from OSG staff.
+
+Jobs should be requesting single full nodes. If your compute nodes have 24 nodes,
+the submit file should look something like:
+
+```
+#!/bin/bash
+#SBATCH --job-name=osg-glidein
+#SBATCH -p compute
+#SBATCH -N 1
+#SBATCH -n 24
+#SBATCH -t 48:00:00
+#SBATCH --output=osg-glidein-%j.log
+
+export TOKEN="put_your_provided_token_here"
+
+# Set this so that the OSG accouting knows where the jobs ran
+export GLIDEIN_Site="SDSC"
+export GLIDEIN_ResourceName="Comet"
+
+# This is an important setting limiting what jobs your glideins will accept.
+# At the minimum, the expression should limit the "Owner" of the jobs to 
+# whatever your username is on the OSG _submit_ side
+export GLIDEIN_Start_Extra="Owner == \"my_osgconnect_username\""
+
+module load singularity
+singularity run --contain --bind /cvmfs docker://opensciencegrid/osgvo-docker-pilot
+
+```
+
+If you are planning on running a lot of these jobs, you can download the Docker
+container once, and create a local Singularity image to use in that last
+singularity command instead of the docker:// URL. Example:
+
+```
+$ singularity build osgvo-pilot.sif docker://opensciencegrid/osgvo-docker-pilot
+```
+
+
 
