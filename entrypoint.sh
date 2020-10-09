@@ -29,9 +29,12 @@ fi
 mkdir -p ~/.condor/tokens.d
 echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
 chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
+mkdir -p ~/.condor/passwords.d
+chmod 700 ~/.condor/passwords.d
 
 # glorious hack
 export _CONDOR_SEC_PASSWORD_FILE=~/.condor/tokens.d/flock.opensciencegrid.org
+export _CONDOR_SEC_PASSWORD_DIRECTORY=~/.condor/passwords.d
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
@@ -63,8 +66,19 @@ OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 AnnexName = "$ANNEX_NAME"
 STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName
 MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName
-
 EOF
+
+cat >$LOCAL_DIR/user-job-wrapper.sh <<EOF
+#!/bin/bash
+set -e
+export GLIDEIN_Site="$GLIDEIN_Site"
+export GLIDEIN_ResourceName="$GLIDEIN_ResourceName"
+export OSG_SITE_NAME="$GLIDEIN_ResourceName"
+export OSG_SQUID_LOCATION="$OSG_SQUID_LOCATION"
+exec /usr/sbin/osgvo-user-job-wrapper "\$@"
+EOF
+chmod 755 $LOCAL_DIR/user-job-wrapper.sh
+export _CONDOR_USER_JOB_WRAPPER=$LOCAL_DIR/user-job-wrapper.sh
 
 mkdir -p `condor_config_val EXECUTE`
 mkdir -p `condor_config_val LOG`
