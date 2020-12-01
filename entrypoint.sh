@@ -21,6 +21,9 @@ fi
 if [ "x$GLIDEIN_Start_Extra" = "x" ]; then
     export GLIDEIN_Start_Extra="True"
 fi
+if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
+    export ACCEPT_JOBS_FOR_HOURS=336
+fi
 if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
@@ -63,9 +66,12 @@ GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
 OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 
+ACCEPT_JOBS_FOR_HOURS = $ACCEPT_JOBS_FOR_HOURS
+
 AnnexName = "$ANNEX_NAME"
-STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName
-MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName
+
+STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
+MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
 EOF
 
 cat >$LOCAL_DIR/user-job-wrapper.sh <<EOF
