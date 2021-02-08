@@ -1,9 +1,14 @@
 FROM opensciencegrid/osg-wn
 
+ARG BASE_YUM_REPO=testing
+
 # token auth require HTCondor 8.9.x
 RUN useradd osg \
+ && if [[ $BASE_YUM_REPO = release ]]; then \
+       yumrepo=osg-upcoming; else \
+       yumrepo=osg-upcoming-$BASE_YUM_REPO; fi \
  && mkdir -p ~osg/.condor \
- && yum -y --enablerepo=osg-upcoming install condor \
+ && yum -y --enablerepo=$yumrepo install condor \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d \
  && curl -s -o /usr/sbin/osgvo-user-job-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/user-job-wrapper.sh \
