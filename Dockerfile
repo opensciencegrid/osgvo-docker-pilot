@@ -22,7 +22,7 @@ RUN useradd osg \
  && curl -s -o /usr/sbin/osgvo-node-advertise https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-node-advertise \
  && chmod 755 /usr/sbin/osgvo-user-job-wrapper /usr/sbin/osgvo-node-advertise
 
-COPY entrypoint.sh /bin/
+COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
 RUN chmod 755 /bin/entrypoint.sh
