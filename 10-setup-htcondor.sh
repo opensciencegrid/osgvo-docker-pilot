@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xe
+
 if [ `id -u` = 0 ]; then
     echo "Please do not run me as root!"
     exit 1
