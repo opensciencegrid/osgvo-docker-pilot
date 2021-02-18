@@ -11,7 +11,11 @@ RUN useradd osg \
        yumrepo=osg-upcoming; else \
        yumrepo=osg-upcoming-$BASE_YUM_REPO; fi \
  && mkdir -p ~osg/.condor \
- && yum -y --enablerepo=$yumrepo install condor \
+ && yum -y --enablerepo=$yumrepo install \
+        condor \
+        osg-wn-client \
+        redhat-lsb-core \
+        singularity \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d \
  && curl -s -o /usr/sbin/osgvo-user-job-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/user-job-wrapper.sh \
