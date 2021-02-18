@@ -1,5 +1,8 @@
-FROM opensciencegrid/osg-wn
+ARG BASE_YUM_REPO=testing
 
+FROM opensciencegrid/software-base:3.5-el7-${BASE_YUM_REPO}
+
+# Previous arg has gone out of scope
 ARG BASE_YUM_REPO=testing
 
 # token auth require HTCondor 8.9.x
@@ -16,17 +19,8 @@ RUN useradd osg \
  && chmod 755 /usr/sbin/osgvo-user-job-wrapper /usr/sbin/osgvo-node-advertise
 
 COPY entrypoint.sh /bin/
+COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
 RUN chmod 755 /bin/entrypoint.sh
  
 RUN chown -R osg: ~osg 
-
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc /tini.asc
-RUN gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
- && gpg --batch --verify /tini.asc /tini \
- && chmod +x /tini
-
-ENTRYPOINT ["/tini", "/bin/entrypoint.sh"]
-
