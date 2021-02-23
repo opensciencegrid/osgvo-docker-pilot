@@ -102,5 +102,3 @@ mkdir -p `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 chmod 600 `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 
 tail -F `condor_config_val LOG`/MasterLog `condor_config_val LOG`/StartLog &
-
-rm -rf $LOCAL_DIR
