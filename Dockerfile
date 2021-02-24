@@ -26,6 +26,5 @@ COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
-RUN chmod 755 /bin/entrypoint.sh
  
 RUN chown -R osg: ~osg 
