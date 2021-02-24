@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xe
+
 if [ `id -u` = 0 ]; then
     echo "Please do not run me as root!"
     exit 1
@@ -100,7 +102,3 @@ mkdir -p `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 chmod 600 `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 
 tail -F `condor_config_val LOG`/MasterLog `condor_config_val LOG`/StartLog &
-
-condor_master -f
-
-rm -rf $LOCAL_DIR
