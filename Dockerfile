@@ -30,3 +30,5 @@ COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
  
 RUN chown -R osg: ~osg 
+
+WORKDIR /tmp
