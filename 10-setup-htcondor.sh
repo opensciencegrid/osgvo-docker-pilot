@@ -8,8 +8,13 @@ if [ `id -u` = 0 ]; then
 fi
 
 # validation
-if [ "x$TOKEN" = "x" ]; then
-    echo "Please specify TOKEN as an environment variable" 1>&2
+if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
+   [[ ! $TOKEN ]]; then
+    { echo "Please provide /etc/condor/tokens-orig.d/flock.opensciencegrid.org"
+      echo "via volume mount."
+      echo "Alternatively, TOKEN may be provided as an environment variable"
+      echo "Please specify TOKEN as an environment variable"
+    } 1>&2
     exit 1
 fi
 if [ "x$GLIDEIN_Site" = "x" ]; then
@@ -30,16 +35,18 @@ if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
 
-# token auth
-mkdir -p ~/.condor/tokens.d
-echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
-chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
-mkdir -p ~/.condor/passwords.d
-chmod 700 ~/.condor/passwords.d
+if [[ $TOKEN ]]; then
+  # token auth
+  mkdir -p ~/.condor/tokens.d
+  echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
+  chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
+  mkdir -p ~/.condor/passwords.d
+  chmod 700 ~/.condor/passwords.d
 
-# glorious hack
-export _CONDOR_SEC_PASSWORD_FILE=~/.condor/tokens.d/flock.opensciencegrid.org
-export _CONDOR_SEC_PASSWORD_DIRECTORY=~/.condor/passwords.d
+  # glorious hack
+  export _CONDOR_SEC_PASSWORD_FILE=~/.condor/tokens.d/flock.opensciencegrid.org
+  export _CONDOR_SEC_PASSWORD_DIRECTORY=~/.condor/passwords.d
+fi
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
