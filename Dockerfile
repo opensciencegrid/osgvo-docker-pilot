@@ -27,13 +27,28 @@ RUN chmod 755 /usr/sbin/condor_master_wrapper
 
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
+
+RUN yum -y install git \
+ && yum clean all \
+ && git clone https://github.com/cvmfs/cvmfsexec ~osg/cvmfsexec \
+ && cd ~osg/cvmfsexec \
+ && ./makedist osg
+
+# Space separated list of repos to mount at startup (if using cvmfsexec)
+ENV CVMFS_REPOS=oasis.opensciencegrid.org
+
+COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
+RUN chmod 755 /bin/entrypoint.sh
  
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
 
 WORKDIR /pilot
+ENTRYPOINT ["/bin/entrypoint.sh"]
+# Adding ENTRYPOINT clears CMD
+CMD ["/usr/local/sbin/supervisord_startup.sh"]
