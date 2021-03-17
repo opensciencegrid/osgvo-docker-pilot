@@ -6,7 +6,7 @@ FROM opensciencegrid/software-base:3.5-el7-${BASE_YUM_REPO}
 ARG BASE_YUM_REPO=testing
 
 # token auth require HTCondor 8.9.x
-RUN useradd osg \
+RUN useradd -u 1000 osg \
  && if [[ $BASE_YUM_REPO = release ]]; then \
        yumrepo=osg-upcoming; else \
        yumrepo=osg-upcoming-$BASE_YUM_REPO; fi \
@@ -32,3 +32,4 @@ COPY 50-main.config /etc/condor/config.d/
 RUN chown -R osg: ~osg 
 
 WORKDIR /tmp
+USER osg
