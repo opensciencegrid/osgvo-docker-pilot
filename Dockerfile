@@ -30,12 +30,10 @@ COPY supervisord.conf /etc/supervisord.conf
 
 RUN yum -y install git \
  && yum clean all \
- && git clone https://github.com/cvmfs/cvmfsexec ~osg/cvmfsexec \
- && cd ~osg/cvmfsexec \
- && ./makedist osg
+ && git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec-template
 
 # Space separated list of repos to mount at startup (if using cvmfsexec)
-ENV CVMFS_REPOS=oasis.opensciencegrid.org
+ENV CVMFSEXEC_REPOS=oasis.opensciencegrid.org
 
 COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
