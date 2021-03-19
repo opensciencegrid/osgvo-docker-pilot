@@ -12,8 +12,6 @@ if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
    [[ ! $TOKEN ]]; then
     { echo "Please provide /etc/condor/tokens-orig.d/flock.opensciencegrid.org"
       echo "via volume mount."
-      echo "Alternatively, TOKEN may be provided as an environment variable"
-      echo "Please specify TOKEN as an environment variable"
     } 1>&2
     exit 1
 fi
