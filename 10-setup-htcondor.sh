@@ -59,9 +59,7 @@ if [[ $TOKEN ]]; then
 fi
 
 # glorious hack
-if [[ -e $tmpd/condor/tokens.d/flock.opensciencegrid.org ]]; then
-  export _CONDOR_SEC_PASSWORD_FILE=$tmpd/condor/tokens.d/flock.opensciencegrid.org
-fi
+export _CONDOR_SEC_PASSWORD_FILE=$tmpd/condor/tokens.d/flock.opensciencegrid.org
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$tmpd/condor/passwords.d
 
 # extra HTCondor config
