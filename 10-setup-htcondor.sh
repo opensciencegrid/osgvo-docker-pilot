@@ -33,9 +33,10 @@ if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
 
-mkdir -p ~/.condor/tokens.d
-mkdir -p ~/.condor/passwords.d
-chmod 700 ~/.condor/passwords.d
+tmpd=$(mktemp -d)
+mkdir -p "$tmpd"/condor/tokens.d
+mkdir -p "$tmpd"/condor/passwords.d
+chmod 700 "$tmpd"/condor/passwords.d
 
 shopt -s nullglob
 tokens=( /etc/condor/tokens-orig.d/* )
@@ -43,25 +44,25 @@ passwords=( /etc/condor/passwords-orig.d/* )
 shopt -u nullglob
 
 if [[ $tokens ]]; then
-  cp /etc/condor/tokens-orig.d/* ~/.condor/tokens.d/
-  chmod 600 ~/.condor/tokens.d/*
+  cp /etc/condor/tokens-orig.d/* "$tmpd"/condor/tokens.d/
+  chmod 600 "$tmpd"/condor/tokens.d/*
 fi
 if [[ $passwords ]]; then
-  cp /etc/condor/passwords-orig.d/* ~/.condor/passwords.d/
-  chmod 600 ~/.condor/passwords.d/*
+  cp /etc/condor/passwords-orig.d/* "$tmpd"/condor/passwords.d/
+  chmod 600 "$tmpd"/condor/passwords.d/*
 fi
 
 if [[ $TOKEN ]]; then
   # token auth
-  echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
-  chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
+  echo "$TOKEN" >"$tmpd"/condor/tokens.d/flock.opensciencegrid.org
+  chmod 600 "$tmpd"/condor/tokens.d/flock.opensciencegrid.org
 fi
 
 # glorious hack
-if [[ -e ~/.condor/tokens.d/flock.opensciencegrid.org ]]; then
-  export _CONDOR_SEC_PASSWORD_FILE=~/.condor/tokens.d/flock.opensciencegrid.org
+if [[ -e $tmpd/condor/tokens.d/flock.opensciencegrid.org ]]; then
+  export _CONDOR_SEC_PASSWORD_FILE=$tmpd/condor/tokens.d/flock.opensciencegrid.org
 fi
-export _CONDOR_SEC_PASSWORD_DIRECTORY=~/.condor/passwords.d
+export _CONDOR_SEC_PASSWORD_DIRECTORY=$tmpd/condor/passwords.d
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
