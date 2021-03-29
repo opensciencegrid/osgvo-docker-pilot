@@ -29,14 +29,25 @@ RUN chmod 755 /usr/sbin/condor_master_wrapper
 COPY supervisord.conf /etc/supervisord.conf
 
 RUN yum -y install git \
- && yum clean all \
- && git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec
+ && git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
+ && cd /cvmfsexec \
+ && ./makedist osg \
+ # /cvmfs-cache and /cvmfs-logs is where the cache and logs will go; possibly bind-mounted. \
+ # Needs to be 1777 so the unpriv user can use it. \
+ # (Can't just chown, don't know the UID of the unpriv user.) \
+ && mkdir -p /cvmfs-cache /cvmfs-logs \
+ && chmod 1777 /cvmfs-cache /cvmfs-logs \
+ && rm -rf dist/var/lib/cvmfs log \
+ && ln -s /cvmfs-cache dist/var/lib/cvmfs \
+ && ln -s /cvmfs-logs log \
+ # tar up and delete the contents of /cvmfsexec so the unpriv user can extract it and own the files. \
+ && tar -czf /cvmfsexec.tar.gz ./* \
+ && rm -rf ./* \
+ # Again, needs to be 1777 so the unpriv user can extract into it. \
+ && chmod 1777 /cvmfsexec
 
 # Space separated list of repos to mount at startup (if using cvmfsexec)
 ENV CVMFSEXEC_REPOS=oasis.opensciencegrid.org
-
-# The distribution to download cvmfsexec data from
-ENV CVMFSEXEC_DIST=osg
 
 COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/

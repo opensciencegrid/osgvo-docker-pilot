@@ -5,21 +5,26 @@ fail () {
     exit 1
 }
 
-shopt -s nullglob
-cvmfs_mounts=(/cvmfs/*)
-if [[ -z $cvmfs_mounts && -n $CVMFSEXEC_REPOS && -n $CVMFSEXEC_DIST ]]; then
-    echo "No cvmfs mounts; using cvmfsexec to mount $CVMFSEXEC_REPOS"
-    # We need our own copy of cvmfsexec for permissions reasons.
-    cvmfsexec_root=/tmp/cvmfsexec-$(id -u)
-    if [[ ! -d $cvmfsexec_root ]]; then
-        echo "No cvmfsexec dir found for this user at $cvmfsexec_root; creating one"
-        cp -rp /cvmfsexec $cvmfsexec_root || fail "Couldn't create $cvmfsexec_root"
-        echo "Fetching $CVMFSEXEC_DIST CVMFS config"
-        $cvmfsexec_root/makedist $CVMFSEXEC_DIST || fail "Couldn't fetch CVMFS config"
-    fi
-    $cvmfsexec_root/cvmfsexec -- /bin/true || \
-        fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
-    exec $cvmfsexec_root/cvmfsexec $CVMFSEXEC_REPOS -- "$@"
-else
+cvmfsexec_root=/cvmfsexec
+cvmfsexec_tarball=/cvmfsexec.tar.gz
+
+if [[ -d /cvmfs/config-osg.opensciencegrid.org ]]; then
+    # OSG CVMFS already available (perhaps via bind-mount),
+    # no special action needed.
+    exec "$@"
+elif [[ -z $CVMFSEXEC_REPOS ]]; then
+    # No CVMFS repos requested, skipping cvmfsexec.
     exec "$@"
 fi
+
+cd "$cvmfsexec_root" || \
+    fail "Couldn't enter $cvmfsexec_root"
+if [[ ! -e $cvmfsexec_root/dist ]]; then
+    tar -xzf $cvmfsexec_tarball -C $cvmfsexec_root || \
+        fail "Couldn't extract $cvmfsexec_tarball into $cvmfsexec_root"
+fi
+
+$cvmfsexec_root/cvmfsexec -- /bin/true || \
+    fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
+
+exec $cvmfsexec_root/cvmfsexec $CVMFSEXEC_REPOS -- "$@"
