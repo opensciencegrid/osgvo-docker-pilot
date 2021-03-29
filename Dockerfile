@@ -49,6 +49,11 @@ RUN yum -y install git \
 # Space separated list of repos to mount at startup (if using cvmfsexec)
 ENV CVMFSEXEC_REPOS=oasis.opensciencegrid.org
 
+# The proxy to use for CVMFS; leave this blank to use the default
+ENV CVMFS_HTTP_PROXY=
+# The quota limit in MB for CVMFS; leave this blank to use the default
+ENV CVMFS_QUOTA_LIMIT=
+
 COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
