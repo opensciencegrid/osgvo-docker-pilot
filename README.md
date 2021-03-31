@@ -77,4 +77,80 @@ $ singularity build osgvo-pilot.sif docker://opensciencegrid/osgvo-docker-pilot
 ```
 
 
+## CVMFS Without a Bind-Mount Using cvmfsexec
+
+If you don't have CVMFS available on the host, the container can still make
+CVMFS available by using [cvmfsexec](https://github.com/cvmfs/cvmfsexec#readme).
+
+This will require a kernel version >= 3.10.0-1127 on an EL7-compatible host
+or >= 4.18 on an EL8-compatible host, or user namespaces enabled by hand --
+see the cvmfsexec README linked above for details.
+
+This will also require granting the container some additional privileges, which
+you can do in one of two ways:
+
+1.  Add `--privileged` to the `docker run` invocation.
+
+2.  Add
+    `--security-opt seccomp=unconfined --security-opt systempaths=unconfined --device=/dev/fuse`
+    to the `docker run` invocation.
+
+The second option will add only the minimum necessary privileges for cvmfsexec.
+
+Using cvmfsexec takes place in the entrypoint, which means it will still happen
+even if you specify a different command to run, such as `bash`.  You can bypass
+the entrypoint by passing `--entrypoint <cmd>` where `<cmd>` is some different
+command to run, e.g. `--entrypoint bash`.  Setting the entrypoint this way
+clears the command.
+
+There are several environment variables you can set for cvmfsexec:
+
+-   `NO_CVMFSEXEC` - set this to disable cvmfsexec.
+
+-   `CVMFSEXEC_REPOS` - this is a comma-separated list of CVMFS repos to mount, if using cvmfsexec.
+    Set this to blank to avoid using cvmfsexec, in which case you won't need to
+    add the above permissions to your container.  The default is to mount the
+    OASIS repo (oasis.opensciencegrid.org).
+
+-   `CVMFS_HTTP_PROXY` - this sets the proxy to use for CVMFS; leave this blank
+    to find the best one via wlcg-lpad.
+
+-   `CVMFS_QUOTA_LIMIT` - the quota limit in MB for CVMFS; leave this blank to
+    use the system default (4 GB)
+
+
+You can store the cache outside of the container by bind-mounting a directory
+to `/cvmfs-cache`.
+You can store the logs outside of the container by bind-mounting a directory to
+`/cvmfs-logs`.
+
+
+Here is an example invocation using a token for authentication, using cvmfsexec
+instead of bind-mounting `/cvmfs`, sending the cache to `/var/cache/cvmfsexec`
+and the logs to `/var/log/cvmfsexec`:
+
+```
+docker run -it --rm --user osg \
+       --cap-add=DAC_OVERRIDE --cap-add=SETUID --cap-add=SETGID \
+       --cap-add=CAP_DAC_READ_SEARCH \
+       --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
+       --security-opt seccomp=unconfined \
+       --security-opt systempaths=unconfined \
+       --device=/dev/fuse \
+       -v /var/cache/cvmfsexec:/cvmfsexec-cache \
+       -v /var/log/cvmfsexec:/cvmfsexec-logs \
+       -e TOKEN="..." \
+       -e GLIDEIN_Site="..." \
+       -e GLIDEIN_ResourceName="..." \
+       -e GLIDEIN_Start_Extra="True" \
+       -e OSG_SQUID_LOCATION="..." \
+       opensciencegrid/osgvo-docker-pilot:latest
+```
+
+
+If cvmfsexec does not have the required privileges, the container will fail.
+cvmfsexec will not be used if:
+- /cvmfs is already available via bind-mount
+- `CVMFSEXEC_REPOS` is empty
+- `NO_CVMFSEXEC` is set
 
