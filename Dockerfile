@@ -22,6 +22,9 @@ RUN useradd osg \
  && curl -s -o /usr/sbin/osgvo-node-advertise https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-node-advertise \
  && chmod 755 /usr/sbin/osgvo-user-job-wrapper /usr/sbin/osgvo-node-advertise
 
+COPY condor_master_wrapper /usr/sbin/
+RUN chmod 755 /usr/sbin/condor_master_wrapper
+
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
