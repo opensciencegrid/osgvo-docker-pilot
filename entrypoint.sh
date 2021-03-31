@@ -10,11 +10,14 @@ cvmfsexec_tarball=/cvmfsexec.tar.gz
 cvmfsexec_local_config=$cvmfsexec_root/dist/etc/cvmfs/default.local
 
 if [[ -d /cvmfs/config-osg.opensciencegrid.org ]]; then
-    # OSG CVMFS already available (perhaps via bind-mount),
-    # no special action needed.
+    echo "OSG CVMFS already available (perhaps via bind-mount),"
+    echo "skipping cvmfsexec."
     exec "$@"
 elif [[ -z $CVMFSEXEC_REPOS ]]; then
-    # No CVMFS repos requested, skipping cvmfsexec.
+    echo "No CVMFS repos requested, skipping cvmfsexec."
+    exec "$@"
+elif [[ -n $NO_CVMFSEXEC ]]; then
+    echo "cvmfsexec explicitly disabled."
     exec "$@"
 fi
 

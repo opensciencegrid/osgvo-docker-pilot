@@ -46,9 +46,10 @@ RUN yum -y install git \
  # Again, needs to be 1777 so the unpriv user can extract into it. \
  && chmod 1777 /cvmfsexec
 
+# Set this to turn off cvmfsexec
+ENV NO_CVMFSEXEC=
 # Space separated list of repos to mount at startup (if using cvmfsexec)
 ENV CVMFSEXEC_REPOS=oasis.opensciencegrid.org
-
 # The proxy to use for CVMFS; leave this blank to use the default
 ENV CVMFS_HTTP_PROXY=
 # The quota limit in MB for CVMFS; leave this blank to use the default
