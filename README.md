@@ -82,8 +82,8 @@ $ singularity build osgvo-pilot.sif docker://opensciencegrid/osgvo-docker-pilot
 If you don't have CVMFS available on the host, the container can still make
 CVMFS available by using [cvmfsexec](https://github.com/cvmfs/cvmfsexec#readme).
 
-This will require a kernel version >= 3.10.0-1127 on an EL7-compatible host
-or >= 4.18 on an EL8-compatible host, or user namespaces enabled by hand --
+This will require a kernel version >= 3.10.0-1127 on an EL7-compatible host with user namespaces enabled
+or >= 4.18 on an EL8-compatible host --
 see the cvmfsexec README linked above for details.
 
 This will also require granting the container some additional privileges, which
@@ -95,7 +95,7 @@ you can do in one of two ways:
     `--security-opt seccomp=unconfined --security-opt systempaths=unconfined --device=/dev/fuse`
     to the `docker run` invocation.
 
-The second option will add only the minimum necessary privileges for cvmfsexec.
+The second option will add only the minimum necessary privileges for cvmfsexec.  You can add additional security to that option by also adding `--security-opt no-new-privileges`.
 
 Using cvmfsexec takes place in the entrypoint, which means it will still happen
 even if you specify a different command to run, such as `bash`.  You can bypass
@@ -105,15 +105,15 @@ clears the command.
 
 There are several environment variables you can set for cvmfsexec:
 
--   `NO_CVMFSEXEC` - set this to disable cvmfsexec.
+-   `NO_CVMFSEXEC` - set this to any non-empty value to disable cvmfsexec.
 
 -   `CVMFSEXEC_REPOS` - this is a comma-separated list of CVMFS repos to mount, if using cvmfsexec.
     Set this to blank to avoid using cvmfsexec, in which case you won't need to
     add the above permissions to your container.  The default is to mount the
     OASIS repo (oasis.opensciencegrid.org).
 
--   `CVMFS_HTTP_PROXY` - this sets the proxy to use for CVMFS; leave this blank
-    to find the best one via wlcg-lpad.
+-   `CVMFS_HTTP_PROXY` - this sets the proxy to use for CVMFS; if left blank
+    it will find the best one via WLCG Web Proxy Auto Discovery.
 
 -   `CVMFS_QUOTA_LIMIT` - the quota limit in MB for CVMFS; leave this blank to
     use the system default (4 GB)
@@ -153,4 +153,3 @@ cvmfsexec will not be used if:
 - /cvmfs is already available via bind-mount
 - `CVMFSEXEC_REPOS` is empty
 - `NO_CVMFSEXEC` is set
-
