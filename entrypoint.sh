@@ -16,9 +16,6 @@ if [[ -d /cvmfs/config-osg.opensciencegrid.org ]]; then
 elif [[ -z $CVMFSEXEC_REPOS ]]; then
     echo "No CVMFS repos requested, skipping cvmfsexec."
     exec "$@"
-elif [[ -n $NO_CVMFSEXEC ]]; then
-    echo "cvmfsexec explicitly disabled."
-    exec "$@"
 fi
 
 cd "$cvmfsexec_root" || \
