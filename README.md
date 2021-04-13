@@ -17,6 +17,13 @@ In order to successfully start payload jobs:
 5. Optional: add to the START expression with `GLIDEIN_Start_Extra`. This is useful to limit
    the pilot to only run certain jobs.
 
+In addition, you will be able to run more OSG jobs if you provide CVMFS.  You can do this
+in two ways:
+
+1. Mount CVMFS on the host and bind-mount it into the container by adding `-v /cvmfs:/cvmfs`.
+   This is the preferred mechanism.
+2. Use cvmfsexec as described in [the cvmfsexec section below](#cvmfs-without-a-bind-mount-using-cvmfsexec).
+
 Example invocation utilizing a token for authentication:
 
 ```
