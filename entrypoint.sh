@@ -40,6 +40,10 @@ add_or_replace () {
     fi
 }
 
+if [[ -e /cvmfsexec/default.local ]]; then
+    cp -f /cvmfsexec/default.local "$cvmfsexec_local_config"
+fi
+
 if [[ -n $CVMFS_HTTP_PROXY ]]; then
     add_or_replace "$cvmfsexec_local_config" CVMFS_HTTP_PROXY "${CVMFS_HTTP_PROXY}"
 fi
