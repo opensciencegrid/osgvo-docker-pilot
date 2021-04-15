@@ -140,6 +140,9 @@ There are several environment variables you can set for cvmfsexec:
 -   `CVMFS_QUOTA_LIMIT` - the quota limit in MB for CVMFS; leave this blank to
     use the system default (4 GB)
 
+You can add other CVMFS options by bind-mounting a config file over
+`/cvmfsexec/default.local`; note that options in environment variables are preferred
+over options in `/cvmfsexec/default.local`.
 
 You can store the cache outside of the container by bind-mounting a directory
 to `/cvmfs-cache`.
