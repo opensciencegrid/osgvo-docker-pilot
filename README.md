@@ -20,16 +20,19 @@ In order to successfully start payload jobs:
 In addition, you will be able to run more OSG jobs if you provide CVMFS.  You can do this
 in two ways:
 
-1. Mount CVMFS on the host and bind-mount it into the container by adding `-v /cvmfs:/cvmfs`.
+1. Mount CVMFS on the host and bind-mount it into the container by adding `-v /cvmfs:/cvmfs:shared`.
    This is the preferred mechanism.
 2. Use cvmfsexec as described in [the cvmfsexec section below](#cvmfs-without-a-bind-mount-using-cvmfsexec).
+
+Note: Supporting Singularity jobs inside the container will require the capabilities
+DAC_OVERRIDE, DAC_READ_SEARCH, SETGID, SETUID, SYS_ADMIN, SYS_CHROOT, and SYS_PTRACE.
 
 Example invocation utilizing a token for authentication:
 
 ```
 docker run -it --rm --user osg \
        --cap-add=DAC_OVERRIDE --cap-add=SETUID --cap-add=SETGID \
-       --cap-add=CAP_DAC_READ_SEARCH \
+       --cap-add=DAC_READ_SEARCH \
        --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
        -v /cvmfs:/cvmfs:shared \
        -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
@@ -104,8 +107,16 @@ you can do in one of two ways:
     `--security-opt seccomp=unconfined --security-opt systempaths=unconfined --device=/dev/fuse`
     to the `docker run` invocation.
 
-The second option will add only the minimum necessary privileges for cvmfsexec.
-You can add additional security to that option by also adding `--security-opt no-new-privileges`.
+The first option is simpler and does not require unprivileged user namespaces
+to be enabled, but adds more privileges to the container.
+Using `--privileged` also adds the capabilities listed below for running
+Singularity jobs.
+
+The second option will add only the minimum necessary privileges for cvmfsexec,
+but requires unprivileged user namespaces to be enabled.
+You can add additional security to the second option by also adding
+`--security-opt no-new-privileges`.
+
 If cvmfsexec does not have the required privileges, the container will fail.
 
 Note that cvmfsexec will not be run if CVMFS repos are already available in
@@ -135,22 +146,25 @@ to `/cvmfs-cache`.
 You can store the logs outside of the container by bind-mounting a directory to
 `/cvmfs-logs`.
 
+Note: Supporting Singularity jobs inside the container will require the capabilities
+DAC_OVERRIDE, DAC_READ_SEARCH, SETGID, SETUID, SYS_ADMIN, SYS_CHROOT, and SYS_PTRACE.
 
 Here is an example invocation using a token for authentication, using cvmfsexec
 to mount the OASIS repos instead of bind-mounting `/cvmfs`, sending the cache
-to `/var/cache/cvmfsexec` and the logs to `/var/log/cvmfsexec`:
+to `/var/cache/cvmfsexec` and the logs to `/var/log/cvmfsexec`,
+and adding support for Singularity jobs:
 
 ```
 docker run -it --rm --user osg \
        --cap-add=DAC_OVERRIDE --cap-add=SETUID --cap-add=SETGID \
-       --cap-add=CAP_DAC_READ_SEARCH \
+       --cap-add=DAC_READ_SEARCH \
        --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
        --security-opt seccomp=unconfined \
        --security-opt systempaths=unconfined \
        --device=/dev/fuse \
        -v /var/cache/cvmfsexec:/cvmfsexec-cache \
        -v /var/log/cvmfsexec:/cvmfsexec-logs \
-       -e TOKEN="..." \
+       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
        -e GLIDEIN_Site="..." \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
