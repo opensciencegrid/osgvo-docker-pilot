@@ -45,7 +45,7 @@ export _CONDOR_SEC_PASSWORD_DIRECTORY=~/.condor/passwords.d
 # pick one ccb port and stick with it for the lifetime of the glidein
 CCB_PORT=$(python -S -c "import random; print random.randrange(9700,9899)")
 LOCAL_DIR="/tmp/osgvo-pilot-$RANDOM"
-NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
+NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(uuidgen)"
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
