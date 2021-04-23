@@ -98,27 +98,6 @@ This will require a kernel version >= 3.10.0-1127 on an EL7-compatible host
 with user namespaces enabled or >= 4.18 on an EL8-compatible host --
 see the cvmfsexec README linked above for details.
 
-This will also require granting the container some additional privileges, which
-you can do in one of two ways:
-
-1.  Add `--privileged` to the `docker run` invocation.
-
-2.  Add
-    `--security-opt seccomp=unconfined --security-opt systempaths=unconfined --device=/dev/fuse`
-    to the `docker run` invocation.
-
-The first option is simpler and does not require unprivileged user namespaces
-to be enabled, but adds more privileges to the container.
-Using `--privileged` also adds the capabilities listed below for running
-Singularity jobs.
-
-The second option will add only the minimum necessary privileges for cvmfsexec,
-but requires unprivileged user namespaces to be enabled.
-You can add additional security to the second option by also adding
-`--security-opt no-new-privileges`.
-
-If cvmfsexec does not have the required privileges, the container will fail.
-
 Note that cvmfsexec will not be run if CVMFS repos are already available in
 `/cvmfs` via bind-mount.
 
@@ -149,8 +128,7 @@ to `/cvmfs-cache`.
 You can store the logs outside of the container by bind-mounting a directory to
 `/cvmfs-logs`.
 
-Note: Supporting Singularity jobs inside the container will require the capabilities
-DAC_OVERRIDE, DAC_READ_SEARCH, SETGID, SETUID, SYS_ADMIN, SYS_CHROOT, and SYS_PTRACE.
+cvmfsexec requires the additional option `--device=/dev/fuse`.
 
 Here is an example invocation using a token for authentication, using cvmfsexec
 to mount the OASIS repos instead of bind-mounting `/cvmfs`, sending the cache
@@ -162,8 +140,6 @@ docker run -it --rm --user osg \
        --cap-add=DAC_OVERRIDE --cap-add=SETUID --cap-add=SETGID \
        --cap-add=DAC_READ_SEARCH \
        --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
-       --security-opt seccomp=unconfined \
-       --security-opt systempaths=unconfined \
        --device=/dev/fuse \
        -v /var/cache/cvmfsexec:/cvmfsexec-cache \
        -v /var/log/cvmfsexec:/cvmfsexec-logs \
