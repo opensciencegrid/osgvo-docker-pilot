@@ -9,6 +9,7 @@ fi
 
 # validation
 if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
+   [[ ! -e /etc/condor/tokens-orig.d/flock.opensciencegrid.org ]] &&
    [[ ! $TOKEN ]]; then
     { echo "Please provide /etc/condor/tokens-orig.d/flock.opensciencegrid.org"
       echo "via volume mount."
