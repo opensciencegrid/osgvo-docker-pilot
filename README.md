@@ -112,7 +112,8 @@ There are several environment variables you can set for cvmfsexec:
 
 -   `CVMFSEXEC_REPOS` - this is a comma-separated list of CVMFS repos to mount,
     if using cvmfsexec; leave this blank to disable cvmfsexec.
-    OSG jobs frequently use the OASIS repo (`oasis.opensciencegrid.org`).
+    OSG jobs frequently use the OASIS repo (`oasis.opensciencegrid.org`) and
+    the singularity repo (`singularity.opensciencegrid.org`).
 
 -   `CVMFS_HTTP_PROXY` - this sets the proxy to use for CVMFS; if left blank
     it will find the best one via WLCG Web Proxy Auto Discovery.
@@ -132,9 +133,9 @@ You can store the logs outside of the container by bind-mounting a directory to
 cvmfsexec requires the additional option `--device=/dev/fuse`.
 
 Here is an example invocation using a token for authentication, using cvmfsexec
-to mount the OASIS repos instead of bind-mounting `/cvmfs`, sending the cache
-to `/var/cache/cvmfsexec` and the logs to `/var/log/cvmfsexec`,
-and adding support for Singularity jobs:
+to mount the OASIS and singularity repos instead of bind-mounting `/cvmfs`,
+sending the cache to `/var/cache/cvmfsexec` and the logs to
+`/var/log/cvmfsexec`, and adding support for Singularity jobs:
 
 ```
 docker run -it --rm --user osg \
@@ -149,7 +150,7 @@ docker run -it --rm --user osg \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
        -e OSG_SQUID_LOCATION="..." \
-       -e CVMFSEXEC_REPOS=oasis.opensciencegrid.org \
+       -e CVMFSEXEC_REPOS="oasis.opensciencegrid.org singularity.opensciencegrid.org" \
        opensciencegrid/osgvo-docker-pilot:latest
 ```
 
