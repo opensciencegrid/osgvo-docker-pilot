@@ -38,6 +38,7 @@ tmpd=$(mktemp -d)
 mkdir -p "$tmpd"/condor/tokens.d
 mkdir -p "$tmpd"/condor/passwords.d
 chmod 700 "$tmpd"/condor/passwords.d
+ln -s "$tmpd"/condor ~/.condor
 
 shopt -s nullglob
 tokens=( /etc/condor/tokens-orig.d/* )
