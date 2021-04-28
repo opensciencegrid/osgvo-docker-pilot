@@ -38,7 +38,6 @@ tmpd=$(mktemp -d)
 mkdir -p "$tmpd"/condor/tokens.d
 mkdir -p "$tmpd"/condor/passwords.d
 chmod 700 "$tmpd"/condor/passwords.d
-ln -s "$tmpd"/condor ~/.condor
 
 shopt -s nullglob
 tokens=( /etc/condor/tokens-orig.d/* )
@@ -63,6 +62,7 @@ fi
 # glorious hack
 export _CONDOR_SEC_PASSWORD_FILE=$tmpd/condor/tokens.d/flock.opensciencegrid.org
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$tmpd/condor/passwords.d
+export _CONDOR_SEC_TOKEN_DIRECTORY=$tmpd/condor/tokens.d
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
