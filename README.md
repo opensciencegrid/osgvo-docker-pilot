@@ -27,7 +27,7 @@ in two ways:
 Note: Supporting Singularity jobs inside the container will require the capabilities
 DAC_OVERRIDE, DAC_READ_SEARCH, SETGID, SETUID, SYS_ADMIN, SYS_CHROOT, and SYS_PTRACE.
 
-Example invocation utilizing a token for authentication:
+Example invocation utilizing a token for authentication and bind-mounting CVMFS:
 
 ```
 docker run -it --rm --user osg \
@@ -94,9 +94,10 @@ CVMFS available by using [cvmfsexec](https://github.com/cvmfs/cvmfsexec#readme).
 
 You will need to specify a list of CVMFS repos to mount in the environment
 variable `CVMFSEXEC_REPOS`.
-This will require a kernel version >= 3.10.0-1127 on an EL7-compatible host
-with user namespaces enabled or >= 4.18 on an EL8-compatible host --
-see the cvmfsexec README linked above for details.
+
+On EL7, you must have kernel version >= 3.10.0-1127 (run `rpm -q kernel` to check),
+and user namespaces enabled.  On EL8, you must have kernel version >= 4.18.
+See the cvmfsexec README linked above for details.
 
 Note that cvmfsexec will not be run if CVMFS repos are already available in
 `/cvmfs` via bind-mount.
