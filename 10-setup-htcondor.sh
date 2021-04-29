@@ -62,7 +62,6 @@ fi
 # glorious hack
 export _CONDOR_SEC_PASSWORD_FILE=$tmpd/condor/tokens.d/flock.opensciencegrid.org
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$tmpd/condor/passwords.d
-export _CONDOR_SEC_TOKEN_DIRECTORY=$tmpd/condor/tokens.d
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
@@ -77,6 +76,8 @@ mkdir -p $LOCAL_DIR
 cat >$PILOT_CONFIG_FILE <<EOF
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
+
+SEC_TOKEN_DIRECTORY = $tmpd/condor/tokens.d
 
 # random, but static port for the lifetime of the glidein
 CCB_ADDRESS = \$(CONDOR_HOST):$CCB_PORT
