@@ -25,7 +25,7 @@ if [[ ! -e $cvmfsexec_root/dist ]]; then
         fail "Couldn't extract $cvmfsexec_tarball into $cvmfsexec_root"
 fi
 
-$cvmfsexec_root/cvmfsexec -- /bin/true || \
+$cvmfsexec_root/cvmfsexec -N -- /bin/true || \
     fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
 
 add_or_replace () {
@@ -53,4 +53,4 @@ if [[ -n $CVMFS_QUOTA_LIMIT ]]; then
 fi
 
 
-exec $cvmfsexec_root/cvmfsexec $CVMFSEXEC_REPOS -- "$@"
+exec $cvmfsexec_root/cvmfsexec -N $CVMFSEXEC_REPOS -- "$@"
