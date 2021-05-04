@@ -8,8 +8,12 @@ if [ `id -u` = 0 ]; then
 fi
 
 # validation
-if [ "x$TOKEN" = "x" ]; then
-    echo "Please specify TOKEN as an environment variable" 1>&2
+if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
+   [[ ! -e /etc/condor/tokens-orig.d/flock.opensciencegrid.org ]] &&
+   [[ ! $TOKEN ]]; then
+    { echo "Please provide /etc/condor/tokens-orig.d/flock.opensciencegrid.org"
+      echo "via volume mount."
+    } 1>&2
     exit 1
 fi
 if [ "x$GLIDEIN_Site" = "x" ]; then
@@ -30,30 +34,48 @@ if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
 
-# token auth
-mkdir -p ~/.condor/tokens.d
-echo "$TOKEN" >~/.condor/tokens.d/flock.opensciencegrid.org
-chmod 600 ~/.condor/tokens.d/flock.opensciencegrid.org
-mkdir -p ~/.condor/passwords.d
-chmod 700 ~/.condor/passwords.d
+LOCAL_DIR=$(mktemp -d /tmp/osgvo-pilot-XXXXXX)
+mkdir -p "$LOCAL_DIR"/condor/tokens.d
+mkdir -p "$LOCAL_DIR"/condor/passwords.d
+chmod 700 "$LOCAL_DIR"/condor/passwords.d
+
+shopt -s nullglob
+tokens=( /etc/condor/tokens-orig.d/* )
+passwords=( /etc/condor/passwords-orig.d/* )
+shopt -u nullglob
+
+if [[ $tokens ]]; then
+  cp /etc/condor/tokens-orig.d/* "$LOCAL_DIR"/condor/tokens.d/
+  chmod 600 "$LOCAL_DIR"/condor/tokens.d/*
+fi
+if [[ $passwords ]]; then
+  cp /etc/condor/passwords-orig.d/* "$LOCAL_DIR"/condor/passwords.d/
+  chmod 600 "$LOCAL_DIR"/condor/passwords.d/*
+fi
+
+if [[ $TOKEN ]]; then
+  # token auth
+  echo "$TOKEN" >"$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org
+  chmod 600 "$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org
+fi
 
 # glorious hack
-export _CONDOR_SEC_PASSWORD_FILE=~/.condor/tokens.d/flock.opensciencegrid.org
-export _CONDOR_SEC_PASSWORD_DIRECTORY=~/.condor/passwords.d
+export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegrid.org
+export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
 CCB_PORT=$(python -S -c "import random; print random.randrange(9700,9899)")
-LOCAL_DIR="/tmp/osgvo-pilot-$RANDOM"
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
-mkdir -p $LOCAL_DIR
 cat >$PILOT_CONFIG_FILE <<EOF
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
+
+SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
 # random, but static port for the lifetime of the glidein
 CCB_ADDRESS = \$(CONDOR_HOST):$CCB_PORT
@@ -101,4 +123,7 @@ mkdir -p `condor_config_val SPOOL`
 mkdir -p `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 chmod 600 `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 
-
+echo
+echo "Will use the following token(s):"
+condor_token_list
+echo

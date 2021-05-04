@@ -8,7 +8,7 @@ flock pool.
 In order to successfully start payload jobs:
 
 1. Configure authentication. OSGVO administrators can provide the token, which you can then
-   pass to the container via the `TOKEN` environment variable.
+   pass to the container by volume mounting it as a file under /etc/condor/tokens-orig.d/.
 2. Set `GLIDEIN_Site` and `GLIDEIN_ResourceName` so that you get credit for the shared cycles.
 3. Set the `OSG_SQUID_LOCATION` environment variable to the HTTP address to a valid Squid location.
 4. Optional: Pick a directory where jobs can do I/O, and map it to /tmp inside with `-v /somelocaldir:/tmp`
@@ -24,7 +24,7 @@ docker run -it --rm --user osg \
        --cap-add=CAP_DAC_READ_SEARCH \
        --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
        -v /cvmfs:/cvmfs:shared \
-       -e TOKEN="..." \
+       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
        -e GLIDEIN_Site="..." \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
