@@ -124,7 +124,6 @@ mkdir -p `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 chmod 600 `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 
 echo
-echo "Will use the following token:"
+echo "Will use the following token(s):"
 condor_token_list
 echo
-
