@@ -34,7 +34,7 @@ if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
 
-LOCAL_DIR=$(mktemp -d)
+LOCAL_DIR=$(mktemp -d /tmp/osgvo-pilot-XXXXXX)
 mkdir -p "$LOCAL_DIR"/condor/tokens.d
 mkdir -p "$LOCAL_DIR"/condor/passwords.d
 chmod 700 "$LOCAL_DIR"/condor/passwords.d
