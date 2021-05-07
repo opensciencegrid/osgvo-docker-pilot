@@ -65,7 +65,13 @@ export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
 # extra HTCondor config
 # pick one ccb port and stick with it for the lifetime of the glidein
-CCB_PORT=$(python -S -c "import random; print random.randrange(9700,9899)")
+if [ "x$CCB_RANGE_LOW" = "x" ]; then
+    export CCB_RANGE_LOW=9700
+fi
+if [ "x$CCB_RANGE_HIGH" = "x" ]; then
+    export CCB_RANGE_LOW=9899
+fi
+CCB_PORT=$(python -S -c "import random; print random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1)")
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
