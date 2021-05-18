@@ -34,4 +34,6 @@ COPY 50-main.config /etc/condor/config.d/
  
 RUN chown -R osg: ~osg 
 
-WORKDIR /tmp
+RUN mkdir -p /pilot && chmod 1777 /pilot
+
+WORKDIR /pilot
