@@ -11,7 +11,8 @@ In order to successfully start payload jobs:
    pass to the container by volume mounting it as a file under /etc/condor/tokens-orig.d/.
 2. Set `GLIDEIN_Site` and `GLIDEIN_ResourceName` so that you get credit for the shared cycles.
 3. Set the `OSG_SQUID_LOCATION` environment variable to the HTTP address to a valid Squid location.
-4. Optional: Pick a directory where jobs can do I/O, and map it to /tmp inside with `-v /somelocaldir:/tmp`
+4. Optional: Pick a directory where jobs can do I/O, and map it to `/pilot` inside with
+   `-v /somelocaldir:/pilot`
    This is only required if you do not want the I/O inside the container instance.
 5. Optional: add to the START expression with `GLIDEIN_Start_Extra`. This is useful to limit
    the pilot to only run certain jobs.
@@ -63,7 +64,7 @@ export GLIDEIN_ResourceName="Comet"
 export GLIDEIN_Start_Extra="Owner == \"my_osgconnect_username\""
 
 module load singularity
-singularity run --contain --bind /cvmfs docker://opensciencegrid/osgvo-docker-pilot
+singularity run --contain --bind /cvmfs --scratch /pilot docker://opensciencegrid/osgvo-docker-pilot
 
 ```
 
