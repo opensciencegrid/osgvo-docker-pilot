@@ -35,7 +35,7 @@ docker run -it --rm --user osg \
        --cap-add=DAC_READ_SEARCH \
        --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
        -v /cvmfs:/cvmfs:shared \
-       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
+       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
        -e GLIDEIN_Site="..." \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
@@ -147,7 +147,7 @@ docker run -it --rm --user osg \
        --security-opt=seccomp=unconfined \
        -v /var/cache/cvmfsexec:/cvmfsexec-cache \
        -v /var/log/cvmfsexec:/cvmfsexec-logs \
-       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
+       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
        -e GLIDEIN_Site="..." \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
@@ -155,4 +155,3 @@ docker run -it --rm --user osg \
        -e CVMFSEXEC_REPOS="oasis.opensciencegrid.org singularity.opensciencegrid.org" \
        opensciencegrid/osgvo-docker-pilot:latest
 ```
-
