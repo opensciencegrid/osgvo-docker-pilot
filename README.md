@@ -136,7 +136,7 @@ You can store the logs outside of the container by bind-mounting a directory to
 
 cvmfsexec requires the additional options `--device=/dev/fuse` and
 `--security-opt=seccomp=unconfined`.  Supporting Singularity jobs when using
-cvmfsexec requires privileged containers (`--privileged`).
+cvmfsexec requires privileged containers (`--privileged`).  Using privileged containers avoids the need for those two additional options and all the `--cap-add` options without adding much risk so it is recommended.
 
 The following example invocation will:
 -   Use a token for authentication
