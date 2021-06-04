@@ -131,7 +131,8 @@ You can store the logs outside of the container by bind-mounting a directory to
 `/cvmfs-logs`.
 
 cvmfsexec requires the additional options `--device=/dev/fuse` and
-(for Docker) `--security-opt=seccomp=unconfined`.
+(for Docker) `--security-opt=seccomp=unconfined`.  Supporting Singularity
+jobs when using cvmfsexec requires privileged containers (`--privileged`).
 
 Here is an example invocation using a token for authentication, using cvmfsexec
 to mount the OASIS and singularity repos instead of bind-mounting `/cvmfs`,
@@ -140,11 +141,7 @@ sending the cache to `/var/cache/cvmfsexec` and the logs to
 
 ```
 docker run -it --rm --user osg \
-       --cap-add=DAC_OVERRIDE --cap-add=SETUID --cap-add=SETGID \
-       --cap-add=DAC_READ_SEARCH \
-       --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
-       --device=/dev/fuse \
-       --security-opt=seccomp=unconfined \
+       --privileged
        -v /var/cache/cvmfsexec:/cvmfsexec-cache \
        -v /var/log/cvmfsexec:/cvmfsexec-logs \
        -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
