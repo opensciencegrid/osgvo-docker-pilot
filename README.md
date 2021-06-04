@@ -17,15 +17,25 @@ In order to successfully start payload jobs:
 5. Optional: add to the START expression with `GLIDEIN_Start_Extra`. This is useful to limit
    the pilot to only run certain jobs.
 
-Example invocation utilizing a token for authentication:
+In addition, you will be able to run more OSG jobs if you provide CVMFS.  You can do this
+in two ways:
+
+1. Mount CVMFS on the host and bind-mount it into the container by adding `-v /cvmfs:/cvmfs:shared`.
+   This is the preferred mechanism.
+2. Use cvmfsexec as described in [the cvmfsexec section below](#cvmfs-without-a-bind-mount-using-cvmfsexec).
+
+Note: Supporting Singularity jobs inside the container will require the capabilities
+`DAC_OVERRIDE`, `DAC_READ_SEARCH`, `SETGID`, `SETUID`, `SYS_ADMIN`, `SYS_CHROOT`, and `SYS_PTRACE`.
+
+Example invocation utilizing a token for authentication and bind-mounting CVMFS:
 
 ```
 docker run -it --rm --user osg \
        --cap-add=DAC_OVERRIDE --cap-add=SETUID --cap-add=SETGID \
-       --cap-add=CAP_DAC_READ_SEARCH \
+       --cap-add=DAC_READ_SEARCH \
        --cap-add=SYS_ADMIN --cap-add=SYS_CHROOT --cap-add=SYS_PTRACE \
        -v /cvmfs:/cvmfs:shared \
-       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
+       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
        -e GLIDEIN_Site="..." \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
@@ -77,4 +87,76 @@ $ singularity build osgvo-pilot.sif docker://opensciencegrid/osgvo-docker-pilot
 ```
 
 
+## CVMFS Without a Bind-Mount Using cvmfsexec
 
+If you don't have CVMFS available on the host, the container can still make
+CVMFS available by using [cvmfsexec](https://github.com/cvmfs/cvmfsexec#readme).
+
+You will need to specify a list of CVMFS repos to mount in the environment
+variable `CVMFSEXEC_REPOS`.
+
+On EL7, you must have kernel version >= 3.10.0-1127 (run `rpm -q kernel` to check),
+and user namespaces enabled.  See step 1 in the
+[Singularity Install document](https://opensciencegrid.org/docs/worker-node/install-singularity/#enabling-unprivileged-singularity)
+for details.
+
+On EL8, you must have kernel version >= 4.18.
+See the [cvmfsexec README](https://github.com/cvmfs/cvmfsexec#readme) details.
+
+Note that cvmfsexec will not be run if CVMFS repos are already available in
+`/cvmfs` via bind-mount.
+
+Using cvmfsexec takes place in the entrypoint, which means it will still happen
+even if you specify a different command to run, such as `bash`.  You can bypass
+the entrypoint by passing `--entrypoint <cmd>` where `<cmd>` is some different
+command to run, e.g. `--entrypoint bash`.  Setting the entrypoint this way
+clears the command.
+
+There are several environment variables you can set for cvmfsexec:
+
+-   `CVMFSEXEC_REPOS` - this is a comma-separated list of CVMFS repos to mount,
+    if using cvmfsexec; leave this blank to disable cvmfsexec.
+    OSG jobs frequently use the OASIS repo (`oasis.opensciencegrid.org`) and
+    the singularity repo (`singularity.opensciencegrid.org`).
+
+-   `CVMFS_HTTP_PROXY` - this sets the proxy to use for CVMFS; if left blank
+    it will find the best one via WLCG Web Proxy Auto Discovery.
+
+-   `CVMFS_QUOTA_LIMIT` - the quota limit in MB for CVMFS; leave this blank to
+    use the system default (4 GB)
+
+You can add other CVMFS options by bind-mounting a config file over
+`/cvmfsexec/default.local`; note that options in environment variables are preferred
+over options in `/cvmfsexec/default.local`.
+
+You can store the cache outside of the container by bind-mounting a directory
+to `/cvmfs-cache`.
+You can store the logs outside of the container by bind-mounting a directory to
+`/cvmfs-logs`.
+
+cvmfsexec requires the additional options `--device=/dev/fuse` and
+`--security-opt=seccomp=unconfined`.  Supporting Singularity jobs when using
+cvmfsexec requires privileged containers (`--privileged`).  Using privileged
+containers avoids the need for those two additional options and all the
+`--cap-add` options without adding much risk, so it is recommended.
+
+The following example invocation will:
+-   Use a token for authentication
+-   Use cvmfsexec to mount the OASIS and Singularity CVMFS repos
+-   Use `/var/cache/cvmfsexec` on the host for the CVMFS cache
+-   Use `/var/log/cvmfsexec` on the host for the CVMFS logs
+-   Support Singularity jobs
+
+```
+docker run -it --rm --user osg \
+       --privileged
+       -v /var/cache/cvmfsexec:/cvmfsexec-cache \
+       -v /var/log/cvmfsexec:/cvmfsexec-logs \
+       -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
+       -e GLIDEIN_Site="..." \
+       -e GLIDEIN_ResourceName="..." \
+       -e GLIDEIN_Start_Extra="True" \
+       -e OSG_SQUID_LOCATION="..." \
+       -e CVMFSEXEC_REPOS="oasis.opensciencegrid.org singularity.opensciencegrid.org" \
+       opensciencegrid/osgvo-docker-pilot:latest
+```
