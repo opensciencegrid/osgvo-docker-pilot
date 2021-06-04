@@ -66,6 +66,7 @@ RUN chown -R osg: ~osg
 RUN mkdir -p /pilot && chmod 1777 /pilot
 
 WORKDIR /pilot
+# We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)
 ENTRYPOINT ["/bin/entrypoint.sh"]
 # Adding ENTRYPOINT clears CMD
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
