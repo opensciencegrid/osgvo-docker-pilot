@@ -96,7 +96,11 @@ You will need to specify a list of CVMFS repos to mount in the environment
 variable `CVMFSEXEC_REPOS`.
 
 On EL7, you must have kernel version >= 3.10.0-1127 (run `rpm -q kernel` to check),
-and user namespaces enabled.  On EL8, you must have kernel version >= 4.18.
+and user namespaces enabled.  See step 1 in the
+[Singularity Install document](https://opensciencegrid.org/docs/worker-node/install-singularity/#enabling-unprivileged-singularity)
+for details.
+
+On EL8, you must have kernel version >= 4.18.
 See the [cvmfsexec README](https://github.com/cvmfs/cvmfsexec#readme) details.
 
 Note that cvmfsexec will not be run if CVMFS repos are already available in
