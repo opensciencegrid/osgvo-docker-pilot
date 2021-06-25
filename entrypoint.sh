@@ -9,6 +9,9 @@ cvmfsexec_root=/cvmfsexec
 cvmfsexec_tarball=/cvmfsexec.tar.gz
 cvmfsexec_local_config=$cvmfsexec_root/dist/etc/cvmfs/default.local
 
+# Delete any whitespace in CVMFSEXEC_REPOS
+CVMFSEXEC_REPOS=$(tr -d $' \t\n' <<<"$CMFSEXEC_REPOS")
+
 if [[ -d /cvmfs/config-osg.opensciencegrid.org ]]; then
     echo "OSG CVMFS already available (perhaps via bind-mount),"
     echo "skipping cvmfsexec."
