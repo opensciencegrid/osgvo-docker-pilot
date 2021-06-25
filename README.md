@@ -149,7 +149,7 @@ The following example invocation will:
 
 ```
 docker run -it --rm --user osg \
-       --privileged
+       --privileged \
        -v /var/cache/cvmfsexec:/cvmfsexec-cache \
        -v /var/log/cvmfsexec:/cvmfsexec-logs \
        -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
