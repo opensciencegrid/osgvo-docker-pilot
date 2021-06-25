@@ -40,7 +40,7 @@ docker run -it --rm --user osg \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
        -e OSG_SQUID_LOCATION="..." \
-       opensciencegrid/osgvo-docker-pilot:latest
+       opensciencegrid/osgvo-docker-pilot:release
 ```
 
 ## Singularity / Bring Your Own Resources
@@ -149,7 +149,7 @@ The following example invocation will:
 
 ```
 docker run -it --rm --user osg \
-       --privileged
+       --privileged \
        -v /var/cache/cvmfsexec:/cvmfsexec-cache \
        -v /var/log/cvmfsexec:/cvmfsexec-logs \
        -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
@@ -158,5 +158,5 @@ docker run -it --rm --user osg \
        -e GLIDEIN_Start_Extra="True" \
        -e OSG_SQUID_LOCATION="..." \
        -e CVMFSEXEC_REPOS="oasis.opensciencegrid.org singularity.opensciencegrid.org" \
-       opensciencegrid/osgvo-docker-pilot:latest
+       opensciencegrid/osgvo-docker-pilot:release
 ```
