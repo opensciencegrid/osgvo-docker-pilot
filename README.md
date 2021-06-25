@@ -114,7 +114,7 @@ clears the command.
 
 There are several environment variables you can set for cvmfsexec:
 
--   `CVMFSEXEC_REPOS` - this is a comma-separated list of CVMFS repos to mount,
+-   `CVMFSEXEC_REPOS` - this is a space-separated list of CVMFS repos to mount,
     if using cvmfsexec; leave this blank to disable cvmfsexec.
     OSG jobs frequently use the OASIS repo (`oasis.opensciencegrid.org`) and
     the singularity repo (`singularity.opensciencegrid.org`).
@@ -157,6 +157,7 @@ docker run -it --rm --user osg \
        -e GLIDEIN_ResourceName="..." \
        -e GLIDEIN_Start_Extra="True" \
        -e OSG_SQUID_LOCATION="..." \
-       -e CVMFSEXEC_REPOS="oasis.opensciencegrid.org singularity.opensciencegrid.org" \
+       -e CVMFSEXEC_REPOS="oasis.opensciencegrid.org \
+                           singularity.opensciencegrid.org" \
        opensciencegrid/osgvo-docker-pilot:release
 ```
