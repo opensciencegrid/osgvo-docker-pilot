@@ -59,6 +59,14 @@ if [[ $TOKEN ]]; then
   chmod 600 "$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org
 fi
 
+# ensure HTCondor knows about our squid
+if [ "x$OSG_SQUID_LOCATION" != "x" ]; then
+    export http_proxy="$OSG_SQUID_LOCATION"
+fi
+
+# now validate the environment
+/usr/sbin/osgvo-node-validation
+
 # glorious hack
 export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegrid.org
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
@@ -97,11 +105,6 @@ AnnexName = "$ANNEX_NAME"
 STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
 MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
 EOF
-
-# ensure HTCondor knows about our squid
-if [ "x$OSG_SQUID_LOCATION" != "x" ]; then
-    export http_proxy="$OSG_SQUID_LOCATION"
-fi
 
 cat >$LOCAL_DIR/user-job-wrapper.sh <<EOF
 #!/bin/bash

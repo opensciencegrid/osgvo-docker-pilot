@@ -19,8 +19,9 @@ RUN useradd osg \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d \
  && curl -s -o /usr/sbin/osgvo-user-job-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/user-job-wrapper.sh \
+ && curl -s -o /usr/sbin/osgvo-node-validation https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-node-validation \
  && curl -s -o /usr/sbin/osgvo-node-advertise https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-node-advertise \
- && chmod 755 /usr/sbin/osgvo-user-job-wrapper /usr/sbin/osgvo-node-advertise
+ && chmod 755 /usr/sbin/osgvo-user-job-wrapper /usr/sbin/osgvo-node-validation /usr/sbin/osgvo-node-advertise
 
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
