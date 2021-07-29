@@ -1,4 +1,4 @@
-name: dispatched build-docker-image
+name: Build and test container images
 
 on:
   push:
