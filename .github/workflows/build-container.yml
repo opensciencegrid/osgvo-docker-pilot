@@ -71,6 +71,7 @@ jobs:
       with:
         context: .
         push: ${{ github.event_name != 'pull_request' }}
+        context: .
         build-args: BASE_YUM_REPO=${{ matrix.repo }}
         tags: "${{ steps.generate-tag-list.outputs.taglist }}"
 
