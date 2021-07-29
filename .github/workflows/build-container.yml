@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
   repository_dispatch:
     types:
       - dispatch-build
@@ -65,11 +66,11 @@ jobs:
         username: ${{ secrets.OSG_HARBOR_ROBOT_USER }}
         password: ${{ secrets.OSG_HARBOR_ROBOT_PASSWORD }}
 
-    - name: Build and push Docker images
+    - name: Build Docker images
       uses: docker/build-push-action@v2.2.0
       with:
         context: .
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         build-args: BASE_YUM_REPO=${{ matrix.repo }}
         tags: "${{ steps.generate-tag-list.outputs.taglist }}"
 
