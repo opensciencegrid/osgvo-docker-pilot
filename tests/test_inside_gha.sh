@@ -10,13 +10,31 @@ COMMON_DOCKER_ARGS='run --rm --user osg
                         -a stdout
                         -a stderr'
 
+# Modern versions of Singularity aren't readily available on Ubuntu so
+# we test Singularity-deployed osgvo-backfill containers inside a
+# Docker container
+TEST_CONTAINER_NAME=singularity-env
+TEST_CONTAINER_EXTRA_ARGS=()
+
 function usage {
     echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
 }
 
 function install_singularity {
-    apt-get update
-    apt-get install -y singularity-container
+    docker run -d \
+           --privileged \
+           --name $TEST_CONTAINER_NAME \
+           -v /var/run/docker.sock:/var/run/docker.sock \
+           ${TEST_CONTAINER_EXTRA_ARGS[@]} \
+           centos:centos7 \
+           sleep infinity
+
+    run_inside_test_container 'yum install -y epel-release'
+    run_inside_test_container 'yum install -y singularity'
+}
+
+function run_inside_test_container {
+    docker exec $TEST_CONTAINER_NAME "$@"
 }
 
 function install_cvmfs {
@@ -70,23 +88,30 @@ function test_docker_cvmfsexec_HAS_SINGULARITY {
 }
 
 function test_singularity_bindmount_HAS_SINGULARITY {
-    local TOKEN="None"
-    local GLIDEIN_Site="None"
-    local GLIDEIN_ResourceName="None"
-    local GLIDEIN_Start_Extra="True"
-
-    # Store output in a var so that we get its contents in the xtrace output
-    out=$(singularity run \
-                      --scratch /pilot \
-                      -B /cvmfs \
-                      -cip \
-                      docker://$CONTAINER_IMAGE \
-                      /usr/sbin/osgvo-node-advertise)
-    test_HAS_SINGULARITY <<< "$out"
+    run_inside_test_container SINGULARITYENV_TOKEN=None \
+                              SINGULARITYENV_GLIDEIN_Site=None \
+                              SINGULARITYENV_GLIDEIN_ResourceName=None \
+                              SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                              singularity run \
+                                          --scratch /pilot \
+                                          -B /cvmfs \
+                                          -cip \
+                                          docker://$CONTAINER_IMAGE \
+                                          /usr/sbin/osgvo-node-advertise \
+        | test_HAS_SINGULARITY
 }
 
 function test_singularity_cvmfsexec_HAS_SINGULARITY {
-    return 1
+    run_inside_test_container SINGULARITYENV_TOKEN=None \
+                              SINGULARITYENV_GLIDEIN_Site=None \
+                              SINGULARITYENV_GLIDEIN_ResourceName=None \
+                              SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                              singularity run \
+                                          --scratch /pilot \
+                                          -cip \
+                                          docker://$CONTAINER_IMAGE \
+                                          /usr/sbin/osgvo-node-advertise \
+        | test_HAS_SINGULARITY
 }
 
 if [[ $# -ne 2 ]] ||
@@ -99,8 +124,12 @@ fi
 CONTAINER_RUNTIME="$1"
 CVMFS_INSTALL="$2"
 
+if [[ $CVMFS_INSTALL == 'bindmount' ]]; then
+    TEST_CONTAINER_EXTRA_ARGS+=("-v /cvmfs:/cvmfs:shared")
+    install_cvmfs
+    start_cvmfs
+fi
 [[ $CONTAINER_RUNTIME == 'singularity' ]] && install_singularity
-[[ $CVMFS_INSTALL == 'bindmount' ]] && install_cvmfs && start_cvmfs
 
 case "$CONTAINER_RUNTIME-$CVMFS_INSTALL" in
     docker-bindmount)
