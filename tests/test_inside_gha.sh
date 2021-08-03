@@ -76,6 +76,20 @@ function test_docker_bindmount_HAS_SINGULARITY {
     test_HAS_SINGULARITY <<< "$out"
 }
 
+function test_docker_bindmount_startup {
+    docker run --user osg \
+           --detach \
+           --name backfill \
+           -v /cvmfs:/cvmfs:shared \
+           -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org \
+           -e GLIDEIN_Site="None" \
+           -e GLIDEIN_ResourceName="None" \
+           -e GLIDEIN_Start_Extra="True" \
+           -e OSG_SQUID_LOCATION="None" \
+           $CONTAINER_IMAGE
+     docker logs -f backfill | fgrep "Setting ready state 'Ready' for STARTD"
+}
+
 function test_docker_cvmfsexec_HAS_SINGULARITY {
     # Store output in a var so that we get its contents in the xtrace output
     out=$(docker $COMMON_DOCKER_ARGS \
@@ -134,6 +148,7 @@ fi
 case "$CONTAINER_RUNTIME-$CVMFS_INSTALL" in
     docker-bindmount)
         test_docker_bindmount_HAS_SINGULARITY
+        test_docker_bindmount_startup
         ;;
     docker-cvmfsexec)
         test_docker_cvmfsexec_HAS_SINGULARITY
