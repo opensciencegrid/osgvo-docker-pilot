@@ -104,6 +104,13 @@ STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
 MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
 EOF
 
+if [[ $NUM_CPUS ]]; then
+    echo "NUM_CPUS = $NUM_CPUS" >> "$PILOT_CONFIG_FILE"
+fi
+if [[ $MEMORY ]]; then
+    echo "MEMORY = $MEMORY" >> "$PILOT_CONFIG_FILE"
+fi
+
 # ensure HTCondor knows about our squid
 if [ "x$OSG_SQUID_LOCATION" != "x" ]; then
     export http_proxy="$OSG_SQUID_LOCATION"
