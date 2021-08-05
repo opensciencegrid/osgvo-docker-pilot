@@ -30,12 +30,21 @@ function install_singularity {
            centos:centos7 \
            sleep infinity
 
-    run_inside_test_container 'yum install -y epel-release'
-    run_inside_test_container 'yum install -y singularity'
+    run_inside_test_container '-- yum install -y epel-release'
+    run_inside_test_container '-- yum install -y singularity'
 }
 
 function run_inside_test_container {
-    docker exec $TEST_CONTAINER_NAME "$@"
+    if [[ ! $@ =~ .*\-\-\ *[A-Za-z0-9\ _\-]+ ]]; then
+        echo 'Usage: run_inside_test_container [DOCKER_OPTS] -- <COMMAND TO EXEC>'
+        return 2
+    fi
+
+    arg_str="${@}"
+    DOCKER_OPTS=${arg_str%%--*}
+    COMMAND=${arg_str#*--}
+
+    docker exec $DOCKER_OPTS $TEST_CONTAINER_NAME $COMMAND
 }
 
 function install_cvmfs {
@@ -103,24 +112,26 @@ function test_docker_cvmfsexec_HAS_SINGULARITY {
 }
 
 function test_singularity_bindmount_HAS_SINGULARITY {
-    run_inside_test_container SINGULARITYENV_TOKEN=None \
-                              SINGULARITYENV_GLIDEIN_Site=None \
-                              SINGULARITYENV_GLIDEIN_ResourceName=None \
-                              SINGULARITYENV_GLIDEIN_Start_Extra=True \
+    run_inside_test_container -e SINGULARITYENV_TOKEN=None \
+                              -e SINGULARITYENV_GLIDEIN_Site=None \
+                              -e SINGULARITYENV_GLIDEIN_ResourceName=None \
+                              -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                              -- \
                               singularity run \
-                                          --scratch /pilot \
                                           -B /cvmfs \
                                           -cip \
+                                          --scratch /pilot \
                                           docker://$CONTAINER_IMAGE \
                                           /usr/sbin/osgvo-node-advertise \
         | test_HAS_SINGULARITY
 }
 
 function test_singularity_cvmfsexec_HAS_SINGULARITY {
-    run_inside_test_container SINGULARITYENV_TOKEN=None \
-                              SINGULARITYENV_GLIDEIN_Site=None \
-                              SINGULARITYENV_GLIDEIN_ResourceName=None \
-                              SINGULARITYENV_GLIDEIN_Start_Extra=True \
+    run_inside_test_container -e SINGULARITYENV_TOKEN=None \
+                              -e SINGULARITYENV_GLIDEIN_Site=None \
+                              -e SINGULARITYENV_GLIDEIN_ResourceName=None \
+                              -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                              -- \
                               singularity run \
                                           --scratch /pilot \
                                           -cip \
