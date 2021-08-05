@@ -146,18 +146,22 @@ if [[ $CVMFS_INSTALL == 'bindmount' ]]; then
 fi
 [[ $CONTAINER_RUNTIME == 'singularity' ]] && install_singularity
 
+EXIT_CODE=0
+
 case "$CONTAINER_RUNTIME-$CVMFS_INSTALL" in
     docker-bindmount)
-        test_docker_bindmount_HAS_SINGULARITY
-        test_docker_bindmount_startup
+        test_docker_bindmount_HAS_SINGULARITY      || EXIT_CODE=1
+        test_docker_bindmount_startup              || EXIT_CODE=1
         ;;
     docker-cvmfsexec)
-        test_docker_cvmfsexec_HAS_SINGULARITY
+        test_docker_cvmfsexec_HAS_SINGULARITY      || EXIT_CODE=1
         ;;
     singularity-bindmount)
-        test_singularity_bindmount_HAS_SINGULARITY
+        test_singularity_bindmount_HAS_SINGULARITY || EXIT_CODE=1
         ;;
     singularity-cvmfsexec)
-        test_singularity_cvmfsexec_HAS_SINGULARITY
+        test_singularity_cvmfsexec_HAS_SINGULARITY || EXIT_CODE=1
         ;;
 esac
+
+exit $EXIT_CODE
