@@ -16,6 +16,8 @@ In order to successfully start payload jobs:
    This is only required if you do not want the I/O inside the container instance.
 5. Optional: add to the START expression with `GLIDEIN_Start_Extra`. This is useful to limit
    the pilot to only run certain jobs.
+6. Optional: cap the system resources available to jobs (described in the
+   [limiting resource usage section below](#limiting-resource-usage)).
 
 In addition, you will be able to run more OSG jobs if you provide CVMFS.  You can do this
 in two ways:
@@ -161,3 +163,36 @@ docker run -it --rm --user osg \
                            singularity.opensciencegrid.org" \
        opensciencegrid/osgvo-docker-pilot:release
 ```
+
+
+## Limiting Resource Usage
+
+By default, the OSG pilot container will allow jobs to utilize the entire
+node's resources (CPUs, memory).  If you don't want to allow jobs
+to use all of these, you can specify limits.
+
+You must specify limits in two places:
+
+-   As environment variables, limiting the resources HTCondor offers to jobs.
+
+-   As options to the `docker` command, limiting the resources the pilot
+    container can use.
+
+To limit the number of CPUs available to jobs (thus limiting the number of
+simultaneous jobs), add the following to your `docker` command:
+
+```
+   -e NUM_CPUS=<X>  --cpus=<X>
+```
+where `<X>` is the number of CPUs you want to allow jobs to use.
+
+To limit the total amount of memory available to jobs, add the following to
+your `docker` command:
+
+```
+    -e MEMORY=<X> --memory=$(( (<X> + 50) * 1048576 ))
+```
+where `<X>` is the total amount of memory (in MB) you want to allow jobs to use.
+(This will allocate 50 MB more memory to the container, to leave room for
+HTCondor itself and other non-job processes.)
+
