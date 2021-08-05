@@ -102,6 +102,16 @@ AnnexName = "$ANNEX_NAME"
 
 STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
 MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
+
+
+# policy
+MemoryExceeded = MemoryUsage ?: 0 > Memory
+Reason_MemoryExceeded = "memory usage exceeded request_memory"
+
+WANT_HOLD = (\$(MemoryExceeded))
+WANT_HOLD_REASON = \
+    \$(MemoryExceeded) ? \$(Reason_MemoryExceeded) : \
+                         undefined
 EOF
 
 if [[ $NUM_CPUS ]]; then
