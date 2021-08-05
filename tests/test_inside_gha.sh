@@ -2,6 +2,7 @@
 
 CONTAINER_IMAGE='osgvo-docker-pilot:latest'
 COMMON_DOCKER_ARGS='run --rm --user osg
+                        --security-opt apparmor=unconfined
                         -v /path/to/token:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
                         -e GLIDEIN_Site="None"
                         -e GLIDEIN_ResourceName="None"
