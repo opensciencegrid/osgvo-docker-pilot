@@ -175,24 +175,45 @@ You must specify limits in two places:
 
 -   As environment variables, limiting the resources HTCondor offers to jobs.
 
--   As options to the `docker` command, limiting the resources the pilot
+-   As options to the `docker run` command, limiting the resources the pilot
     container can use.
 
+### Limiting CPUs
+
 To limit the number of CPUs available to jobs (thus limiting the number of
-simultaneous jobs), add the following to your `docker` command:
+simultaneous jobs), add the following to your `docker run` command:
 
 ```
-   -e NUM_CPUS=<X>  --cpus=<X>
+   -e NUM_CPUS=<X>  --cpus=<X> \
 ```
 where `<X>` is the number of CPUs you want to allow jobs to use.
 
+The `NUM_CPUS` environment variable will tell HTCondor not to offer more
+than the given number of CPUs to jobs; the `--cpus` argument will tell
+Docker not to allocate more than the given number of CPUs to the container.
+
+Both options are necessary for optimal behavior.
+
+
+### Limiting memory
+
 To limit the total amount of memory available to jobs, add the following to
-your `docker` command:
+your `docker run` command:
 
 ```
-    -e MEMORY=<X> --memory=$(( (<X> + 50) * 1048576 ))
+    -e MEMORY=<X> --memory=$(( (<X> + 100) * 1048576 )) \
 ```
 where `<X>` is the total amount of memory (in MB) you want to allow jobs to use.
-(This will allocate 50 MB more memory to the container, to leave room for
-HTCondor itself and other non-job processes.)
 
+Both options are necessary for optimal behavior.
+Note that the above command will allocate 100 MB more memory to the container;
+the reasons are detailed below.
+
+The `MEMORY` environment variable will tell HTCondor not to offer more
+than the given amount of memory to jobs; the `--memory` argument will tell
+Docker to kill the container if its total memory usage exceeds the given number.
+
+HTCondor will place jobs on hold if they exceed their requested memory, but it
+may not notice high memory usage immediately.  In addition, non-job processes
+(such as HTCondor and crond) also use some amount of memory.  Therefore it is
+important to give the container some extra room.
