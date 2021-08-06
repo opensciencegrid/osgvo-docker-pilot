@@ -201,7 +201,7 @@ To limit the total amount of memory available to jobs, add the following to
 your `docker run` command:
 
 ```
-    -e MEMORY=<X> --memory=$(( (<X> + 100) * 1048576 )) \
+    -e MEMORY=<X> --memory=$(( (<X> + 100) * 1024 * 1024 )) \
 ```
 where `<X>` is the total amount of memory (in MB) you want to allow jobs to use.
 
