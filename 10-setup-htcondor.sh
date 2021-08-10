@@ -69,7 +69,7 @@ if [ "x$CCB_RANGE_LOW" = "x" ]; then
     export CCB_RANGE_LOW=9700
 fi
 if [ "x$CCB_RANGE_HIGH" = "x" ]; then
-    export CCB_RANGE_LOW=9899
+    export CCB_RANGE_HIGH=9899
 fi
 CCB_PORT=$(python -S -c "import random; print random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1)")
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
