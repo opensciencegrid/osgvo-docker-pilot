@@ -233,6 +233,9 @@ export glidein_config=$LOCAL_DIR/glidein_config
 export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
 
 # set some defaults for the glideinwms based scripts
+if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
+    OSG_DEFAULT_CONTAINER_DISTRIBUTION="70%__opensciencegrid/osgvo-el7:latest 30%__opensciencegrid/osgvo-el8:latest"
+fi
 cat >$glidein_config <<EOF
 ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source
 ALLOW_NONCVMFS_IMAGES True
@@ -240,7 +243,7 @@ CONDOR_VARS_FILE $condor_vars_file
 ERROR_GEN_PATH $PWD/error_gen.sh
 GLIDEIN_SINGULARITY_REQUIRE OPTIONAL
 GLIDEIN_Singularity_Use PREFERRED
-OSG_DEFAULT_CONTAINER_DISTRIBUTION 70%__opensciencegrid/osgvo-el7:latest 30%__opensciencegrid/osgvo-el8:latest
+OSG_DEFAULT_CONTAINER_DISTRIBUTION $OSG_DEFAULT_CONTAINER_DISTRIBUTION
 SINGULARITY_IMAGE_RESTRICTIONS None
 EOF
 touch $condor_vars_file
