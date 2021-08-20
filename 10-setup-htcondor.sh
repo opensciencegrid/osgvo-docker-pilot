@@ -7,6 +7,87 @@ if [ `id -u` = 0 ]; then
     exit 1
 fi
 
+
+#
+# Taken from creation/web_base/condor_startup.sh in the gwms 
+# Set a variable read from a file
+#
+pstr='"'
+set_var() {
+    var_name=$1
+    var_type=$2
+    var_def=$3
+    var_condor=$4
+    var_req=$5
+    var_exportcondor=$6
+    var_user=$7
+
+    if [ -z "$var_name" ]; then
+        # empty line
+        return 0
+    fi
+
+    var_val=`grep "^$var_name " $glidein_config | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
+    if [ -z "$var_val" ]; then
+        if [ "$var_req" == "Y" ]; then
+            # needed var, exit with error
+            #echo "Cannot extract $var_name from '$config_file'" 1>&2
+            STR="Cannot extract $var_name from '$glidein_config'"
+            "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
+            exit 1
+        elif [ "$var_def" == "-" ]; then
+            # no default, do not set
+            return 0
+        else
+            eval var_val=$var_def
+        fi
+    fi
+    if [ "$var_condor" == "+" ]; then
+        var_condor=$var_name
+    fi
+    if [ "$var_type" == "S" ]; then
+        var_val_str="${pstr}${var_val}${pstr}"
+    else
+        var_val_str="$var_val"
+    fi
+
+    # insert into condor_config
+    echo "$var_condor=$var_val_str" >> $PILOT_CONFIG_FILE
+
+    if [ "$var_exportcondor" == "Y" ]; then
+        # register var_condor for export
+        if [ -z "$glidein_variables" ]; then
+           glidein_variables="$var_condor"
+        else
+           glidein_variables="$glidein_variables,$var_condor"
+        fi
+    fi
+
+    if [ "$var_user" != "-" ]; then
+        # - means do not export
+        if [ "$var_user" == "+" ]; then
+            var_user=$var_name
+        elif [ "$var_user" == "@" ]; then
+            var_user=$var_condor
+        fi
+
+        condor_env_entry="$var_user=$var_val"
+        condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\"/,\"\\\\\"\\\\\"\"); print}"`
+        condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/'/,\"''\"); print}"`
+        if [ -z "$job_env" ]; then
+           job_env="'$condor_env_entry'"
+        else
+           job_env="$job_env '$condor_env_entry'"
+        fi
+    fi
+
+    # define it for future use
+    eval "$var_name='$var_val'"
+    return 0
+}
+
+
+
 # validation
 if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
    [[ ! -e /etc/condor/tokens-orig.d/flock.opensciencegrid.org ]] &&
@@ -81,6 +162,9 @@ cat >$PILOT_CONFIG_FILE <<EOF
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
 
+# mimic gwms so gwms scripts will work
+EXECUTE = $LOCAL_DIR/execute
+
 SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
 # random, but static port for the lifetime of the glidein
@@ -116,10 +200,10 @@ export GLIDEIN_Site="$GLIDEIN_Site"
 export GLIDEIN_ResourceName="$GLIDEIN_ResourceName"
 export OSG_SITE_NAME="$GLIDEIN_ResourceName"
 export OSG_SQUID_LOCATION="$OSG_SQUID_LOCATION"
-exec /usr/sbin/osgvo-user-job-wrapper "\$@"
+exec $LOCAL_DIR/condor_job_wrapper.sh "\$@"
 EOF
 chmod 755 $LOCAL_DIR/user-job-wrapper.sh
-export _CONDOR_USER_JOB_WRAPPER=$LOCAL_DIR/user-job-wrapper.sh
+echo "USER_JOB_WRAPPER = $LOCAL_DIR/user-job-wrapper.sh" >>$PILOT_CONFIG_FILE
 
 mkdir -p `condor_config_val EXECUTE`
 mkdir -p `condor_config_val LOG`
@@ -133,3 +217,51 @@ echo
 echo "Will use the following token(s):"
 condor_token_list
 echo
+
+cd $LOCAL_DIR
+
+# gwms files in the correct location
+cp -a /gwms/* .
+mkdir -p .gwms.d/bin 
+for target in cleanup  postjob  prejob  setup  setup_singularity; do
+    mkdir -p .gwms.d/exec/$target
+done
+cp -a /usr/sbin/osgvo-singularity-wrapper condor_job_wrapper.sh
+
+# minimum env to get glideinwms scripts to work
+export glidein_config=$LOCAL_DIR/glidein_config
+export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
+
+# set some defaults for the glideinwms based scripts
+cat >$glidein_config <<EOF
+ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source
+ALLOW_NONCVMFS_IMAGES True
+CONDOR_VARS_FILE $condor_vars_file
+ERROR_GEN_PATH $PWD/error_gen.sh
+GLIDEIN_SINGULARITY_REQUIRE OPTIONAL
+GLIDEIN_Singularity_Use PREFERRED
+OSG_DEFAULT_CONTAINER_DISTRIBUTION 70%__opensciencegrid/osgvo-el7:latest 30%__opensciencegrid/osgvo-el8:latest
+SINGULARITY_IMAGE_RESTRICTIONS None
+EOF
+touch $condor_vars_file
+
+/usr/sbin/osgvo-default-image $glidein_config
+./main/singularity_setup.sh $glidein_config
+
+# run the osgvo userenv advertise script
+cp /usr/sbin/osgvo-advertise-userenv .
+$PWD/main/singularity_wrapper.sh ./osgvo-advertise-userenv glidein_config osgvo-docker-pilot
+
+# last step - interpret the condor_vars
+while read line
+do
+    set_var $line
+done <$condor_vars_file
+
+cat >>$PILOT_CONFIG_FILE <<EOF
+MASTER_ATTRS = \$(MASTER_ATTRS), $glidein_variables
+STARTD_ATTRS = \$(STARTD_ATTRS), $glidein_variables
+STARTER_JOB_ENVIRONMENT = "$job_env"
+EOF
+
+
