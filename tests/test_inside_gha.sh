@@ -130,6 +130,7 @@ function test_singularity_cvmfsexec_HAS_SINGULARITY {
                                     -e SINGULARITYENV_GLIDEIN_Site=None \
                                     -e SINGULARITYENV_GLIDEIN_ResourceName=None \
                                     -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                                    -e SINGULARITYENV_CVMFSEXEC_REPOS="oasis.opensciencegrid.org singularity.opensciencegrid.org" \
                                     -- \
                                     singularity run \
                                                 --scratch /pilot \
