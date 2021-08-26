@@ -112,32 +112,32 @@ function test_docker_cvmfsexec_HAS_SINGULARITY {
 }
 
 function test_singularity_bindmount_HAS_SINGULARITY {
-    run_inside_test_container -e SINGULARITYENV_TOKEN=None \
-                              -e SINGULARITYENV_GLIDEIN_Site=None \
-                              -e SINGULARITYENV_GLIDEIN_ResourceName=None \
-                              -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
-                              -- \
-                              singularity run \
-                                          -B /cvmfs \
-                                          -cip \
-                                          --scratch /pilot \
-                                          docker://$CONTAINER_IMAGE \
-                                          /usr/sbin/osgvo-node-advertise \
-        | test_HAS_SINGULARITY
+    out=$(run_inside_test_container -e SINGULARITYENV_TOKEN=None \
+                                    -e SINGULARITYENV_GLIDEIN_Site=None \
+                                    -e SINGULARITYENV_GLIDEIN_ResourceName=None \
+                                    -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                                    -- \
+                                    singularity run \
+                                                -B /cvmfs \
+                                                -cip \
+                                                --scratch /pilot \
+                                                docker://$CONTAINER_IMAGE \
+                                                /usr/sbin/osgvo-node-advertise)
+    test_HAS_SINGULARITY <<< "$out"
 }
 
 function test_singularity_cvmfsexec_HAS_SINGULARITY {
-    run_inside_test_container -e SINGULARITYENV_TOKEN=None \
-                              -e SINGULARITYENV_GLIDEIN_Site=None \
-                              -e SINGULARITYENV_GLIDEIN_ResourceName=None \
-                              -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
-                              -- \
-                              singularity run \
-                                          --scratch /pilot \
-                                          -cip \
-                                          docker://$CONTAINER_IMAGE \
-                                          /usr/sbin/osgvo-node-advertise \
-        | test_HAS_SINGULARITY
+    out=$(run_inside_test_container -e SINGULARITYENV_TOKEN=None \
+                                    -e SINGULARITYENV_GLIDEIN_Site=None \
+                                    -e SINGULARITYENV_GLIDEIN_ResourceName=None \
+                                    -e SINGULARITYENV_GLIDEIN_Start_Extra=True \
+                                    -- \
+                                    singularity run \
+                                                --scratch /pilot \
+                                                -cip \
+                                                docker://$CONTAINER_IMAGE \
+                                                /usr/sbin/osgvo-node-advertise)
+    test_HAS_SINGULARITY <<< "$out"
 }
 
 if [[ $# -ne 2 ]] ||
