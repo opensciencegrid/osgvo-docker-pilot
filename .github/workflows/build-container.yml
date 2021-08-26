@@ -49,7 +49,6 @@ jobs:
       with:
         context: .
         push: false
-        context: .
         build-args: BASE_YUM_REPO=${{ matrix.repo }}
         cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
 
