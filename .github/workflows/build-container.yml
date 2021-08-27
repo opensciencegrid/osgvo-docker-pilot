@@ -2,8 +2,6 @@ name: Build and test container images
 
 on:
   push:
-    branches:
-      - master
   pull_request:
   repository_dispatch:
     types:
