@@ -29,21 +29,26 @@ function install_singularity {
            centos:centos7 \
            sleep infinity
 
-    run_inside_test_container '-- yum install -y epel-release'
-    run_inside_test_container '-- yum install -y singularity'
+    run_inside_test_container -- yum install -y epel-release
+    run_inside_test_container -- yum install -y singularity
 }
 
 function run_inside_test_container {
-    if [[ ! $@ =~ .*\-\-\ *[A-Za-z0-9\ _\-]+ ]]; then
+    docker_opts=()
+    for arg in "$@"; do
+        shift
+        if [[ $arg == "--" ]]; then
+            break
+        fi
+        docker_opts+=("$arg")
+    done
+
+    if [[ -z "$*" ]]; then
         echo 'Usage: run_inside_test_container [DOCKER_OPTS] -- <COMMAND TO EXEC>'
         return 2
     fi
 
-    arg_str="${@}"
-    DOCKER_OPTS=${arg_str%%--*}
-    COMMAND=${arg_str#*--}
-
-    docker exec $DOCKER_OPTS $TEST_CONTAINER_NAME $COMMAND
+    docker exec "${docker_opts[@]}" "$TEST_CONTAINER_NAME" "$@"
 }
 
 function install_cvmfs {
