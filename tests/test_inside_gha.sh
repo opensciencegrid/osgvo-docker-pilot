@@ -123,14 +123,16 @@ function test_singularity_bindmount_HAS_SINGULARITY {
                                     -- \
                                     singularity run \
                                                 -B /cvmfs \
+                                                -B .:/pilot \
                                                 -cip \
-                                                --scratch /pilot \
                                                 docker-archive:///tmp/osgvo-docker-pilot.tar \
                                                 /usr/sbin/osgvo-node-advertise)
     test_HAS_SINGULARITY <<< "$out"
 }
 
 function test_singularity_cvmfsexec_HAS_SINGULARITY {
+    run_inside_test_container mkdir /tmp/pilot /tmp/cvmfsexec
+
     out=$(run_inside_test_container -e SINGULARITYENV_TOKEN=None \
                                     -e SINGULARITYENV_GLIDEIN_Site=None \
                                     -e SINGULARITYENV_GLIDEIN_ResourceName=None \
@@ -138,7 +140,8 @@ function test_singularity_cvmfsexec_HAS_SINGULARITY {
                                     -e SINGULARITYENV_CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org' \
                                     -- \
                                     singularity run \
-                                                --scratch /pilot \
+                                                --bind /tmp/pilot:/pilot \
+                                                --bind /tmp/cvmfsexec:/cvmfsexec \
                                                 -cip \
                                                 docker-archive:///tmp/osgvo-docker-pilot.tar \
                                                 /usr/sbin/osgvo-node-advertise)
