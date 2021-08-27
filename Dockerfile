@@ -51,6 +51,14 @@ ENV CVMFS_HTTP_PROXY=
 # The quota limit in MB for CVMFS; leave this blank to use the default
 ENV CVMFS_QUOTA_LIMIT=
 
+
+# Options to limit resource usage:
+# Number of CPUs available to jobs
+ENV NUM_CPUS=
+# Amount of memory (in MB) available to jobs
+ENV MEMORY=
+
+
 COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
