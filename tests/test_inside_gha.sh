@@ -185,6 +185,8 @@ case "$CONTAINER_RUNTIME-$CVMFS_INSTALL" in
         test_singularity_bindmount_HAS_SINGULARITY || EXIT_CODE=1
         ;;
     singularity-cvmfsexec)
+        # Currently not supported: requires capabilities and
+        # bind-mounting /dev/fuse
         test_singularity_cvmfsexec_HAS_SINGULARITY || EXIT_CODE=1
         ;;
 esac

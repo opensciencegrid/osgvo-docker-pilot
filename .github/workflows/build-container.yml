@@ -59,6 +59,9 @@ jobs:
         repo: ['development', 'testing', 'release']
         runtime: ['docker', 'singularity']
         cvmfs: ['bindmount', 'cvmfsexec']
+        exclude:
+          - runtime: singularity
+            cvmfs: cvmfsexec
     steps:
       - name: checkout osgvo-docker-pilot
         uses: actions/checkout@v2
