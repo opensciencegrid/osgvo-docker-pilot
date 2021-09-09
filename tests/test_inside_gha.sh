@@ -157,14 +157,19 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(run_inside_singularity_backfill find /pilot -name StartLog)
-    for (( i=0; i<60; ++i )); do
-        run_inside_singularity_backfill cat $logfile |
-            grep 'Changing activity: Benchmarking -> Idle'
-        [[ $? -eq 0 ]] && return 0
-        sleep 1
-    done
-    return 1
+    logfile=$(wait_for_output 60 run_inside_singularity_backfill find /pilot -name StartLog)
+    if [[ -z $logfile ]]; then
+        run_inside_test_container -- singularity instance list
+        return 1
+    fi
+
+    wait_for_output 60 \
+                    run_inside_singularity_backfill \
+                        grep \
+                        -- \
+                        'Changing activity: Benchmarking -> Idle' \
+                        $logfile \
+        || return 1
 }
 
 function test_singularity_HAS_SINGULARITY {
