@@ -93,11 +93,6 @@ function start_docker_backfill {
     docker $COMMON_DOCKER_ARGS \
            "$@" \
            $CONTAINER_IMAGE
-    sleep 5  # give the startup scripts enough time to complete
-    if [[ ! $(docker ps | grep backfill) ]]; then
-        docker logs backfill
-        return 1
-    fi
 }
 
 function run_inside_backfill_container {
@@ -114,17 +109,37 @@ function print_test_header {
     echo -e "$sep\n$msg\n$sep"
 }
 
-function test_docker_startup {
-    print_test_header "Testing container startup"
-
-    logfile=$(run_inside_backfill_container find /pilot -name StartLog)
-    for (( i=0; i<60; ++i )); do
-        run_inside_backfill_container cat $logfile |
-            grep 'Changing activity: Benchmarking -> Idle'
-        [[ $? -eq 0 ]] && return 0
+function wait_for_output {
+    maxtime="$1"
+    shift
+    for (( i=0; i<$maxtime; ++i )); do
+        out=$("$@")
+        if [[ -n $out ]]; then
+            echo $out
+            return 0
+        fi
         sleep 1
     done
     return 1
+}
+
+function test_docker_startup {
+    print_test_header "Testing container startup"
+
+    logfile=$(wait_for_output 60 run_inside_backfill_container find /pilot -name StartLog)
+    if [[ -z $logfile ]]; then
+        docker ps -a
+        docker logs backfill
+        return 1
+    fi
+
+    wait_for_output 60 \
+                    run_inside_backfill_container \
+                        grep \
+                        -- \
+                        'Changing activity: Benchmarking -> Idle' \
+                        $logfile \
+        || return 1
 }
 
 function test_docker_HAS_SINGULARITY {
