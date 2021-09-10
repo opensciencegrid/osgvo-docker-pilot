@@ -129,7 +129,7 @@ function wait_for_output {
 function test_docker_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 60 run_inside_backfill_container find /pilot -name StartLog)
+    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog)
     if [[ -z $logfile ]]; then
         docker ps -a
         docker logs backfill
@@ -160,7 +160,7 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 60 run_inside_singularity_backfill find /pilot -name StartLog)
+    logfile=$(wait_for_output 600 run_inside_singularity_backfill find /pilot -name StartLog)
     if [[ -z $logfile ]]; then
         run_inside_test_container -- singularity instance list
         return 1
