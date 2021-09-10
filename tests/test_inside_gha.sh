@@ -99,6 +99,11 @@ function run_inside_backfill_container {
     docker exec backfill "$@"
 }
 
+function debug_docker_backfill {
+    docker ps -a
+    docker logs backfill
+}
+
 function run_inside_singularity_backfill {
     run_inside_test_container -- singularity exec instance://backfill "$@"
 }
@@ -131,8 +136,7 @@ function test_docker_startup {
 
     logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog)
     if [[ -z $logfile ]]; then
-        docker ps -a
-        docker logs backfill
+        debug_docker_backfill
         return 1
     fi
 
@@ -154,6 +158,8 @@ function test_docker_HAS_SINGULARITY {
     if [[ $has_singularity == 'true' ]]; then
         return 0
     fi
+
+    debug_docker_backfill
     return 1
 }
 
