@@ -110,16 +110,19 @@ function print_test_header {
 }
 
 function wait_for_output {
+    set +x
     maxtime="$1"
     shift
     for (( i=0; i<$maxtime; ++i )); do
         out=$("$@")
         if [[ -n $out ]]; then
             echo $out
+            set -x
             return 0
         fi
         sleep 1
     done
+    set -x
     return 1
 }
 
