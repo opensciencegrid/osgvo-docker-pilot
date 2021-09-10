@@ -202,8 +202,6 @@ fi
 
 CONTAINER_RUNTIME="$1"
 CVMFS_INSTALL="$2"
-EXIT_CODE=0
-
 case "$CVMFS_INSTALL" in
     bindmount)
         DOCKER_EXTRA_ARGS=(--cap-add DAC_OVERRIDE
@@ -226,8 +224,8 @@ esac
 case "$CONTAINER_RUNTIME" in
     docker)
         start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || exit 1
-        test_docker_startup                         || EXIT_CODE=1
-        test_docker_HAS_SINGULARITY                 || EXIT_CODE=1
+        test_docker_startup                             || exit 1
+        test_docker_HAS_SINGULARITY                     || exit 1
         ;;
     singularity)
         tempfile=$(mktemp)
@@ -235,9 +233,7 @@ case "$CONTAINER_RUNTIME" in
         DOCKER_EXTRA_ARGS+=(-v "$tempfile:/tmp/osgvo-docker-pilot.tar")
         install_singularity "${DOCKER_EXTRA_ARGS[@]}"
         start_singularity_backfill
-        test_singularity_startup                    || EXIT_CODE=1
-        test_singularity_HAS_SINGULARITY            || EXIT_CODE=1
+        test_singularity_startup                        || exit 1
+        test_singularity_HAS_SINGULARITY                || exit 1
         ;;
 esac
-
-exit $EXIT_CODE
