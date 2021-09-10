@@ -238,7 +238,6 @@ if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
 fi
 cat >$glidein_config <<EOF
 ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source
-ALLOW_NONCVMFS_IMAGES True
 CONDOR_VARS_FILE $condor_vars_file
 ERROR_GEN_PATH $PWD/error_gen.sh
 GLIDEIN_SINGULARITY_REQUIRE OPTIONAL
@@ -247,6 +246,13 @@ OSG_DEFAULT_CONTAINER_DISTRIBUTION $OSG_DEFAULT_CONTAINER_DISTRIBUTION
 SINGULARITY_IMAGE_RESTRICTIONS None
 EOF
 touch $condor_vars_file
+
+# grab the latests copy of stashcp
+mkdir -p client
+
+if (curl --silent --fail --location --connect-timeout 30 --speed-limit 1024 -o client/stashcp http://stash.osgconnect.net/public/dweitzel/stashcp/current/stashcp) &>/dev/null; then
+    chmod 755 client/stashcp
+fi
 
 /usr/sbin/osgvo-default-image $glidein_config
 ./main/singularity_setup.sh $glidein_config
