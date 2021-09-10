@@ -228,6 +228,10 @@ case "$CONTAINER_RUNTIME" in
         test_docker_HAS_SINGULARITY                     || exit 1
         ;;
     singularity)
+        # FIXME: Tests are pretty broken (wait_for_output functions
+        # seem to run forever) but that indicates an issue with
+        # startup, which could be an issue with the tests or the
+        # Singularity use case in general
         tempfile=$(mktemp)
         docker save $CONTAINER_IMAGE -o $tempfile
         DOCKER_EXTRA_ARGS+=(-v "$tempfile:/tmp/osgvo-docker-pilot.tar")
