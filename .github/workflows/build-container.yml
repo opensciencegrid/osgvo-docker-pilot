@@ -21,6 +21,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    needs: [make-date-tag]
     strategy:
       matrix:
         repo: ['development', 'testing', 'release']
@@ -47,12 +48,12 @@ jobs:
       with:
         context: .
         push: false
-        build-args: BASE_YUM_REPO=${{ matrix.repo }}
+        build-args: BASE_YUM_REPO=${{ matrix.repo }} TIMESTAMP=${{ needs.make-date-tag.outputs.dtag }}
         cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
 
   test:
     runs-on: ubuntu-20.04
-    needs: [build]
+    needs: [make-date-tag, build]
     strategy:
       fail-fast: false
       matrix:
@@ -79,7 +80,7 @@ jobs:
       - name: Load osgvo-docker-pilot image
         uses: docker/build-push-action@v2.2.2
         with:
-          build-args: BASE_YUM_REPO=${{ matrix.repo }}
+          build-args: BASE_YUM_REPO=${{ matrix.repo }} TIMESTAMP=${{ needs.make-date-tag.outputs.dtag }}
           load: true  # allow access to built images through the Docker CLI
           tags: osgvo-docker-pilot:latest
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -145,6 +146,6 @@ jobs:
         with:
           push: true
           context: .
-          build-args: BASE_YUM_REPO=${{ matrix.repo }}
+          build-args: BASE_YUM_REPO=${{ matrix.repo }} TIMESTAMP=${{ needs.make-date-tag.outputs.dtag }}
           tags: "${{ steps.generate-tag-list.outputs.taglist }}"
           cache-from: type=local,src=/tmp/.buildx-cache
