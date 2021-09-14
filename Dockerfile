@@ -69,6 +69,11 @@ ENV NUM_CPUS=
 # Amount of memory (in MB) available to jobs
 ENV MEMORY=
 
+# Ensure that GPU libs can be accessed by user Singularity containers
+# running inside Singularity osgvo-docker-pilot containers
+# (SOFTWARE-4807)
+COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
+COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
 COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
