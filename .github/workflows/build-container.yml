@@ -105,7 +105,7 @@ jobs:
         run: |
           docker_repo=${GITHUB_REPOSITORY/brianhlin\/docker-/brianhlin/}
           tag_list=()
-          for registry in hub.opensciencegrid.org; do
+          for registry in hub.opensciencegrid.org docker.io; do
             for image_tag in "$REPO" "$REPO-$TIMESTAMP"; do
               tag_list+=("$registry/$docker_repo":"$image_tag")
             done
