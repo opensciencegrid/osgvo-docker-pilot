@@ -83,8 +83,12 @@ COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
 RUN chmod 755 /bin/entrypoint.sh
 
-RUN [[ -n $TIMESTAMP ]] || TIMESTAMP=$(date +%Y%m%d-%H%M); \
-    sed -i "s|@CONTAINER_TAG@|opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}-${TIMESTAMP}|" \
+RUN if [[ -n $TIMESTAMP ]]; then \
+       tag=${BASE_YUM_REPO}-${TIMESTAMP} \
+     else \
+       tag=manual-build \
+    fi; \
+    sed -i "s|@CONTAINER_TAG@|opensciencegrid/osgvo-docker-pilot:$tag|" \
            /etc/condor/config.d/50-main.config
 
 RUN chown -R osg: ~osg 
