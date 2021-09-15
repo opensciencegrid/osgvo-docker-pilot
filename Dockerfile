@@ -84,11 +84,11 @@ COPY 50-main.config /etc/condor/config.d/
 RUN chmod 755 /bin/entrypoint.sh
 
 RUN if [[ -n $TIMESTAMP ]]; then \
-       tag=${BASE_YUM_REPO}-${TIMESTAMP} \
+       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}-${TIMESTAMP} \
      else \
-       tag=manual-build \
+       tag= \
     fi; \
-    sed -i "s|@CONTAINER_TAG@|opensciencegrid/osgvo-docker-pilot:$tag|" \
+    sed -i "s|@CONTAINER_TAG@|$tag|" \
            /etc/condor/config.d/50-main.config
 
 RUN chown -R osg: ~osg 
