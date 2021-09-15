@@ -98,6 +98,9 @@ jobs:
       matrix:
         repo: ['development', 'testing', 'release']
     steps:
+      - name: checkout osgvo-docker-pilot
+        uses: actions/checkout@v2
+
       - name: Load cached image
         uses: actions/cache@v2
         with:
