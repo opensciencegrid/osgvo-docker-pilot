@@ -4,6 +4,7 @@ FROM opensciencegrid/software-base:3.5-el7-${BASE_YUM_REPO}
 
 # Previous arg has gone out of scope
 ARG BASE_YUM_REPO=testing
+ARG TIMESTAMP
 
 # token auth require HTCondor 8.9.x
 RUN useradd osg \
@@ -81,7 +82,15 @@ COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
 RUN chmod 755 /bin/entrypoint.sh
- 
+
+RUN if [[ -n $TIMESTAMP ]]; then \
+       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}-${TIMESTAMP}; \
+    else \
+       tag=; \
+    fi; \
+    sed -i "s|@CONTAINER_TAG@|$tag|" \
+           /etc/condor/config.d/50-main.config
+
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
