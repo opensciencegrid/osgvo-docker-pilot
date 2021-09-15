@@ -11,7 +11,6 @@ on:
 jobs:
   make-date-tag:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && startsWith(github.repository, 'opensciencegrid/')
     outputs:
       dtag: ${{ steps.mkdatetag.outputs.dtag }}
     steps:
