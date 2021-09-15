@@ -9,7 +9,7 @@ fi
 
 
 #
-# Taken from creation/web_base/condor_startup.sh in the gwms 
+# Taken from creation/web_base/condor_startup.sh in the gwms
 # Set a variable read from a file
 #
 pstr='"'
@@ -111,6 +111,9 @@ fi
 if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
     export ACCEPT_JOBS_FOR_HOURS=336
 fi
+if [ "x$ACCEPT_IDLE_MINUTES" = "x" ]; then
+    export ACCEPT_IDLE_MINUTES=30
+fi
 if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
@@ -181,12 +184,12 @@ GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
 OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 
 ACCEPT_JOBS_FOR_HOURS = $ACCEPT_JOBS_FOR_HOURS
+ACCEPT_IDLE_MINUTES = $ACCEPT_IDLE_MINUTES
 
 AnnexName = "$ANNEX_NAME"
 
-STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
-MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS
-
+STARTD_ATTRS = \$(STARTD_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
+MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
 
 # policy
 use policy : Hold_If_Memory_Exceeded
@@ -233,7 +236,7 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/* .
-mkdir -p .gwms.d/bin 
+mkdir -p .gwms.d/bin
 for target in cleanup  postjob  prejob  setup  setup_singularity; do
     mkdir -p .gwms.d/exec/$target
 done
