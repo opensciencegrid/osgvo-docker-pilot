@@ -212,7 +212,8 @@ case "$CVMFS_INSTALL" in
         start_cvmfs
         ;;
     cvmfsexec)
-        DOCKER_EXTRA_ARGS=(-e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org')
+        DOCKER_EXTRA_ARGS=(-e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org'
+                           --device=/dev/fuse)
         ;;
 esac
 
