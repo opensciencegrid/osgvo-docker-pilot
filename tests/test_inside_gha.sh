@@ -8,6 +8,7 @@ COMMON_DOCKER_ARGS="run --user osg
                         --security-opt seccomp=unconfined
                         --security-opt systempaths=unconfined
                         --security-opt no-new-privileges
+                        --net=host
                         --name backfill
                         -v $OSP_TOKEN_PATH:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
                         -e GLIDEIN_Site='None'
