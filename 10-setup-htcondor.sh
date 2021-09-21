@@ -235,11 +235,7 @@ echo
 cd $LOCAL_DIR
 
 # gwms files in the correct location
-cp -a /gwms/* .
-mkdir -p .gwms.d/bin
-for target in cleanup  postjob  prejob  setup  setup_singularity; do
-    mkdir -p .gwms.d/exec/$target
-done
+cp -a /gwms/. .
 cp -a /usr/sbin/osgvo-singularity-wrapper condor_job_wrapper.sh
 
 # minimum env to get glideinwms scripts to work
