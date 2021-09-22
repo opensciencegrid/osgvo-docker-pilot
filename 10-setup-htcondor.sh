@@ -236,7 +236,7 @@ echo
 cd $LOCAL_DIR
 
 # gwms files in the correct location
-cp -a /gwms/. .
+cp -a /gwms/. $LOCAL_DIR/
 cp -a /usr/sbin/osgvo-singularity-wrapper condor_job_wrapper.sh
 
 # minimum env to get glideinwms scripts to work
