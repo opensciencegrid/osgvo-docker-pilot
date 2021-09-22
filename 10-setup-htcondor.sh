@@ -214,6 +214,7 @@ export GLIDEIN_Site="$GLIDEIN_Site"
 export GLIDEIN_ResourceName="$GLIDEIN_ResourceName"
 export OSG_SITE_NAME="$GLIDEIN_ResourceName"
 export OSG_SQUID_LOCATION="$OSG_SQUID_LOCATION"
+export GWMS_DIR="$LOCAL_DIR"
 exec $LOCAL_DIR/condor_job_wrapper.sh "\$@"
 EOF
 chmod 755 $LOCAL_DIR/user-job-wrapper.sh
@@ -235,11 +236,7 @@ echo
 cd $LOCAL_DIR
 
 # gwms files in the correct location
-cp -a /gwms/* .
-mkdir -p .gwms.d/bin
-for target in cleanup  postjob  prejob  setup  setup_singularity; do
-    mkdir -p .gwms.d/exec/$target
-done
+cp -a /gwms/. $LOCAL_DIR/
 cp -a /usr/sbin/osgvo-singularity-wrapper condor_job_wrapper.sh
 
 # minimum env to get glideinwms scripts to work
