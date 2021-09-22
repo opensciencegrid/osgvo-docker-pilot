@@ -214,6 +214,7 @@ export GLIDEIN_Site="$GLIDEIN_Site"
 export GLIDEIN_ResourceName="$GLIDEIN_ResourceName"
 export OSG_SITE_NAME="$GLIDEIN_ResourceName"
 export OSG_SQUID_LOCATION="$OSG_SQUID_LOCATION"
+export GWMS_DIR="$LOCAL_DIR"
 exec $LOCAL_DIR/condor_job_wrapper.sh "\$@"
 EOF
 chmod 755 $LOCAL_DIR/user-job-wrapper.sh
