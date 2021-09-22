@@ -33,7 +33,7 @@ RUN mkdir -p /gwms/main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,pr
  && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_setup.sh \
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_wrapper.sh \
  && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_lib.sh \
- && find /gwms -name '*.sh' -exec chmod 755 {} \;
+ && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
