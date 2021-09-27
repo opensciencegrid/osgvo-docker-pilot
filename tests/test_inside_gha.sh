@@ -5,6 +5,10 @@ OSP_TOKEN_PATH=/tmp/token
 COMMON_DOCKER_ARGS="run --user osg
                         --detach
                         --security-opt apparmor=unconfined
+                        --security-opt seccomp=unconfined
+                        --security-opt systempaths=unconfined
+                        --security-opt no-new-privileges
+                        --net=host
                         --name backfill
                         -v $OSP_TOKEN_PATH:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
                         -e GLIDEIN_Site='None'
@@ -204,20 +208,13 @@ CONTAINER_RUNTIME="$1"
 CVMFS_INSTALL="$2"
 case "$CVMFS_INSTALL" in
     bindmount)
-        DOCKER_EXTRA_ARGS=(--cap-add DAC_OVERRIDE
-                           --cap-add DAC_READ_SEARCH
-                           --cap-add SETUID
-                           --cap-add SETGID
-                           --cap-add SYS_ADMIN
-                           --cap-add SYS_CHROOT
-                           --cap-add SYS_PTRACE
-                           -v "/cvmfs:/cvmfs:shared")
+        DOCKER_EXTRA_ARGS=(-v "/cvmfs:/cvmfs:shared")
         install_cvmfs
         start_cvmfs
         ;;
     cvmfsexec)
-        DOCKER_EXTRA_ARGS=(--privileged
-                           -e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org')
+        DOCKER_EXTRA_ARGS=(-e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org'
+                           --device=/dev/fuse)
         ;;
 esac
 
