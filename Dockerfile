@@ -14,6 +14,7 @@ RUN useradd osg \
         osg-wn-client \
         redhat-lsb-core \
         singularity \
+        attr \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d \
  && curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
