@@ -17,8 +17,10 @@ RUN useradd osg \
         attr \
         git \
  && yum clean all \
- && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d \
- && curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
+ && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
+
+# osgvo scripts
+RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
  && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-base \
  && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-userenv \
  && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/default_singularity_wrapper.sh \
