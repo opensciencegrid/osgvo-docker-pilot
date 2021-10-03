@@ -119,6 +119,13 @@ RUN if [[ -n $TIMESTAMP ]]; then \
     sed -i "s|@CONTAINER_TAG@|$tag|" \
            /etc/condor/config.d/50-main.config
 
+RUN \
+    if [[ -n $ITB ]]; then \
+        echo 'Is_ITB_Site = True'  >> /etc/condor/config.d/55-itb.config; \
+        echo 'STARTD_ATTRS = $(STARTD_ATTRS) Is_ITB_Site'  >> /etc/condor/config.d/55-itb.config; \
+        echo 'START = $(START) && (TARGET.ITB_Sites =?= True)'  >> /etc/condor/config.d/55-itb.config; \
+    fi
+
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
