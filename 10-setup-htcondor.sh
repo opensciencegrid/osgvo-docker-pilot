@@ -273,10 +273,12 @@ cp /usr/sbin/osgvo-advertise-userenv .
 $PWD/main/singularity_wrapper.sh ./osgvo-advertise-userenv glidein_config osgvo-docker-pilot
 
 # last step - interpret the condor_vars
+set +x
 while read line
 do
     set_var $line
 done <$condor_vars_file
+set -x
 
 cat >>$PILOT_CONFIG_FILE <<EOF
 MASTER_ATTRS = \$(MASTER_ATTRS), $glidein_variables
