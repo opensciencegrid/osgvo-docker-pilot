@@ -27,6 +27,9 @@ RUN useradd osg \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
+# Specify RANDOM when building the image to use the cache for installing RPMs but not for downloading scripts.
+ARG RANDOM=
+
 # glideinwms
 RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
  && curl -sSfL -o /gwms/error_gen.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/error_gen.sh \
