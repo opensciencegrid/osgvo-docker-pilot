@@ -20,18 +20,22 @@ function usage {
     echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
 }
 
-SINGULARITY_OUTPUT=singularity_backfill.out
+SINGULARITY_OUTPUT=$(mktemp)
+PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
-    SINGULARITYENV_TOKEN=None \
-    SINGULARITYENV_GLIDEIN_Site=None \
-    SINGULARITYENV_GLIDEIN_ResourceName=None \
-    SINGULARITYENV_GLIDEIN_Start_Extra=True \
-    /cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity \
-        run \
-          -B /cvmfs \
-          -B .:/pilot \
-          -cip \
-          docker-daemon:$CONTAINER_IMAGE > $SINGULARITY_OUTPUT 2>&1 &"
+    useradd -m testuser
+    chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
+    su - testuser -c \
+       "SINGULARITYENV_TOKEN=None \
+       SINGULARITYENV_GLIDEIN_Site=None \
+       SINGULARITYENV_GLIDEIN_ResourceName=None \
+       SINGULARITYENV_GLIDEIN_Start_Extra=True \
+       /cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity \
+          run \
+            -B /cvmfs \
+            -B $PILOT_DIR:/pilot \
+            -cip \
+            docker-daemon:$CONTAINER_IMAGE > $SINGULARITY_OUTPUT 2>&1 &"
 }
 
 function install_cvmfs {
@@ -131,7 +135,7 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 600 find . -name StartLog)
+    logfile=$(wait_for_output 600 find $PILOT_DIR -name StartLog)
     if [[ -z $logfile ]]; then
         cat $SINGULARITY_OUTPUT
     fi
