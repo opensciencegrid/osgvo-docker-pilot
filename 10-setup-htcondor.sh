@@ -155,7 +155,7 @@ fi
 if [ "x$CCB_RANGE_HIGH" = "x" ]; then
     export CCB_RANGE_HIGH=9899
 fi
-CCB_PORT=$(python -S -c "import random; print random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1)")
+CCB_PORT=$(python -S -c "import random; print(random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1))")
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
@@ -273,10 +273,12 @@ cp /usr/sbin/osgvo-advertise-userenv .
 $PWD/main/singularity_wrapper.sh ./osgvo-advertise-userenv glidein_config osgvo-docker-pilot
 
 # last step - interpret the condor_vars
+set +x
 while read line
 do
     set_var $line
 done <$condor_vars_file
+set -x
 
 cat >>$PILOT_CONFIG_FILE <<EOF
 MASTER_ATTRS = \$(MASTER_ATTRS), $glidein_variables

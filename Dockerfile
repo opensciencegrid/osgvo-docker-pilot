@@ -15,9 +15,12 @@ RUN useradd osg \
         redhat-lsb-core \
         singularity \
         attr \
+        git \
  && yum clean all \
- && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d \
- && curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
+ && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
+
+# osgvo scripts
+RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
  && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-base \
  && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-userenv \
  && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/default_singularity_wrapper.sh \
@@ -39,8 +42,7 @@ RUN mkdir -p /gwms/main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,pr
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
 
-RUN yum -y install git \
- && git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
+RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
  && ./makedist osg \
  # /cvmfs-cache and /cvmfs-logs is where the cache and logs will go; possibly bind-mounted. \
