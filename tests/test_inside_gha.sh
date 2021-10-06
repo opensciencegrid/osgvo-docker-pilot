@@ -23,7 +23,7 @@ function usage {
 SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
-    useradd -m testuser
+    useradd -mG docker testuser
     chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
     su - testuser -c \
        "SINGULARITYENV_TOKEN=None \
