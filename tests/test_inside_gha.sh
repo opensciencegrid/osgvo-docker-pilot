@@ -151,7 +151,7 @@ function test_singularity_startup {
 function test_singularity_HAS_SINGULARITY {
     print_test_header "Testing singularity detection inside the backfill container"
 
-    egrep 'HAS_SINGULARITY *= *[Tt]rue' $SINGULARITY_OUTPUT
+    egrep -i 'HAS_SINGULARITY *= *True' $SINGULARITY_OUTPUT
     if [[ $? -eq 0 ]]; then
         cat $SINGULARITY_OUTPUT
         return 1
