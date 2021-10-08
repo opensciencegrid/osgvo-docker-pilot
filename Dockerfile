@@ -19,25 +19,28 @@ RUN useradd osg \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
-# osgvo scripts
-RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-base \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-userenv \
- && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/default_singularity_wrapper.sh \
- && chmod 755 /usr/sbin/osgvo-*
-
-COPY condor_master_wrapper /usr/sbin/
-RUN chmod 755 /usr/sbin/condor_master_wrapper
-
 # glideinwms
-RUN mkdir -p /gwms/main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
+RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
  && curl -sSfL -o /gwms/error_gen.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/error_gen.sh \
  && curl -sSfL -o /gwms/add_config_line.source https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/add_config_line.source \
  && curl -sSfL -o /gwms/.gwms.d/exec/prejob/setup_prejob.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/setup_prejob.sh \
  && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_setup.sh \
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_wrapper.sh \
  && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_lib.sh \
- && chmod 755 /gwms/*.sh /gwms/main/*.sh
+ && curl -sSfL -o /gwms/client/stashcp http://stash.osgconnect.net/public/dweitzel/stashcp/current/stashcp \
+ && chmod 755 /gwms/*.sh /gwms/main/*.sh /gwms/client/stashcp
+
+# osgvo scripts
+RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
+ && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-base \
+ && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-userenv \
+ && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/default_singularity_wrapper.sh \
+ && curl -sSfL -o /gwms/client_group_main/ospool-lib https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/ospool-lib \
+ && curl -sSfL -o /gwms/client_group_main/singularity-extras https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/singularity-extras \
+ && chmod 755 /usr/sbin/osgvo-* /gwms/client_group_main/*
+
+COPY condor_master_wrapper /usr/sbin/
+RUN chmod 755 /usr/sbin/condor_master_wrapper
 
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf

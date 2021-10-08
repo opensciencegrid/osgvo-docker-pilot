@@ -255,6 +255,10 @@ GLIDEIN_SINGULARITY_REQUIRE OPTIONAL
 GLIDEIN_Singularity_Use PREFERRED
 OSG_DEFAULT_CONTAINER_DISTRIBUTION $OSG_DEFAULT_CONTAINER_DISTRIBUTION
 SINGULARITY_IMAGE_RESTRICTIONS None
+GWMS_SINGULARITY_PATH /usr/bin/singularity
+GLIDEIN_WORK_DIR $PWD/main
+GLIDECLIENT_WORK_DIR $PWD/client
+GLIDECLIENT_GROUP_WORK_DIR $PWD/client_group_main
 EOF
 touch $condor_vars_file
 
@@ -267,6 +271,7 @@ fi
 
 /usr/sbin/osgvo-default-image $glidein_config
 ./main/singularity_setup.sh $glidein_config
+./client_group_main/singularity-extras $glidein_config
 
 # run the osgvo userenv advertise script
 cp /usr/sbin/osgvo-advertise-userenv .
