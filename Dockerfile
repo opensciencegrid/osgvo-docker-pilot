@@ -46,15 +46,16 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
 # Set ITB to use itb versions of all the pilot scripts
 ARG ITB=
 # Specify the branch of the opensciencegrid/osg-flock repo to get the pilot scripts from
+ARG FLOCK_REPO=opensciencegrid/osg-flock
 ARG FLOCK_BRANCH=master
-RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-default-image \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/opensciencegrid/osg-flock/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-advertise-base \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/opensciencegrid/osg-flock/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-advertise-userenv \
- && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/${FLOCK_BRANCH}/job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh \
- && curl -sSfL -o /gwms/client_group_main/ospool-lib https://raw.githubusercontent.com/opensciencegrid/osg-flock/${FLOCK_BRANCH}/node-check/${ITB:+itb-}ospool-lib \
- && curl -sSfL -o /gwms/client_group_main/singularity-extras https://raw.githubusercontent.com/opensciencegrid/osg-flock/${FLOCK_BRANCH}/node-check/${ITB:+itb-}singularity-extras \
+RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-default-image \
+ && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-advertise-base \
+ && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-advertise-userenv \
+ && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh \
+ && curl -sSfL -o /gwms/client_group_main/ospool-lib https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}ospool-lib \
+ && curl -sSfL -o /gwms/client_group_main/singularity-extras https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}singularity-extras \
  && chmod 755 /usr/sbin/osgvo-* /gwms/client_group_main/* \
- && echo "OSGVO Glidein scripts are from the ${FLOCK_BRANCH} branch${ITB:+ (ITB)}" >> /IMAGEINFO.txt
+ && echo "OSGVO Glidein scripts are from ${FLOCK_REPO}, ${FLOCK_BRANCH} branch${ITB:+ (ITB)}" >> /IMAGEINFO.txt
 
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
