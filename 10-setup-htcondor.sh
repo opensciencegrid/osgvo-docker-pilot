@@ -148,14 +148,14 @@ export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegri
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
 # extra HTCondor config
-# pick one ccb port and stick with it for the lifetime of the glidein
-if [ "x$CCB_RANGE_LOW" = "x" ]; then
-    export CCB_RANGE_LOW=9700
+# if CCB_RANGE_* is set, use the old config, otherwise assume OSPool with shared port
+if [[ "x$CCB_RANGE_LOW" != "x" ]]; then
+    CCB_PORT=$(python -S -c "import random; print(random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1))")
+    CCB_ADDRESS="\$(CONDOR_HOST):$CCB_PORT"
+else
+    CCB_COLLECTOR=$(python -S -c "import random; print(random.randrange(1,6))")
+    CCB_ADDRESS="cm-1.ospool.osg-htc.org:9619?sock=collector$CCB_COLLECTOR,cm-2.ospool.osg-htc.org:9619?sock=collector$CCB_COLLECTOR"
 fi
-if [ "x$CCB_RANGE_HIGH" = "x" ]; then
-    export CCB_RANGE_HIGH=9899
-fi
-CCB_PORT=$(python -S -c "import random; print(random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1))")
 NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
@@ -170,8 +170,7 @@ EXECUTE = $LOCAL_DIR/execute
 
 SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
-# random, but static port for the lifetime of the glidein
-CCB_ADDRESS = \$(CONDOR_HOST):$CCB_PORT
+CCB_ADDRESS = $CCB_ADDRESS
 
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
