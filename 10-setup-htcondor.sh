@@ -89,6 +89,7 @@ set_var() {
 
 
 # validation
+set +x  # avoid printing $TOKEN to the console
 if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
    [[ ! -e /etc/condor/tokens-orig.d/flock.opensciencegrid.org ]] &&
    [[ ! $TOKEN ]]; then
@@ -97,6 +98,7 @@ if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
     } 1>&2
     exit 1
 fi
+set -x
 if [ "x$GLIDEIN_Site" = "x" ]; then
     echo "Please specify GLIDEIN_Site as an environment variable" 1>&2
     exit 1
@@ -137,11 +139,15 @@ if [[ $passwords ]]; then
   chmod 600 "$LOCAL_DIR"/condor/passwords.d/*
 fi
 
+set +x  # avoid printing $TOKEN to the console
 if [[ $TOKEN ]]; then
   # token auth
-  echo "$TOKEN" >"$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org
+  echo >&2 'Using TOKEN from environment'
+  cat >"$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org <<<"$TOKEN"
   chmod 600 "$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org
+  TOKEN='<used>'  # done with this var; reset it so an env dump won't print it
 fi
+set -x
 
 # glorious hack
 export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegrid.org
