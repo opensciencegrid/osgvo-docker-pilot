@@ -274,6 +274,14 @@ if (curl --silent --fail --location --connect-timeout 30 --speed-limit 1024 -o c
     chmod 755 client/stashcp
 fi
 
+# test stashcp and add the plugin
+if stashcp /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null; then
+    rm -f /tmp/stashcp-test.file
+    echo "FILETRANSFER_PLUGINS = \$(FILETRANSFER_PLUGINS),/usr/libexec/condor/stash_plugin" >> "$PILOT_CONFIG_FILE"
+else
+    echo >&2 "stashcp test failed; 'stash' filetransfer plugin unavailable"
+fi
+
 /usr/sbin/osgvo-default-image $glidein_config
 ./main/singularity_setup.sh $glidein_config
 ./client_group_main/singularity-extras $glidein_config
