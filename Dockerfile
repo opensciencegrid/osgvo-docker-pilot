@@ -28,7 +28,8 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_wrapper.sh \
  && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_lib.sh \
  && curl -sSfL -o /gwms/client/stashcp http://stash.osgconnect.net/public/dweitzel/stashcp/current/stashcp \
- && chmod 755 /gwms/*.sh /gwms/main/*.sh /gwms/client/stashcp
+ && chmod 755 /gwms/*.sh /gwms/main/*.sh /gwms/client/stashcp \
+ && ln -s /gwms/client/stashcp /usr/bin/stashcp
 
 # osgvo scripts
 RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
@@ -41,6 +42,9 @@ RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.co
 
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
+
+RUN curl -sSfL -o /usr/libexec/condor/stash_plugin https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/stashcp/stash_plugin \
+ && chmod 755 /usr/libexec/condor/stash_plugin
 
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
