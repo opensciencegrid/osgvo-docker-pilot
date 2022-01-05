@@ -18,6 +18,7 @@ elif [[ -z $CVMFSEXEC_REPOS ]]; then
     echo "No CVMFS repos requested, skipping cvmfsexec."
     exec "$@"
 fi
+CVMFSEXEC_REPOS=$(tr -s ',' ' ' <<<"$CVMFSEXEC_REPOS")
 
 cd "$cvmfsexec_root" || \
     fail "Couldn't enter $cvmfsexec_root"
