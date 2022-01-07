@@ -16,6 +16,8 @@ RUN useradd osg \
         singularity \
         attr \
         git \
+        gcc \
+        rsyslog rsyslog-gnutls \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
@@ -90,8 +92,9 @@ COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 COPY entrypoint.sh /bin/entrypoint.sh
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
-COPY 10-htcondor.conf /etc/supervisord.d/
+COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
+COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
 RUN if [[ -n $TIMESTAMP ]]; then \
@@ -105,6 +108,9 @@ RUN if [[ -n $TIMESTAMP ]]; then \
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
+
+COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
+RUN gcc /tmp/launch_rsyslogd.c -o /usr/bin/launch_rsyslogd && rm /tmp/launch_rsyslogd.c && chmod 04755 /usr/bin/launch_rsyslogd
 
 WORKDIR /pilot
 # We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)
