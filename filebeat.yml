@@ -1,0 +1,9 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /pilot/condor_local/log/*
+
+
+output.logstash:
+  hosts: ["gracc.opensciencegrid.org:5044"]

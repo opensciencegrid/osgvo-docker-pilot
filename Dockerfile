@@ -16,6 +16,7 @@ RUN useradd osg \
         singularity \
         attr \
         git \
+        https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.16.2-x86_64.rpm \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
@@ -92,6 +93,8 @@ COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
+COPY filebeat.yml /etc/filebeat/
+COPY 20-filebeat.conf /etc/supervisord.d/
 RUN chmod 755 /bin/entrypoint.sh
 
 RUN if [[ -n $TIMESTAMP ]]; then \
