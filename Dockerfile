@@ -17,7 +17,7 @@ RUN useradd osg \
         attr \
         git \
         gcc \
-        rsyslog rsyslog-gnutls \
+        rsyslog rsyslog-gnutls python36-cryptography python36-requests \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
@@ -89,7 +89,7 @@ ENV MEMORY=
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
-COPY entrypoint.sh /bin/entrypoint.sh
+COPY generate-hostcert entrypoint.sh /bin/
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
@@ -110,7 +110,8 @@ RUN chown -R osg: ~osg
 RUN mkdir -p /pilot && chmod 1777 /pilot
 
 COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
-RUN gcc /tmp/launch_rsyslogd.c -o /usr/bin/launch_rsyslogd && rm /tmp/launch_rsyslogd.c && chmod 04755 /usr/bin/launch_rsyslogd
+RUN gcc /tmp/launch_rsyslogd.c -o /usr/bin/launch_rsyslogd && rm /tmp/launch_rsyslogd.c && chmod 04755 /usr/bin/launch_rsyslogd && \
+    mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog
 
 WORKDIR /pilot
 # We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)

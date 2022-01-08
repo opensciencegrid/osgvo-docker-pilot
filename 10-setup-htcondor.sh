@@ -153,6 +153,9 @@ set -x
 export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegrid.org
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
+# Setup syslog server
+generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" || :
+
 # extra HTCondor config
 # if CCB_RANGE_* is set, use the old config, otherwise assume OSPool with shared port
 if [[ "x$CCB_RANGE_LOW" != "x" ]]; then
