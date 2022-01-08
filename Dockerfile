@@ -1,3 +1,9 @@
+FROM alpine:latest AS compile
+COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
+RUN apk --no-cache add gcc musl-dev && \
+ cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
+ strip /launch_rsyslogd
+
 ARG BASE_YUM_REPO=testing
 
 FROM opensciencegrid/software-base:3.6-el7-${BASE_YUM_REPO}
@@ -109,8 +115,8 @@ RUN chown -R osg: ~osg
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
 
-COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
-RUN gcc /tmp/launch_rsyslogd.c -o /usr/bin/launch_rsyslogd && rm /tmp/launch_rsyslogd.c && chmod 04755 /usr/bin/launch_rsyslogd && \
+COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
+RUN chmod 04755 /usr/bin/launch_rsyslogd && \
     mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog
 
 WORKDIR /pilot
