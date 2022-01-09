@@ -117,7 +117,10 @@ RUN mkdir -p /pilot && chmod 1777 /pilot
 
 COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
 RUN chmod 04755 /usr/bin/launch_rsyslogd && \
-    mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog
+    mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
+    ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+
+COPY supervisord_startup.sh /usr/local/sbin/
 
 WORKDIR /pilot
 # We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)
