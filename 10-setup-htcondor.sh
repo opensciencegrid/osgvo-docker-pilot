@@ -154,6 +154,7 @@ export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegri
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
 # Setup syslog server
+mkdir -p /pilot/{log,rsyslog,rsyslog-pid}
 generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" || :
 
 # extra HTCondor config

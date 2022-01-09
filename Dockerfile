@@ -1,10 +1,10 @@
+ARG BASE_YUM_REPO=testing
+
 FROM alpine:latest AS compile
 COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
 RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
-
-ARG BASE_YUM_REPO=testing
 
 FROM opensciencegrid/software-base:3.6-el7-${BASE_YUM_REPO}
 
