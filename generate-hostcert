@@ -39,6 +39,7 @@ with open(sys.argv[1], "rb") as fp:
 
 response = requests.post("https://os-registry.osgdev.chtc.io/syslog-ca/issue", data={"csr": csr_bytes},
     headers={"Authorization": f"Bearer {token.decode()}"},
+    timeout=20,
 )
 
 response_dict = response.json()
