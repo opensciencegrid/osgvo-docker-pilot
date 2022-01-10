@@ -111,7 +111,7 @@ function test_docker_startup {
                         -- \
                         'Changing activity: Benchmarking -> Idle' \
                         $logfile \
-        || return 1
+        || (tail -n 400 $logfile && return 1)
 }
 
 function test_docker_HAS_SINGULARITY {
@@ -141,7 +141,7 @@ function test_singularity_startup {
                     -- \
                     'Changing activity: Benchmarking -> Idle' \
                     $logfile \
-        || return 1
+        || (tail -n 400 $logfile && return 1)
 }
 
 function test_singularity_HAS_SINGULARITY {
