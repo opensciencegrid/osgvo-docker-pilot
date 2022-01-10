@@ -155,7 +155,7 @@ export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
 # Setup syslog server
 mkdir -p /pilot/{log,log/log,rsyslog,rsyslog/pid,rsyslog/workdir,rsyslog/conf}
-touch /pilot/log/{Master,Start,Proc,log/Starter}Log /pilot/log/StarterLog{,.testing}
+touch /pilot/log/{Master,Start,Proc,SharedPort,XferStatsLog,log/Starter}Log /pilot/log/StarterLog{,.testing}
 
 # Configure remote peer if applicable
 if [[ "x$SYSLOG_HOST" != "x" ]]; then
