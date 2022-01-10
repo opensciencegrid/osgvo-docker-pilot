@@ -99,7 +99,7 @@ function wait_for_output {
 function test_docker_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog)
+    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog -size 1)
     if [[ -z $logfile ]]; then
         debug_docker_backfill
         return 1
@@ -131,7 +131,7 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 600 find $PILOT_DIR -name StartLog)
+    logfile=$(wait_for_output 600 find $PILOT_DIR -name StartLog -size 1)
     if [[ -z $logfile ]]; then
         cat $SINGULARITY_OUTPUT
     fi
