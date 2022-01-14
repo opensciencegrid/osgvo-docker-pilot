@@ -22,7 +22,6 @@ RUN useradd osg \
         singularity \
         attr \
         git \
-        gcc \
         rsyslog rsyslog-gnutls python36-cryptography python36-requests \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
