@@ -37,12 +37,20 @@ csr_bytes = csr.public_bytes(serialization.Encoding.PEM).decode()
 with open(sys.argv[1], "rb") as fp:
     token = fp.read().strip()
 
-response = requests.post("https://os-registry.osgdev.chtc.io/syslog-ca/issue", data={"csr": csr_bytes},
-    headers={"Authorization": f"Bearer {token.decode()}"},
-    timeout=20,
-)
-
-response_dict = response.json()
+try:
+    response = requests.post("https://os-registry.osgdev.chtc.io/syslog-ca/issue", data={"csr": csr_bytes},
+        headers={"Authorization": f"Bearer {token.decode()}"},
+        timeout=20,
+    )
+except OSError as err:
+    print("*** Error downloading certificate from registry: %s" % err, file=sys.stderr)
+    raise
+try:
+    response_dict = response.json()
+except ValueError as err:
+    print("*** Bad data received from registry: %s" % err, file=sys.stderr)
+    print("*** Received data: %s", response, file=sys.stderr)
+    raise
 response_dict["key"] = key_bytes.decode()
 
 os.makedirs("/etc/pki/rsyslog", exist_ok=True)
