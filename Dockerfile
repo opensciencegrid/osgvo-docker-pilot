@@ -1,5 +1,11 @@
 ARG BASE_YUM_REPO=testing
 
+FROM alpine:latest AS compile
+COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
+RUN apk --no-cache add gcc musl-dev && \
+ cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
+ strip /launch_rsyslogd
+
 FROM opensciencegrid/software-base:3.6-el7-${BASE_YUM_REPO}
 
 # Previous arg has gone out of scope
@@ -16,6 +22,7 @@ RUN useradd osg \
         singularity \
         attr \
         git \
+        rsyslog rsyslog-gnutls python36-cryptography python36-requests \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
@@ -87,11 +94,12 @@ ENV MEMORY=
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
-COPY entrypoint.sh /bin/entrypoint.sh
+COPY generate-hostcert entrypoint.sh /bin/
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
-COPY 10-htcondor.conf /etc/supervisord.d/
+COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
+COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
 RUN if [[ -n $TIMESTAMP ]]; then \
@@ -105,6 +113,13 @@ RUN if [[ -n $TIMESTAMP ]]; then \
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
+
+COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
+RUN chmod 04755 /usr/bin/launch_rsyslogd && \
+    mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
+    ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+
+COPY supervisord_startup.sh /usr/local/sbin/
 
 WORKDIR /pilot
 # We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)
