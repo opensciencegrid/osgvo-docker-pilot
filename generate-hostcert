@@ -38,7 +38,7 @@ with open(sys.argv[1], "rb") as fp:
     token = fp.read().strip()
 
 try:
-    response = requests.post("https://os-registry.osgdev.chtc.io/syslog-ca/issue", data={"csr": csr_bytes},
+    response = requests.post("https://os-registry.opensciencegrid.org/syslog-ca/issue", data={"csr": csr_bytes},
         headers={"Authorization": f"Bearer {token.decode()}"},
         timeout=20,
     )
