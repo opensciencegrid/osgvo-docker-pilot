@@ -47,10 +47,11 @@ except OSError as err:
     raise
 try:
     response_dict = response.json()
-except ValueError as err:
+    assert "ca" in response_dict
+    assert "certificate" in response_dict
+except (AssertionError, ValueError) as err:
     print("*** Bad data received from registry: %s" % err, file=sys.stderr)
-    print("*** Received data: %s", response, file=sys.stderr)
-    raise
+    print("*** Received data: %s %s" % (response.status_code, response.text), file=sys.stderr)
 response_dict["key"] = key_bytes.decode()
 
 os.makedirs("/etc/pki/rsyslog", exist_ok=True)
