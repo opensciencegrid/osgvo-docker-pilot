@@ -162,7 +162,7 @@ if [[ "x$SYSLOG_HOST" != "x" ]]; then
 
 generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" || :
 
-for NAME in Condor RSYSLOG Supervisord
+for NAME in Condor Glidein Supervisord
 do
 
 cat >> /pilot/rsyslog/conf/forward.conf << EOF
@@ -188,7 +188,7 @@ else
 
 cat > /pilot/rsyslog/conf/forward.conf << EOF
 ruleset(name="forwardCondor") {}
-ruleset(name="forwardRSYSLOG") {}
+ruleset(name="forwardGlidein") {}
 ruleset(name="forwardSupervisord") {}
 EOF
 
