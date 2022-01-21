@@ -37,8 +37,13 @@ csr_bytes = csr.public_bytes(serialization.Encoding.PEM).decode()
 with open(sys.argv[1], "rb") as fp:
     token = fp.read().strip()
 
+if len(sys.argv) > 2:
+    registry_hostname = sys.argv[2]
+else:
+    registry_hostname = "os-registry.opensciencegrid.org"
+
 try:
-    response = requests.post("https://os-registry.opensciencegrid.org/syslog-ca/issue", data={"csr": csr_bytes},
+    response = requests.post(f"https://{registry_hostname}/syslog-ca/issue", data={"csr": csr_bytes},
         headers={"Authorization": f"Bearer {token.decode()}"},
         timeout=20,
     )
