@@ -23,6 +23,7 @@ RUN useradd osg \
         attr \
         git \
         rsyslog rsyslog-gnutls python36-cryptography python36-requests \
+        bind-utils \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
