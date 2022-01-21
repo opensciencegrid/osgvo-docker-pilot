@@ -153,6 +153,10 @@ set -x
 export _CONDOR_SEC_PASSWORD_FILE=$LOCAL_DIR/condor/tokens.d/flock.opensciencegrid.org
 export _CONDOR_SEC_PASSWORD_DIRECTORY=$LOCAL_DIR/condor/passwords.d
 
+# There's at least one site that makes `/pilot` a persistent volume; we want to remove
+# the cruft from the prior run.
+rm -rf /pilot/{log,rsyslog}
+
 # Setup syslog server
 mkdir -p /pilot/{log,log/log,rsyslog,rsyslog/pid,rsyslog/workdir,rsyslog/conf}
 touch /pilot/log/{Master,Start,Proc,SharedPort,XferStats,log/Starter}Log /pilot/log/StarterLog{,.testing}
