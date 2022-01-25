@@ -162,25 +162,25 @@ mkdir -p /pilot/{log,log/log,rsyslog,rsyslog/pid,rsyslog/workdir,rsyslog/conf}
 touch /pilot/log/{Master,Start,Proc,SharedPort,XferStats,log/Starter}Log /pilot/log/StarterLog{,.testing}
 
 # Configure remote peer if applicable
-if [[ "x$SYSLOG_HOST" != "x" ]]; then
+if [[ "x$SYSLOG_HOST" == "x" ]]; then
+    SYSLOG_HOST="syslog.osg.chtc.io"
+fi
 
-    # Set some reasonable defaults for the token registry.
-    if [[ "x$REGISTRY_HOST" != "x" ]]; then
-        REGISTRY_HOSTNAME="$REGISTRY_HOST"
-    elif [[ "$SYSLOG_HOST" == "syslog.osgdev.chtc.io" ]]; then
-        REGISTRY_HOSTNAME="os-registry.osgdev.chtc.io"
-    else
-        REGISTRY_HOSTNAME="os-registry.opensciencegrid.org"
-    fi
+# Set some reasonable defaults for the token registry.
+if [[ "x$REGISTRY_HOST" != "x" ]]; then
+    REGISTRY_HOSTNAME="$REGISTRY_HOST"
+elif [[ "$SYSLOG_HOST" == "syslog.osgdev.chtc.io" ]]; then
+    REGISTRY_HOSTNAME="os-registry.osgdev.chtc.io"
+else
+    REGISTRY_HOSTNAME="os-registry.opensciencegrid.org"
+fi
 
-    if ! nslookup "$SYSLOG_HOST" >/dev/null; then
-        echo >&2 "*** SYSLOG_HOST $SYSLOG_HOST not found"
-        SYSLOG_HOST=""
-    else
-        # If hostcert generation fails, then we'll just skip the whole syslog thing.
-        generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" "$REGISTRY_HOSTNAME" || SYSLOG_HOST=""
-    fi
-
+if ! nslookup "$SYSLOG_HOST" >/dev/null; then
+    echo >&2 "*** SYSLOG_HOST $SYSLOG_HOST not found"
+    SYSLOG_HOST=""
+else
+    # If hostcert generation fails, then we'll just skip the whole syslog thing.
+    generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" "$REGISTRY_HOSTNAME" || SYSLOG_HOST=""
 fi
 
 if [[ "x$SYSLOG_HOST" != "x" ]]; then
