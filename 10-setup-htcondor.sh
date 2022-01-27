@@ -226,7 +226,20 @@ else
     CCB_COLLECTOR=$(python -S -c "import random; print(random.randrange(1,6))")
     CCB_ADDRESS="cm-1.ospool.osg-htc.org:9619?sock=collector$CCB_COLLECTOR,cm-2.ospool.osg-htc.org:9619?sock=collector$CCB_COLLECTOR"
 fi
-NETWORK_HOSTNAME="$(echo $GLIDEIN_ResourceName | sed 's/_/-/g')-$(hostname)"
+# https://whogohost.com/host/knowledgebase/308/Valid-Domain-Name-Characters.html rules
+hostname_length=$(hostname | wc -c)
+maxlen=$(( 63 - $hostname_length ))
+if [[ $maxlen -lt 1 ]]; then
+    sanitized_resourcename=
+else
+    sanitized_resourcename=$(
+    <<<"$GLIDEIN_ResourceName" tr -cs 'a-zA-Z0-9.-' '[-*]' \
+                             | sed -e 's|^[.-]*||' \
+                                   -e 's|[.-]*$||' \
+                             | cut -c 1-$maxlen \
+    )
+fi
+NETWORK_HOSTNAME="${sanitized_resourcename}-$(hostname)"
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
