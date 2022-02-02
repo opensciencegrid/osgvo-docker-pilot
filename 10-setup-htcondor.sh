@@ -331,13 +331,6 @@ GLIDECLIENT_GROUP_WORK_DIR $PWD/client_group_main
 EOF
 touch $condor_vars_file
 
-# grab the latests copy of stashcp
-mkdir -p client
-
-if (curl --silent --fail --location --connect-timeout 30 --speed-limit 1024 -o client/stashcp http://stash.osgconnect.net/public/dweitzel/stashcp/current/stashcp) &>/dev/null; then
-    chmod 755 client/stashcp
-fi
-
 # test stashcp and add the plugin
 if stashcp /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null; then
     rm -f /tmp/stashcp-test.file
