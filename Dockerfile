@@ -51,7 +51,7 @@ RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.co
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
 
-RUN curl -sSfL -o /usr/libexec/condor/stash_plugin https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/stashcp/stash_plugin \
+RUN cp /gwms/client/stashcp /usr/libexec/condor/stash_plugin \
  && chmod 755 /usr/libexec/condor/stash_plugin
 
 # Override the software-base supervisord.conf to throw away supervisord logs
