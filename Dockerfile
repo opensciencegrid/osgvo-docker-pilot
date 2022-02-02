@@ -43,19 +43,24 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && ln -s /gwms/client/stashcp /usr/bin/stashcp
 
 # osgvo scripts
-# Set ITB to use itb versions of all the pilot scripts
+# Set ITB to use itb versions of all the pilot scripts and join the ITB pool
 ARG ITB=
-# Specify the branch of the opensciencegrid/osg-flock repo to get the pilot scripts from
-ARG FLOCK_REPO=opensciencegrid/osg-flock
-ARG FLOCK_BRANCH=master
-RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-default-image \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-advertise-base \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}osgvo-advertise-userenv \
- && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh \
- && curl -sSfL -o /gwms/client_group_main/ospool-lib https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}ospool-lib \
- && curl -sSfL -o /gwms/client_group_main/singularity-extras https://raw.githubusercontent.com/${FLOCK_REPO}/${FLOCK_BRANCH}/node-check/${ITB:+itb-}singularity-extras \
- && chmod 755 /usr/sbin/osgvo-* /gwms/client_group_main/* \
- && echo "OSGVO Glidein scripts are from ${FLOCK_REPO}, ${FLOCK_BRANCH} branch${ITB:+ (ITB)}" >> /IMAGEINFO.txt
+# Specify the branch and fork of the opensciencegrid/osg-flock repo to get the pilot scripts from
+ARG OSG_FLOCK_REPO=opensciencegrid/osg-flock
+ARG OSG_FLOCK_BRANCH=master
+RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} osg-flock \
+ && cd osg-flock \
+ && install node-check/${ITB:+itb-}osgvo-default-image                  /usr/sbin/osgvo-default-image \
+ && install node-check/${ITB:+itb-}osgvo-advertise-base                 /usr/sbin/osgvo-advertise-base \
+ && install node-check/${ITB:+itb-}osgvo-advertise-userenv              /usr/sbin/osgvo-advertise-userenv \
+ && install job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh     /usr/sbin/osgvo-singularity-wrapper \
+ && install node-check/${ITB:+itb-}ospool-lib                           /gwms/client_group_main/ospool-lib \
+ && install node-check/${ITB:+itb-}singularity-extras                   /gwms/client_group_main/singularity-extras \
+ && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "STARTD_ATTRS = \$(STARTD_ATTRS) OSG_FLOCK_REPO OSG_FLOCK_BRANCH OSG_FLOCK_HASH"  >> /etc/condor/config.d/60-flock-sources.config \
+ && cd .. && rm -rf osg-flock
 
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
