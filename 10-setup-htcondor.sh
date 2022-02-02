@@ -345,12 +345,14 @@ EOF
 touch $condor_vars_file
 
 # test stashcp and add the plugin
-if stashcp /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null; then
+if timeout 60s stashcp --debug /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null 2>/tmp/stashcp-debug.txt; then
     rm -f /tmp/stashcp-test.file
     echo "FILETRANSFER_PLUGINS = \$(FILETRANSFER_PLUGINS),/usr/libexec/condor/stash_plugin" >> "$PILOT_CONFIG_FILE"
 else
+    cat >&2 /tmp/stashcp-debug.txt
     echo >&2 "stashcp test failed; 'stash' filetransfer plugin unavailable"
 fi
+rm -f /tmp/stashcp-debug.txt
 
 /usr/sbin/osgvo-default-image $glidein_config
 ./main/singularity_setup.sh $glidein_config
