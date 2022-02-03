@@ -38,9 +38,7 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_setup.sh \
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_wrapper.sh \
  && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_lib.sh \
- && curl -sSfL -o /gwms/client/stashcp https://github.com/opensciencegrid/osg-flock/raw/master/stashcp/stashcp \
- && chmod 755 /gwms/*.sh /gwms/main/*.sh /gwms/client/stashcp \
- && ln -s /gwms/client/stashcp /usr/bin/stashcp
+ && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # osgvo scripts
 # Set ITB to use itb versions of all the pilot scripts and join the ITB pool
@@ -56,6 +54,9 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh     /usr/sbin/osgvo-singularity-wrapper \
  && install node-check/${ITB:+itb-}ospool-lib                           /gwms/client_group_main/ospool-lib \
  && install node-check/${ITB:+itb-}singularity-extras                   /gwms/client_group_main/singularity-extras \
+ && install stashcp/stashcp                                             /gwms/client/stashcp \
+ && install stashcp/stashcp                                             /usr/libexec/condor/stash_plugin \
+ && ln -s   /gwms/client/stashcp                                        /usr/bin/stashcp \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
@@ -64,9 +65,6 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
 
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
-
-RUN cp /gwms/client/stashcp /usr/libexec/condor/stash_plugin \
- && chmod 755 /usr/libexec/condor/stash_plugin
 
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
