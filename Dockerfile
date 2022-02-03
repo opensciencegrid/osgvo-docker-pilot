@@ -125,6 +125,8 @@ RUN if [[ -n $TIMESTAMP ]]; then \
 
 RUN \
     if [[ -n $ITB ]]; then \
+        # Set the default pool to ITB, but allow turning off with -e ITBPOOL=0
+        echo 'export ITBPOOL=${ITBPOOL:-1}' > /etc/osg/image-init.d/01-itb.sh; \
         echo 'Is_ITB_Site = True'  >> /etc/condor/config.d/55-itb.config; \
         echo 'STARTD_ATTRS = $(STARTD_ATTRS) Is_ITB_Site'  >> /etc/condor/config.d/55-itb.config; \
         echo 'START = $(START) && (TARGET.ITB_Sites =?= True)'  >> /etc/condor/config.d/55-itb.config; \
