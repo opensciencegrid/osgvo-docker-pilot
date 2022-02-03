@@ -118,7 +118,7 @@ COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
 RUN if [[ -n $TIMESTAMP ]]; then \
-       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}-${TIMESTAMP}; \
+       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}${ITB+-itb}-${TIMESTAMP}; \
     else \
        tag=; \
     fi; \
