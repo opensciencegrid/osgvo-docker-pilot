@@ -35,7 +35,7 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_setup.sh \
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_wrapper.sh \
  && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_lib.sh \
- && curl -sSfL -o /gwms/client/stashcp http://stash.osgconnect.net/public/dweitzel/stashcp/current/stashcp \
+ && curl -sSfL -o /gwms/client/stashcp https://github.com/opensciencegrid/osg-flock/raw/master/stashcp/stashcp \
  && chmod 755 /gwms/*.sh /gwms/main/*.sh /gwms/client/stashcp \
  && ln -s /gwms/client/stashcp /usr/bin/stashcp
 
