@@ -87,6 +87,13 @@ set_var() {
 }
 
 
+is_true () {
+    case "${1:-0}" in
+        # y(es), t(rue), 1, on; uppercase or lowercase
+        [yY]*|[tT]*|1|[Oo][Nn]) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # validation
 set +x  # avoid printing $TOKEN to the console
@@ -163,7 +170,11 @@ touch /pilot/log/{Master,Start,Proc,SharedPort,XferStats,log/Starter}Log /pilot/
 
 # Configure remote peer if applicable
 if [[ "x$SYSLOG_HOST" == "x" ]]; then
-    SYSLOG_HOST="syslog.osg.chtc.io"
+    if is_true "$ITBPOOL"; then
+        SYSLOG_HOST="syslog.osgdev.chtc.io"
+    else
+        SYSLOG_HOST="syslog.osg.chtc.io"
+    fi
 fi
 
 # Set some reasonable defaults for the token registry.
@@ -217,6 +228,14 @@ EOF
 
 fi
 
+if is_true "$ITBPOOL"; then
+    OSPOOL_CM1=cm-1.ospool-itb.osg-htc.org
+    OSPOOL_CM2=cm-2.ospool-itb.osg-htc.org
+else
+    OSPOOL_CM1=cm-1.ospool.osg-htc.org
+    OSPOOL_CM2=cm-2.ospool.osg-htc.org
+fi
+
 # extra HTCondor config
 # if CCB_RANGE_* is set, use the old config, otherwise assume OSPool with shared port
 if [[ "x$CCB_RANGE_LOW" != "x" ]]; then
@@ -224,7 +243,7 @@ if [[ "x$CCB_RANGE_LOW" != "x" ]]; then
     CCB_ADDRESS="\$(CONDOR_HOST):$CCB_PORT"
 else
     CCB_COLLECTOR=$(python -S -c "import random; print(random.randrange(1,6))")
-    CCB_ADDRESS="cm-1.ospool.osg-htc.org:9619?sock=collector$CCB_COLLECTOR,cm-2.ospool.osg-htc.org:9619?sock=collector$CCB_COLLECTOR"
+    CCB_ADDRESS="${OSPOOL_CM1}:9619?sock=collector$CCB_COLLECTOR,${OSPOOL_CM2}:9619?sock=collector$CCB_COLLECTOR"
 fi
 # https://whogohost.com/host/knowledgebase/308/Valid-Domain-Name-Characters.html rules
 hostname_length=$(hostname | wc -c)
@@ -245,6 +264,8 @@ NETWORK_HOSTNAME="${sanitized_resourcename}-$(hostname)"
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
 cat >$PILOT_CONFIG_FILE <<EOF
+CONDOR_HOST = $OSPOOL_CM1,$OSPOOL_CM2
+
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
 

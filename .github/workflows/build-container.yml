@@ -24,6 +24,12 @@ jobs:
     strategy:
       matrix:
         repo: ['development', 'testing', 'release']
+        itb: ['', '-itb']
+        exclude:
+          - itb: '-itb'
+            repo: 'release'
+          - itb: '-itb'
+            repo: 'testing'
 
     steps:
     - name: checkout osgvo-docker-pilot
@@ -33,11 +39,11 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /tmp/.buildx-cache
-        key: ${{ matrix.repo }}-buildx-${{ github.sha }}-${{ github.run_id }}
+        key: ${{ matrix.repo }}${{ matrix.itb }}-buildx-${{ github.sha }}-${{ github.run_id }}
         # allow cache hits from previous runs of the current branch,
         # parent branch, then upstream branches, in that order
         restore-keys: |
-          ${{ matrix.repo }}-buildx-
+          ${{ matrix.repo }}${{ matrix.itb }}-buildx-
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -50,6 +56,7 @@ jobs:
         build-args: |
           BASE_YUM_REPO=${{ matrix.repo }}
           TIMESTAMP=${{ needs.make-date-tag.outputs.dtag }}
+          ITB=${{ matrix.itb }}
         cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
 
   test:
@@ -59,11 +66,16 @@ jobs:
       fail-fast: false
       matrix:
         repo: ['development', 'testing', 'release']
+        itb: ['', '-itb']
         runtime: ['docker', 'singularity']
         cvmfs: ['bindmount', 'cvmfsexec']
         exclude:
           - runtime: singularity
             cvmfs: cvmfsexec
+          - itb: '-itb'
+            repo: 'release'
+          - itb: '-itb'
+            repo: 'testing'
     steps:
       - name: checkout osgvo-docker-pilot
         uses: actions/checkout@v2
@@ -72,7 +84,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ matrix.repo }}-buildx-${{ github.sha }}-${{ github.run_id }}
+          key: ${{ matrix.repo }}${{ matrix.itb }}-buildx-${{ github.sha }}-${{ github.run_id }}
 
       - name: Load osgvo-docker-pilot image
         uses: docker/build-push-action@v2.2.2
@@ -80,6 +92,7 @@ jobs:
           build-args: |
             BASE_YUM_REPO=${{ matrix.repo }}
             TIMESTAMP=${{ needs.make-date-tag.outputs.dtag }}
+            ITB=${{ matrix.itb }}
           load: true  # allow access to built images through the Docker CLI
           tags: osgvo-docker-pilot:latest
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -97,6 +110,12 @@ jobs:
     strategy:
       matrix:
         repo: ['development', 'testing', 'release']
+        itb: ['', '-itb']
+        exclude:
+          - itb: '-itb'
+            repo: 'release'
+          - itb: '-itb'
+            repo: 'testing'
     steps:
       - name: checkout osgvo-docker-pilot
         uses: actions/checkout@v2
@@ -105,17 +124,18 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ matrix.repo }}-buildx-${{ github.sha }}-${{ github.run_id }}
+          key: ${{ matrix.repo }}${{ matrix.itb }}-buildx-${{ github.sha }}-${{ github.run_id }}
 
       - id: generate-tag-list
         env:
           REPO: ${{ matrix.repo }}
           TIMESTAMP: ${{ needs.make-date-tag.outputs.dtag }}
+          ITB: ${{ matrix.itb }}
         run: |
           docker_repo=${GITHUB_REPOSITORY/brianhlin\/docker-/brianhlin/}
           tag_list=()
           for registry in hub.opensciencegrid.org docker.io; do
-            for image_tag in "$REPO" "$REPO-$TIMESTAMP"; do
+            for image_tag in "$REPO$ITB" "$REPO$ITB-$TIMESTAMP"; do
               tag_list+=("$registry/$docker_repo":"$image_tag")
             done
           done

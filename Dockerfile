@@ -27,6 +27,9 @@ RUN useradd osg \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
+# Specify RANDOM when building the image to use the cache for installing RPMs but not for downloading scripts.
+ARG RANDOM=
+
 # glideinwms
 RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
  && curl -sSfL -o /gwms/error_gen.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/error_gen.sh \
@@ -35,24 +38,33 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_setup.sh \
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_wrapper.sh \
  && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_9/creation/web_base/singularity_lib.sh \
- && curl -sSfL -o /gwms/client/stashcp https://github.com/opensciencegrid/osg-flock/raw/master/stashcp/stashcp \
- && chmod 755 /gwms/*.sh /gwms/main/*.sh /gwms/client/stashcp \
- && ln -s /gwms/client/stashcp /usr/bin/stashcp
+ && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # osgvo scripts
-RUN curl -sSfL -o /usr/sbin/osgvo-default-image https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-default-image \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-base https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-base \
- && curl -sSfL -o /usr/sbin/osgvo-advertise-userenv https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/osgvo-advertise-userenv \
- && curl -sSfL -o /usr/sbin/osgvo-singularity-wrapper https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/job-wrappers/default_singularity_wrapper.sh \
- && curl -sSfL -o /gwms/client_group_main/ospool-lib https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/ospool-lib \
- && curl -sSfL -o /gwms/client_group_main/singularity-extras https://raw.githubusercontent.com/opensciencegrid/osg-flock/master/node-check/singularity-extras \
- && chmod 755 /usr/sbin/osgvo-* /gwms/client_group_main/*
+# Set ITB to use itb versions of all the pilot scripts and join the ITB pool
+ARG ITB=
+# Specify the branch and fork of the opensciencegrid/osg-flock repo to get the pilot scripts from
+ARG OSG_FLOCK_REPO=opensciencegrid/osg-flock
+ARG OSG_FLOCK_BRANCH=master
+RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} osg-flock \
+ && cd osg-flock \
+ && install node-check/${ITB:+itb-}osgvo-default-image                  /usr/sbin/osgvo-default-image \
+ && install node-check/${ITB:+itb-}osgvo-advertise-base                 /usr/sbin/osgvo-advertise-base \
+ && install node-check/${ITB:+itb-}osgvo-advertise-userenv              /usr/sbin/osgvo-advertise-userenv \
+ && install job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh     /usr/sbin/osgvo-singularity-wrapper \
+ && install node-check/${ITB:+itb-}ospool-lib                           /gwms/client_group_main/ospool-lib \
+ && install node-check/${ITB:+itb-}singularity-extras                   /gwms/client_group_main/singularity-extras \
+ && install stashcp/stashcp                                             /gwms/client/stashcp \
+ && install stashcp/stashcp                                             /usr/libexec/condor/stash_plugin \
+ && ln -s   /gwms/client/stashcp                                        /usr/bin/stashcp \
+ && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "STARTD_ATTRS = \$(STARTD_ATTRS) OSG_FLOCK_REPO OSG_FLOCK_BRANCH OSG_FLOCK_HASH"  >> /etc/condor/config.d/60-flock-sources.config \
+ && cd .. && rm -rf osg-flock
 
 COPY condor_master_wrapper /usr/sbin/
 RUN chmod 755 /usr/sbin/condor_master_wrapper
-
-RUN cp /gwms/client/stashcp /usr/libexec/condor/stash_plugin \
- && chmod 755 /usr/libexec/condor/stash_plugin
 
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
@@ -104,12 +116,21 @@ COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
 RUN if [[ -n $TIMESTAMP ]]; then \
-       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}-${TIMESTAMP}; \
+       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}${ITB+-itb}-${TIMESTAMP}; \
     else \
        tag=; \
     fi; \
     sed -i "s|@CONTAINER_TAG@|$tag|" \
            /etc/condor/config.d/50-main.config
+
+RUN \
+    if [[ -n $ITB ]]; then \
+        # Set the default pool to ITB, but allow turning off with -e ITBPOOL=0
+        echo 'export ITBPOOL=${ITBPOOL:-1}' > /etc/osg/image-init.d/01-itb.sh; \
+        echo 'Is_ITB_Site = True'  >> /etc/condor/config.d/55-itb.config; \
+        echo 'STARTD_ATTRS = $(STARTD_ATTRS) Is_ITB_Site'  >> /etc/condor/config.d/55-itb.config; \
+        echo 'START = $(START) && (TARGET.ITB_Sites =?= True)'  >> /etc/condor/config.d/55-itb.config; \
+    fi
 
 RUN chown -R osg: ~osg 
 
