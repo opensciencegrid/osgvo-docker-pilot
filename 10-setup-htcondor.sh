@@ -267,7 +267,7 @@ fi
 # Configure remote peer if applicable
 SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
 
-if [[ -n $CCB_RANGE_LOW && $CCB_RANGE_HIGH ]]; then
+if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]]; then
     # Choose a random CCB port if the user gives us a port range
     # e.g., cm.school.edu:10576
     CCB_SUFFIX=$(random_range "$CCB_RANGE_LOW" "$CCB_RANGE_HIGH")
@@ -278,7 +278,7 @@ elif [[ $POOL =~ (itb|prod)-ospool ]]; then
 fi
 
 # Append the CCB suffix to each host in CONDOR_HOST
-if [[ -n $CCB_RANGE_LOW && $CCB_RANGE_HIGH ]] ||
+if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
        [[ $POOL =~ (itb|prod)-ospool ]]; then
     CCB_ADDRESS=$(python -Sc "import re; \
 print(','.join([cm + ':$CCB_SUFFIX' \
