@@ -95,6 +95,12 @@ is_true () {
     esac
 }
 
+random_range () {
+    LOW=$1
+    HIGH=$2
+    python -S -c "import random; print(random.randrange($LOW,$HIGH+1))"
+}
+
 # validation
 set +x  # avoid printing $TOKEN to the console
 if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
@@ -229,22 +235,16 @@ POOL=${POOL:=prod-ospool}
 
 case ${POOL} in
     itb-ospool)
-        CCB_RANGE_LOW=1
-        CCB_RANGE_HIGH=5
         default_cm1=cm-1.ospool-itb.osg-htc.org
         default_cm2=cm-2.ospool-itb.osg-htc.org
         default_syslog_host=syslog.osgdev.chtc.io
         ;;
     prod-ospool)
-        CCB_RANGE_LOW=1
-        CCB_RANGE_HIGH=5
         default_cm1=cm-1.ospool.osg-htc.org
         default_cm2=cm-2.ospool.osg-htc.org
         default_syslog_host=syslog.osg.chtc.io
         ;;
     prod-path-facility)
-        CCB_RANGE_LOW=
-        CCB_RANGE_HIGH=
         default_cm1=cm-1.facility.path-cc.io
         default_cm2=cm-2.facility.path-cc.io
         default_syslog_host=syslog.osg.chtc.io
@@ -267,14 +267,20 @@ fi
 # Configure remote peer if applicable
 SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
 
+if [[ -n $CCB_RANGE_LOW && $CCB_RANGE_HIGH ]]; then
+    # Choose a random CCB port if the user gives us a port range
+    # e.g., cm.school.edu:10576
+    CCB_SUFFIX=$(random_range "$CCB_RANGE_LOW" "$CCB_RANGE_HIGH")
+elif [[ $POOL =~ (itb|prod)-ospool ]]; then
+    # Choose a random OSPool collector for CCB
+    # e.g., cm-1.ospool.osg-htc.org:9619?sock=collector3
+    CCB_SUFFIX="9619?sock=collector$(random_range 1 6)"
+fi
 
-# Don't assume a CCB unless they specify CCB_RANGE_LOW and CCB_RANGE_HIGH
-if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]]; then
-    CCB_PORT=$(python -S -c "import random; print(random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1))")
-    if [[ $POOL =~ (itb|prod)-ospool ]]; then
-        CCB_PORT="9619?sock=collector$CCB_PORT"
-    fi
-    CCB_ADDRESS=$(python -Sc "print(','.join([cm + ':$CCB_PORT' for cm in '$CONDOR_HOST'.split(',')]))")
+# Append the CCB suffix to each host in CONDOR_HOST
+if [[ -n $CCB_RANGE_LOW && $CCB_RANGE_HIGH ]] ||
+       [[ $POOL =~ (itb|prod)-ospool ]]; then
+    CCB_ADDRESS=$(python -Sc "import re; print(','.join([cm + ':$CCB_SUFFIX' for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
 fi
 
 # https://whogohost.com/host/knowledgebase/308/Valid-Domain-Name-Characters.html rules
