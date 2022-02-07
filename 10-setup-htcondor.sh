@@ -95,6 +95,12 @@ is_true () {
     esac
 }
 
+random_range () {
+    LOW=$1
+    HIGH=$2
+    python -S -c "import random; print(random.randrange($LOW,$HIGH+1))"
+}
+
 # validation
 set +x  # avoid printing $TOKEN to the console
 if [[ ! -e /etc/condor/tokens.d/flock.opensciencegrid.org ]] &&
@@ -168,15 +174,6 @@ rm -rf /pilot/{log,rsyslog}
 mkdir -p /pilot/{log,log/log,rsyslog,rsyslog/pid,rsyslog/workdir,rsyslog/conf}
 touch /pilot/log/{Master,Start,Proc,SharedPort,XferStats,log/Starter}Log /pilot/log/StarterLog{,.testing}
 
-# Configure remote peer if applicable
-if [[ "x$SYSLOG_HOST" == "x" ]]; then
-    if is_true "$ITBPOOL"; then
-        SYSLOG_HOST="syslog.osgdev.chtc.io"
-    else
-        SYSLOG_HOST="syslog.osg.chtc.io"
-    fi
-fi
-
 # Set some reasonable defaults for the token registry.
 if [[ "x$REGISTRY_HOST" != "x" ]]; then
     REGISTRY_HOSTNAME="$REGISTRY_HOST"
@@ -228,23 +225,68 @@ EOF
 
 fi
 
-if is_true "$ITBPOOL"; then
-    OSPOOL_CM1=cm-1.ospool-itb.osg-htc.org
-    OSPOOL_CM2=cm-2.ospool-itb.osg-htc.org
+
+######################
+# POOL CONFIGURATION #
+######################
+
+# Default to the production OSPool
+POOL=${POOL:=prod-ospool}
+
+case ${POOL} in
+    itb-ospool)
+        default_cm1=cm-1.ospool-itb.osg-htc.org
+        default_cm2=cm-2.ospool-itb.osg-htc.org
+        default_syslog_host=syslog.osgdev.chtc.io
+        ;;
+    prod-ospool)
+        default_cm1=cm-1.ospool.osg-htc.org
+        default_cm2=cm-2.ospool.osg-htc.org
+        default_syslog_host=syslog.osg.chtc.io
+        ;;
+    prod-path-facility)
+        default_cm1=cm-1.facility.path-cc.io
+        default_cm2=cm-2.facility.path-cc.io
+        default_syslog_host=syslog.osg.chtc.io
+        ;;
+    *)
+        echo "Unknown pool $POOL" >&2
+        exit 1
+        ;;
+esac
+
+# Allow users to override the pool configuration
+if [[ -n $CONDOR_HOST ]]; then
+    # if the user sets $CONDOR_HOST, we can't assume the POOL
+    # so we unset it here to avoid confusion
+    POOL=
 else
-    OSPOOL_CM1=cm-1.ospool.osg-htc.org
-    OSPOOL_CM2=cm-2.ospool.osg-htc.org
+    CONDOR_HOST=$default_cm1,$default_cm2
 fi
 
-# extra HTCondor config
-# if CCB_RANGE_* is set, use the old config, otherwise assume OSPool with shared port
-if [[ "x$CCB_RANGE_LOW" != "x" ]]; then
-    CCB_PORT=$(python -S -c "import random; print(random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1))")
-    CCB_ADDRESS="\$(CONDOR_HOST):$CCB_PORT"
-else
-    CCB_COLLECTOR=$(python -S -c "import random; print(random.randrange(1,6))")
-    CCB_ADDRESS="${OSPOOL_CM1}:9619?sock=collector$CCB_COLLECTOR,${OSPOOL_CM2}:9619?sock=collector$CCB_COLLECTOR"
+# Configure remote peer if applicable
+SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
+
+if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]]; then
+    # Choose a random CCB port if the user gives us a port range
+    # e.g., cm.school.edu:10576
+    CCB_SUFFIX=$(random_range "$CCB_RANGE_LOW" "$CCB_RANGE_HIGH")
+elif [[ $POOL =~ (itb|prod)-ospool ]]; then
+    # Choose a random OSPool collector for CCB
+    # e.g., cm-1.ospool.osg-htc.org:9619?sock=collector3
+    CCB_SUFFIX="9619?sock=collector$(random_range 1 6)"
 fi
+
+# Append the CCB suffix to each host in CONDOR_HOST, e.g.
+# "cm.school.edu:10576", or
+# "cm-1.ospool.osg-htc.org:9619?sock=collector6,cm-2.ospool.osg-htc.org:9619?sock=collector6"
+if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
+       [[ $POOL =~ (itb|prod)-ospool ]]; then
+    CCB_ADDRESS=$(python -Sc "import re; \
+print(','.join([cm + ':$CCB_SUFFIX' \
+for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
+fi
+
 # https://whogohost.com/host/knowledgebase/308/Valid-Domain-Name-Characters.html rules
 hostname_length=$(hostname | wc -c)
 maxlen=$(( 63 - $hostname_length ))
@@ -264,7 +306,7 @@ NETWORK_HOSTNAME="${sanitized_resourcename}-$(hostname)"
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
 cat >$PILOT_CONFIG_FILE <<EOF
-CONDOR_HOST = $OSPOOL_CM1,$OSPOOL_CM2
+CONDOR_HOST = ${CONDOR_HOST}
 
 # unique local dir
 LOCAL_DIR = $LOCAL_DIR
