@@ -268,8 +268,8 @@ fi
 SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
 
 
-# Don't assume a CCB unless they specify CCB_RANGE_LOW or CCB_RANGE_HIGH
-if [[ -n $CCB_RANGE_LOW ]] || [[ -n $CCB_RANGE_HIGH ]]; then
+# Don't assume a CCB unless they specify CCB_RANGE_LOW and CCB_RANGE_HIGH
+if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]]; then
     CCB_PORT=$(python -S -c "import random; print(random.randrange($CCB_RANGE_LOW,$CCB_RANGE_HIGH+1))")
     if [[ $POOL =~ (itb|prod)-ospool ]]; then
         CCB_PORT="9619?sock=collector$CCB_PORT"
