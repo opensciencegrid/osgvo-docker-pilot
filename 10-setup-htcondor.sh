@@ -280,7 +280,9 @@ fi
 # Append the CCB suffix to each host in CONDOR_HOST
 if [[ -n $CCB_RANGE_LOW && $CCB_RANGE_HIGH ]] ||
        [[ $POOL =~ (itb|prod)-ospool ]]; then
-    CCB_ADDRESS=$(python -Sc "import re; print(','.join([cm + ':$CCB_SUFFIX' for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
+    CCB_ADDRESS=$(python -Sc "import re; \
+print(','.join([cm + ':$CCB_SUFFIX' \
+for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
 fi
 
 # https://whogohost.com/host/knowledgebase/308/Valid-Domain-Name-Characters.html rules
