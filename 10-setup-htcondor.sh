@@ -277,7 +277,9 @@ elif [[ $POOL =~ (itb|prod)-ospool ]]; then
     CCB_SUFFIX="9619?sock=collector$(random_range 1 6)"
 fi
 
-# Append the CCB suffix to each host in CONDOR_HOST
+# Append the CCB suffix to each host in CONDOR_HOST, e.g.
+# "cm.school.edu:10576", or
+# "cm-1.ospool.osg-htc.org:9619?sock=collector6,cm-2.ospool.osg-htc.org:9619?sock=collector6"
 if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
        [[ $POOL =~ (itb|prod)-ospool ]]; then
     CCB_ADDRESS=$(python -Sc "import re; \
