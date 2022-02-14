@@ -107,6 +107,7 @@ ENV MEMORY=
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
+COPY master_shutdown.sh /etc/condor/
 COPY generate-hostcert entrypoint.sh /bin/
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
