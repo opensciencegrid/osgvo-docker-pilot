@@ -132,6 +132,9 @@ fi
 if [ "x$ANNEX_NAME" = "x" ]; then
     export ANNEX_NAME="$GLIDEIN_ResourceName@$GLIDEIN_Site"
 fi
+if [ "x$ALLOW_CPUJOB_ON_GPUSLOT" = "x" ]; then
+    export ALLOW_CPUJOB_ON_GPUSLOT="0"
+fi
 
 LOCAL_DIR=$(mktemp -d /pilot/osgvo-pilot-XXXXXX)
 mkdir -p "$LOCAL_DIR"/condor/tokens.d
@@ -350,6 +353,14 @@ fi
 # ensure HTCondor knows about our squid
 if [ "x$OSG_SQUID_LOCATION" != "x" ]; then
     export http_proxy="$OSG_SQUID_LOCATION"
+fi
+
+# some admins prefer to reserve gpu slots for gpu jobs, others
+# want to run cpu jobs if there are no gpu jobs available
+if [[ $ALLOW_CPUJOB_ON_GPUSLOT = "1" ]]; then
+    echo "CPUJOB_ON_GPUSLOT = True" >> "$PILOT_CONFIG_FILE"
+else
+    echo "CPUJOB_ON_GPUSLOT = ifThenElse(MY.TotalGPUs > 0 && MY.GPUs > 0, TARGET.RequestGPUs > 0, True)" >> "$PILOT_CONFIG_FILE"
 fi
 
 cat >$LOCAL_DIR/user-job-wrapper.sh <<EOF
