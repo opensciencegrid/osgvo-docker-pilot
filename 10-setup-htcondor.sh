@@ -278,6 +278,10 @@ elif [[ $POOL =~ (itb|prod)-ospool ]]; then
     # Choose a random OSPool collector for CCB
     # e.g., cm-1.ospool.osg-htc.org:9619?sock=collector3
     CCB_SUFFIX="9619?sock=collector$(random_range 1 6)"
+elif [[ $POOL =~ (itb|prod)-path-facility ]]; then
+    # Choose a random PATh facility collector for CCB
+    # cm-1.facility.path-cc.io:9618?sock=collector9623
+    CCB_SUFFIX="9618?sock=collector962$(random_range 0 4)"
 fi
 
 # Append the CCB suffix to each host in CONDOR_HOST, e.g.
