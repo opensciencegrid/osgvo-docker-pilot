@@ -288,7 +288,8 @@ fi
 # "cm.school.edu:10576", or
 # "cm-1.ospool.osg-htc.org:9619?sock=collector6,cm-2.ospool.osg-htc.org:9619?sock=collector6"
 if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
-       [[ $POOL =~ (itb|prod)-ospool ]]; then
+       [[ $POOL =~ (itb|prod)-ospool ]] ||
+       [[ $POOL == 'prod-path-facility' ]]; then
     CCB_ADDRESS=$(python -Sc "import re; \
 print(','.join([cm + ':$CCB_SUFFIX' \
 for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
