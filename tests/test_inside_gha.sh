@@ -16,6 +16,10 @@ function usage {
     echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
 }
 
+function olde {
+
+}
+
 SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
@@ -35,16 +39,29 @@ function start_singularity_backfill {
 }
 
 function install_cvmfs {
+    if [[ $- = *e* ]]; then
+        olde="-e"
+    else
+        olde="+e"
+    fi
+    set -e
     apt-get install lsb-release
     wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest_all.deb
     wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-contrib-release/cvmfs-contrib-release-latest_all.deb
     dpkg -i cvmfs-release-latest_all.deb cvmfs-contrib-release-latest_all.deb
     rm -f *.deb
     apt-get update
-    apt-get install -y cvmfs-config-osg cvmfs    
+    apt-get install -y cvmfs-config-osg cvmfs
+    set $olde
 }
 
 function start_cvmfs {
+    if [[ $- = *e* ]]; then
+        olde="-e"
+    else
+        olde="+e"
+    fi
+    set -e
     systemctl start autofs
     mkdir -p /etc/auto.master.d/
     echo "/cvmfs /etc/auto.cvmfs" > /etc/auto.master.d/cvmfs.autofs
@@ -55,6 +72,7 @@ CVMFS_HTTP_PROXY="DIRECT"
 EOF
     systemctl restart autofs
     ls -l /cvmfs/singularity.opensciencegrid.org
+    set $olde
 }
 
 function start_docker_backfill {
