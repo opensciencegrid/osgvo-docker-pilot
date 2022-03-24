@@ -363,7 +363,7 @@ STARTD_CRON_userenv_PERIOD = 4m
 STARTD_CRON_userenv_MODE = periodic
 STARTD_CRON_userenv_RECONFIG = true
 STARTD_CRON_userenv_KILL = true
-STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-base $LOCAL_DIR/glidein_config main
+STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-userenv $LOCAL_DIR/glidein_config main
 
 EOF
 
