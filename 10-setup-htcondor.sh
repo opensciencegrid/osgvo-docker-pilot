@@ -136,7 +136,9 @@ if [ "x$ALLOW_CPUJOB_ON_GPUSLOT" = "x" ]; then
     export ALLOW_CPUJOB_ON_GPUSLOT="0"
 fi
 
-LOCAL_DIR=$(mktemp -d /pilot/osgvo-pilot-XXXXXX)
+# make sure LOCAL_DIR is exported here - it is used
+# later in advertisment/condorcron scripts
+export LOCAL_DIR=$(mktemp -d /pilot/osgvo-pilot-XXXXXX)
 mkdir -p "$LOCAL_DIR"/condor/tokens.d
 mkdir -p "$LOCAL_DIR"/condor/passwords.d
 chmod 700 "$LOCAL_DIR"/condor/passwords.d
@@ -346,6 +348,23 @@ MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINU
 
 # policy
 use policy : Hold_If_Memory_Exceeded
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) base userenv
+
+STARTD_CRON_base_EXECUTABLE = /usr/sbin/osgvo-advertise-base
+STARTD_CRON_base_PERIOD = 4m
+STARTD_CRON_base_MODE = periodic
+STARTD_CRON_base_RECONFIG = true
+STARTD_CRON_base_KILL = true
+STARTD_CRON_base_ARGS =
+
+STARTD_CRON_userenv_EXECUTABLE = $LOCAL_DIR/main/singularity_wrapper.sh
+STARTD_CRON_userenv_PERIOD = 4m
+STARTD_CRON_userenv_MODE = periodic
+STARTD_CRON_userenv_RECONFIG = true
+STARTD_CRON_userenv_KILL = true
+STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-base $LOCAL_DIR/glidein_config main
+
 EOF
 
 if [[ $NUM_CPUS ]]; then
