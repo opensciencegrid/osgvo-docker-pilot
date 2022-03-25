@@ -55,7 +55,7 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install node-check/${ITB:+itb-}ospool-lib                           /gwms/client_group_main/ospool-lib \
  && install node-check/${ITB:+itb-}singularity-extras                   /gwms/client_group_main/singularity-extras \
  && install stashcp/stashcp                                             /gwms/client/stashcp \
- && install stashcp/stashcp                                             /usr/libexec/condor/stash_plugin \
+ && install stashcp/stash_plugin                                        /usr/libexec/condor/stash_plugin \
  && ln -s   /gwms/client/stashcp                                        /usr/bin/stashcp \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
