@@ -442,13 +442,14 @@ GLIDECLIENT_GROUP_WORK_DIR $PWD/client_group_main
 EOF
 touch $condor_vars_file
 
-# test stashcp and add the plugin
-if timeout 60s stashcp --debug /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null 2>/tmp/stashcp-debug.txt; then
+# test and add the stash plugin
+export STASH_PLUGIN_PATH=/usr/libexec/condor/stash_plugin
+if timeout 60s "$STASH_PLUGIN_PATH" -d /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null 2>/tmp/stashcp-debug.txt; then
     rm -f /tmp/stashcp-test.file
-    echo "FILETRANSFER_PLUGINS = \$(FILETRANSFER_PLUGINS),/usr/libexec/condor/stash_plugin" >> "$PILOT_CONFIG_FILE"
+    echo "FILETRANSFER_PLUGINS = \$(FILETRANSFER_PLUGINS),$STASH_PLUGIN_PATH" >> "$PILOT_CONFIG_FILE"
 else
     cat >&2 /tmp/stashcp-debug.txt
-    echo >&2 "stashcp test failed; 'stash' filetransfer plugin unavailable"
+    echo >&2 "stash_plugin test failed; 'stash' filetransfer plugin unavailable"
 fi
 rm -f /tmp/stashcp-debug.txt
 
