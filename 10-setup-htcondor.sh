@@ -425,7 +425,7 @@ export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
 
 # set some defaults for the glideinwms based scripts
 if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
-    OSG_DEFAULT_CONTAINER_DISTRIBUTION="70%__opensciencegrid/osgvo-el7:latest 30%__opensciencegrid/osgvo-el8:latest"
+    OSG_DEFAULT_CONTAINER_DISTRIBUTION="30%__opensciencegrid/osgvo-el7:latest 70%__opensciencegrid/osgvo-el8:latest"
 fi
 cat >$glidein_config <<EOF
 ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source
