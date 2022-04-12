@@ -98,7 +98,7 @@ is_true () {
 random_range () {
     LOW=$1
     HIGH=$2
-    python -S -c "import random; print(random.randrange($LOW,$HIGH+1))"
+    python3 -S -c "import random; print(random.randrange($LOW,$HIGH+1))"
 }
 
 # validation
@@ -292,7 +292,7 @@ fi
 if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
        [[ $POOL =~ (itb|prod)-ospool ]] ||
        [[ $POOL == 'prod-path-facility' ]]; then
-    CCB_ADDRESS=$(python -Sc "import re; \
+    CCB_ADDRESS=$(python3 -Sc "import re; \
 print(','.join([cm + ':$CCB_SUFFIX' \
 for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
 fi
