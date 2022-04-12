@@ -6,7 +6,7 @@ RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
 
-FROM opensciencegrid/software-base:3.6-el7-${BASE_YUM_REPO}
+FROM opensciencegrid/software-base:3.6-el8-${BASE_YUM_REPO}
 
 # Previous arg has gone out of scope
 ARG BASE_YUM_REPO=testing
@@ -22,7 +22,7 @@ RUN useradd osg \
         singularity \
         attr \
         git \
-        rsyslog rsyslog-gnutls python36-cryptography python36-requests \
+        rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
