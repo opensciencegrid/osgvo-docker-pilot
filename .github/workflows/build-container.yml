@@ -15,13 +15,6 @@ jobs:
       matrix:
         osg_series: ['3.5', '3.6']
         repo: ['development', 'testing', 'release']
-        itb: ['', '-itb']
-        exclude:
-          - itb: '-itb'
-            repo: 'release'
-          - itb: '-itb'
-            repo: 'testing'
-
     steps:
       - uses: opensciencegrid/build-container-action@v0.3.0
         with:
@@ -36,16 +29,11 @@ jobs:
       matrix:
         osg_series: ['3.5', '3.6']
         repo: ['development', 'testing', 'release']
-        itb: ['', '-itb']
         runtime: ['docker', 'singularity']
         cvmfs: ['bindmount', 'cvmfsexec']
         exclude:
           - runtime: singularity
             cvmfs: cvmfsexec
-          - itb: '-itb'
-            repo: 'release'
-          - itb: '-itb'
-            repo: 'testing'
     steps:
       - uses: opensciencegrid/load-container-action@v0.2.0
         with:
@@ -76,12 +64,6 @@ jobs:
           - url: docker.io
             username: DOCKER_USERNAME
             password: DOCKER_PASSWORD
-        itb: ['', '-itb']
-        exclude:
-          - itb: '-itb'
-            repo: 'release'
-          - itb: '-itb'
-            repo: 'testing'
     steps:
       - uses: opensciencegrid/push-container-action@v0.6.1
         with:
