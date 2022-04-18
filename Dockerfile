@@ -1,3 +1,4 @@
+ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 
 FROM alpine:latest AS compile
@@ -6,7 +7,7 @@ RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
 
-FROM opensciencegrid/software-base:3.6-el8-${BASE_YUM_REPO}
+FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
 
 # Previous arg has gone out of scope
 ARG BASE_YUM_REPO=testing
