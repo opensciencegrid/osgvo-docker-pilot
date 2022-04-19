@@ -27,7 +27,7 @@ jobs:
         osg_series: ['3.5', '3.6']
         repo: ['development', 'testing', 'release']
     steps:
-      - uses: opensciencegrid/build-container-action@v0.4.0
+      - uses: opensciencegrid/build-container-action@v0.4.1
         with:
           osg_series: ${{ matrix.osg_series }}
           repo: ${{ matrix.repo }}
@@ -47,7 +47,7 @@ jobs:
           - runtime: singularity
             cvmfs: cvmfsexec
     steps:
-      - uses: opensciencegrid/load-container-action@v0.3.0
+      - uses: opensciencegrid/load-container-action@v0.4.0
         with:
           osg_series: ${{ matrix.osg_series }}
           repo: ${{ matrix.repo }}
