@@ -11,7 +11,7 @@ FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
 
 # Previous arg has gone out of scope
 ARG BASE_YUM_REPO=testing
-ARG TIMESTAMP
+ARG TIMESTAMP_TAG
 
 # token auth require HTCondor 8.9.x
 RUN useradd osg \
@@ -115,12 +115,7 @@ COPY 50-main.config /etc/condor/config.d/
 COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
-RUN if [[ -n $TIMESTAMP ]]; then \
-       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}-${TIMESTAMP}; \
-    else \
-       tag=; \
-    fi; \
-    sed -i "s|@CONTAINER_TAG@|$tag|" \
+RUN sed -i "s|@CONTAINER_TAG@|${TIMESTAMP_TAG}|" \
            /etc/condor/config.d/50-main.config
 
 RUN chown -R osg: ~osg 

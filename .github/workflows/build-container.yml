@@ -9,22 +9,33 @@ on:
   workflow_dispatch:
 
 jobs:
+  make-date-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      dtag: ${{ steps.mkdatetag.outputs.dtag }}
+    steps:
+    - name: make date tag
+      id: mkdatetag
+      run: echo "::set-output name=dtag::$(date +%Y%m%d-%H%M)"
+
   build:
     runs-on: ubuntu-latest
+    needs: [make-date-tag]
     strategy:
       fail-fast: false
       matrix:
         osg_series: ['3.5', '3.6']
         repo: ['development', 'testing', 'release']
     steps:
-      - uses: opensciencegrid/build-container-action@v0.3.0
+      - uses: opensciencegrid/build-container-action@v0.4.0
         with:
           osg_series: ${{ matrix.osg_series }}
           repo: ${{ matrix.repo }}
+          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
 
   test:
     runs-on: ubuntu-20.04
-    needs: [build]
+    needs: [make-date-tag, build]
     strategy:
       fail-fast: false
       matrix:
@@ -36,11 +47,11 @@ jobs:
           - runtime: singularity
             cvmfs: cvmfsexec
     steps:
-      - uses: opensciencegrid/load-container-action@v0.2.0
+      - uses: opensciencegrid/load-container-action@v0.3.0
         with:
           osg_series: ${{ matrix.osg_series }}
           repo: ${{ matrix.repo }}
-
+          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
       - name: Run tests
         env:
           CONTAINER_RUNTIME: ${{ matrix.runtime }}
@@ -49,7 +60,7 @@ jobs:
 
   push:
     runs-on: ubuntu-latest
-    needs: [build, test]
+    needs: [make-date-tag, build, test]
     if: >-
       github.ref == 'refs/heads/master' &&
       github.event_name != 'pull_request' &&
@@ -66,10 +77,11 @@ jobs:
             username: DOCKER_USERNAME
             password: DOCKER_PASSWORD
     steps:
-      - uses: opensciencegrid/push-container-action@v0.6.1
+      - uses: opensciencegrid/push-container-action@v0.7.0
         with:
           osg_series: ${{ matrix.osg_series }}
           repo: ${{ matrix.yum_repo}}
+          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
           registry_url: ${{ matrix.registry.url }}
           registry_user: ${{ secrets[matrix.registry.username] }}
           registry_pass: ${{ secrets[matrix.registry.password] }}
