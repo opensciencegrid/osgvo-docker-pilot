@@ -9,7 +9,8 @@ RUN apk --no-cache add gcc musl-dev && \
 
 FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
 
-# Previous arg has gone out of scope
+# Previous args have gone out of scope
+ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 ARG TIMESTAMP_TAG
 
@@ -53,9 +54,11 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install job-wrappers/default_singularity_wrapper.sh                 /usr/sbin/osgvo-singularity-wrapper \
  && install node-check/ospool-lib                                       /gwms/client_group_main/ospool-lib \
  && install node-check/singularity-extras                               /gwms/client_group_main/singularity-extras \
- && install stashcp/stashcp                                             /gwms/client/stashcp \
- && install stashcp/stashcp                                             /usr/libexec/condor/stash_plugin \
- && ln -s   /gwms/client/stashcp                                        /usr/bin/stashcp \
+ && if [[ $BASE_OSG_SERIES != "3.5" ]]; then \
+    install stashcp/stashcp                                             /gwms/client/stashcp \
+    && install stashcp/stashcp                                          /usr/libexec/condor/stash_plugin \
+    && ln -s   /gwms/client/stashcp                                     /usr/bin/stashcp; \
+ fi \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
