@@ -1,6 +1,5 @@
 #!/bin/bash -x
 
-CONTAINER_IMAGE='osgvo-docker-pilot:latest'
 OSP_TOKEN_PATH=/tmp/token
 COMMON_DOCKER_ARGS="run --user osg
                         --detach
@@ -75,7 +74,7 @@ function start_docker_backfill {
     touch $OSP_TOKEN_PATH
     docker $COMMON_DOCKER_ARGS \
            "$@" \
-           $CONTAINER_IMAGE
+           "$CONTAINER_IMAGE"
 }
 
 function run_inside_backfill_container {
@@ -169,7 +168,7 @@ function test_singularity_HAS_SINGULARITY {
     return 0
 }
 
-if [[ $# -ne 2 ]] ||
+if [[ $# -ne 3 ]] ||
        ! [[ $1 =~ ^(docker|singularity)$ ]] ||
        ! [[ $2 =~ ^(bindmount|cvmfsexec)$ ]]; then
     usage
@@ -178,6 +177,8 @@ fi
 
 CONTAINER_RUNTIME="$1"
 CVMFS_INSTALL="$2"
+CONTAINER_IMAGE="$3"
+
 case "$CVMFS_INSTALL" in
     bindmount)
         DOCKER_EXTRA_ARGS=(--security-opt seccomp=unconfined
