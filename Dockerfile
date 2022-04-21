@@ -1,3 +1,4 @@
+ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 
 FROM alpine:latest AS compile
@@ -6,11 +7,12 @@ RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
 
-FROM opensciencegrid/software-base:3.6-el8-${BASE_YUM_REPO}
+FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
 
-# Previous arg has gone out of scope
+# Previous args have gone out of scope
+ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
-ARG TIMESTAMP
+ARG TIMESTAMP_TAG
 
 # token auth require HTCondor 8.9.x
 RUN useradd osg \
@@ -41,22 +43,22 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # osgvo scripts
-# Set ITB to use itb versions of all the pilot scripts and join the ITB pool
-ARG ITB=
 # Specify the branch and fork of the opensciencegrid/osg-flock repo to get the pilot scripts from
 ARG OSG_FLOCK_REPO=opensciencegrid/osg-flock
 ARG OSG_FLOCK_BRANCH=master
 RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} osg-flock \
  && cd osg-flock \
- && install node-check/${ITB:+itb-}osgvo-default-image                  /usr/sbin/osgvo-default-image \
- && install node-check/${ITB:+itb-}osgvo-advertise-base                 /usr/sbin/osgvo-advertise-base \
- && install node-check/${ITB:+itb-}osgvo-advertise-userenv              /usr/sbin/osgvo-advertise-userenv \
- && install job-wrappers/${ITB:+itb-}default_singularity_wrapper.sh     /usr/sbin/osgvo-singularity-wrapper \
- && install node-check/${ITB:+itb-}ospool-lib                           /gwms/client_group_main/ospool-lib \
- && install node-check/${ITB:+itb-}singularity-extras                   /gwms/client_group_main/singularity-extras \
- && install stashcp/${ITB:+itb/}stashcp                                 /gwms/client/stashcp \
- && install stashcp/${ITB:+itb/}stash_plugin                            /usr/libexec/condor/stash_plugin \
- && ln -s   /gwms/client/stashcp                                        /usr/bin/stashcp \
+ && install node-check/osgvo-default-image                              /usr/sbin/osgvo-default-image \
+ && install node-check/osgvo-advertise-base                             /usr/sbin/osgvo-advertise-base \
+ && install node-check/osgvo-advertise-userenv                          /usr/sbin/osgvo-advertise-userenv \
+ && install job-wrappers/default_singularity_wrapper.sh                 /usr/sbin/osgvo-singularity-wrapper \
+ && install node-check/ospool-lib                                       /gwms/client_group_main/ospool-lib \
+ && install node-check/singularity-extras                               /gwms/client_group_main/singularity-extras \
+ && if [[ $BASE_OSG_SERIES != "3.5" ]]; then \
+    install stashcp/stashcp                                             /gwms/client/stashcp \
+    && install stashcp/stashcp                                          /usr/libexec/condor/stash_plugin \
+    && ln -s   /gwms/client/stashcp                                     /usr/bin/stashcp; \
+ fi \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
@@ -116,22 +118,8 @@ COPY 50-main.config /etc/condor/config.d/
 COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
-RUN if [[ -n $TIMESTAMP ]]; then \
-       tag=opensciencegrid/osgvo-docker-pilot:${BASE_YUM_REPO}${ITB+-itb}-${TIMESTAMP}; \
-    else \
-       tag=; \
-    fi; \
-    sed -i "s|@CONTAINER_TAG@|$tag|" \
+RUN sed -i "s|@CONTAINER_TAG@|${TIMESTAMP_TAG}|" \
            /etc/condor/config.d/50-main.config
-
-RUN \
-    if [[ -n $ITB ]]; then \
-        # Set the default pool to ITB, but allow turning off with -e ITBPOOL=0
-        echo 'export ITBPOOL=${ITBPOOL:-1}' > /etc/osg/image-init.d/01-itb.sh; \
-        echo 'Is_ITB_Site = True'  >> /etc/condor/config.d/55-itb.config; \
-        echo 'STARTD_ATTRS = $(STARTD_ATTRS) Is_ITB_Site'  >> /etc/condor/config.d/55-itb.config; \
-        echo 'START = $(START) && (TARGET.ITB_Sites =?= True)'  >> /etc/condor/config.d/55-itb.config; \
-    fi
 
 RUN chown -R osg: ~osg 
 
