@@ -84,7 +84,7 @@ jobs:
       - uses: opensciencegrid/push-container-action@v0.7.1
         with:
           osg_series: ${{ matrix.osg_series }}
-          repo: ${{ matrix.yum_repo}}
+          repo: ${{ matrix.repo }}
           timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
           registry_url: ${{ matrix.registry.url }}
           registry_user: ${{ secrets[matrix.registry.username] }}
