@@ -118,7 +118,7 @@ COPY 50-main.config /etc/condor/config.d/
 COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
 
-RUN sed -i "s|@CONTAINER_TAG@|${TIMESTAMP_TAG}|" \
+RUN sed -i "s|@CONTAINER_TAG@|opensciencegrid/osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_YUM_REPO}-${TIMESTAMP_TAG}|" \
            /etc/condor/config.d/50-main.config
 
 RUN chown -R osg: ~osg 
