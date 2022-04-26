@@ -14,11 +14,10 @@ ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 ARG TIMESTAMP_TAG
 
-# token auth require HTCondor 8.9.x
+# Grab HTCondor from osg-upcoming-testing, but only that package
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
  && yum -y install \
-        condor \
         osg-wn-client \
         redhat-lsb-core \
         singularity \
@@ -26,6 +25,8 @@ RUN useradd osg \
         git \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
+ && yum -y install --enablerepo=osg-upcoming-testing \
+        condor \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
