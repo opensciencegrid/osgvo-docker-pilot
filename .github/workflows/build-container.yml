@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        osg_series: ['3.5', '3.6']
+        osg_series: ['3.6']
         repo: ['development', 'testing', 'release']
     steps:
       - uses: opensciencegrid/build-container-action@v0.4.1
@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        osg_series: ['3.5', '3.6']
+        osg_series: ['3.6']
         repo: ['development', 'testing', 'release']
         runtime: ['docker', 'singularity']
         cvmfs: ['bindmount', 'cvmfsexec']
@@ -71,7 +71,7 @@ jobs:
       github.repository_owner == 'opensciencegrid'
     strategy:
       matrix:
-        osg_series: ['3.5', '3.6']
+        osg_series: ['3.6']
         repo: ['development', 'testing', 'release']
         registry:
           - url: hub.opensciencegrid.org
