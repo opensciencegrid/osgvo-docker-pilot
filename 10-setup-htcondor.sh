@@ -453,7 +453,7 @@ else
 fi
 rm -f /tmp/stashcp-debug.txt
 
-export OSG_SINGULARITY_BINARY=/usr/bin/singularity
+export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/singularity
 /usr/sbin/osgvo-default-image $glidein_config
 ./main/singularity_setup.sh $glidein_config
 ./client_group_main/singularity-extras $glidein_config
