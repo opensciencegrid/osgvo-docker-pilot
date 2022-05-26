@@ -373,6 +373,10 @@ fi
 if [[ $MEMORY ]]; then
     echo "MEMORY = $MEMORY" >> "$PILOT_CONFIG_FILE"
 fi
+if [[ $GLIDEIN_Rank_Extra ]]; then
+    # Extra rank expression, will be added (+) to RANK in the pilot config.
+    echo "RANK_EXTRA = $GLIDEIN_Rank_Extra" >> "$PILOT_CONFIG_FILE"
+fi
 
 # ensure HTCondor knows about our squid
 if [ "x$OSG_SQUID_LOCATION" != "x" ]; then
