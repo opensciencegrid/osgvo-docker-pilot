@@ -123,6 +123,9 @@ fi
 if [ "x$GLIDEIN_Start_Extra" = "x" ]; then
     export GLIDEIN_Start_Extra="True"
 fi
+if [ "x$GLIDEIN_Rank_Extra" = "x" ]; then
+    export GLIDEIN_Rank_Extra=0
+fi
 if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
     export ACCEPT_JOBS_FOR_HOURS=336
 fi
@@ -334,6 +337,9 @@ NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 # additional start expression requirements - this will be &&ed to the base one
 START_EXTRA = $GLIDEIN_Start_Extra
 
+# Extra RANK expression, will be added (+) to the base one
+RANK_EXTRA = $GLIDEIN_Rank_Extra
+
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
 OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
@@ -372,10 +378,6 @@ if [[ $NUM_CPUS ]]; then
 fi
 if [[ $MEMORY ]]; then
     echo "MEMORY = $MEMORY" >> "$PILOT_CONFIG_FILE"
-fi
-if [[ $GLIDEIN_Rank_Extra ]]; then
-    # Extra rank expression, will be added (+) to RANK in the pilot config.
-    echo "RANK_EXTRA = $GLIDEIN_Rank_Extra" >> "$PILOT_CONFIG_FILE"
 fi
 
 # ensure HTCondor knows about our squid
