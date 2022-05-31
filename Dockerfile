@@ -18,7 +18,6 @@ ARG TIMESTAMP_TAG
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
  && yum -y install \
-        condor \
         osg-wn-client \
         redhat-lsb-core \
         singularity \
@@ -28,6 +27,14 @@ RUN useradd osg \
         bind-utils \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
+
+# Pull HTCondor from the proper repo. For "release" we need to use
+# osg-upcoming-testing to meet the patch tuesday requirements.
+RUN if [[ $BASE_YUM_REPO = release ]]; then \
+      yum -y --enablerepo=osg-upcoming-testing install condor; \
+    else \
+      yum -y install condor; \
+    fi
 
 # Specify RANDOM when building the image to use the cache for installing RPMs but not for downloading scripts.
 ARG RANDOM=
