@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         osg_series: ['3.6']
-        repo: ['development', 'testing', 'release']
+        repo: ['testing']
     steps:
       - uses: opensciencegrid/build-container-action@v0.4.1
         with:
@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         osg_series: ['3.6']
-        repo: ['development', 'testing', 'release']
+        repo: ['testing']
         runtime: ['docker', 'singularity']
         cvmfs: ['bindmount', 'cvmfsexec']
         exclude:
@@ -62,30 +62,3 @@ jobs:
           sudo ./tests/test_inside_gha.sh "$CONTAINER_RUNTIME" \
                                           "$CVMFS_INSTALL" \
                                           "$CONTAINER_IMAGE"
-  push:
-    runs-on: ubuntu-latest
-    needs: [make-date-tag, build, test]
-    if: >-
-      github.ref == 'refs/heads/master' &&
-      github.event_name != 'pull_request' &&
-      github.repository_owner == 'opensciencegrid'
-    strategy:
-      matrix:
-        osg_series: ['3.6']
-        repo: ['development', 'testing', 'release']
-        registry:
-          - url: hub.opensciencegrid.org
-            username: OSG_HARBOR_ROBOT_USER
-            password: OSG_HARBOR_ROBOT_PASSWORD
-          - url: docker.io
-            username: DOCKER_USERNAME
-            password: DOCKER_PASSWORD
-    steps:
-      - uses: opensciencegrid/push-container-action@v0.7.1
-        with:
-          osg_series: ${{ matrix.osg_series }}
-          repo: ${{ matrix.repo }}
-          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
-          registry_url: ${{ matrix.registry.url }}
-          registry_user: ${{ secrets[matrix.registry.username] }}
-          registry_pass: ${{ secrets[matrix.registry.password] }}
