@@ -64,7 +64,7 @@ function start_cvmfs {
     mkdir -p /etc/auto.master.d/
     echo "/cvmfs /etc/auto.cvmfs" > /etc/auto.master.d/cvmfs.autofs
     cat << EOF > /etc/cvmfs/default.local
-CVMFS_REPOSITORIES="$((echo oasis.opensciencegrid.org;echo cms.cern.ch;ls /cvmfs)|sort -u|paste -sd ,)"
+CVMFS_REPOSITORIES="$( (echo oasis.opensciencegrid.org;echo cms.cern.ch;ls /cvmfs) | sort -u|paste -sd ,)"
 CVMFS_QUOTA_LIMIT=2000
 CVMFS_HTTP_PROXY="DIRECT"
 EOF
