@@ -153,12 +153,18 @@ function test_singularity_startup {
         return 1
     fi
 
+    ret=0
     wait_for_output 60 \
                     grep \
                     -- \
                     'Changing activity: Benchmarking -> Idle' \
                     $logfile \
-        || (tail -n 400 $logfile && return 1)
+        || ret=$?
+    echo "Singularity logs:"
+    head -n 100 $logfile
+    echo "..."
+    tail -n 400 $logfile
+    return $ret
 }
 
 function test_singularity_HAS_SINGULARITY {
