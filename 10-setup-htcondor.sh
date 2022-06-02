@@ -365,6 +365,12 @@ STARTD_CRON_userenv_RECONFIG = true
 STARTD_CRON_userenv_KILL = true
 STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-userenv $LOCAL_DIR/glidein_config main
 
+# Manage disk usage for backfill containers:
+
+DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
+HOLD_REASON_DISK_EXCEEDED = disk usage exceeded allocated disk
+use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
+
 EOF
 
 if [[ $NUM_CPUS ]]; then
