@@ -369,7 +369,7 @@ STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-userenv $LOCAL_DIR/glidein_
 
 DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
 HOLD_REASON_DISK_EXCEEDED = disk usage exceeded allocated disk
-use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, $(HOLD_SUBCODE_DISK_EXCEEDED:104), $(HOLD_REASON_DISK_EXCEEDED) )
+use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
 
 EOF
 
