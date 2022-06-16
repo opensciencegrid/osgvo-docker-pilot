@@ -328,6 +328,9 @@ SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
 CCB_ADDRESS = $CCB_ADDRESS
 
+# Let the OS pick a random shared port port so we don't collide with anything else
+SHARED_PORT_PORT = 0
+
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
