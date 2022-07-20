@@ -349,7 +349,7 @@ MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINU
 # policy
 use policy : Hold_If_Memory_Exceeded
 
-STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) base userenv
+STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) base userenv
 
 STARTD_CRON_base_EXECUTABLE = /usr/sbin/osgvo-advertise-base
 STARTD_CRON_base_PERIOD = 4m
