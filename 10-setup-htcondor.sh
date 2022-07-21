@@ -242,11 +242,15 @@ case ${POOL} in
     itb-ospool)
         default_cm1=cm-1.ospool-itb.osg-htc.org
         default_cm2=cm-2.ospool-itb.osg-htc.org
+        default_ccb1=ccb-1.ospool-itb.osg-htc.org
+        default_ccb2=ccb-2.ospool-itb.osg-htc.org
         default_syslog_host=syslog.osgdev.chtc.io
         ;;
     prod-ospool)
         default_cm1=cm-1.ospool.osg-htc.org
         default_cm2=cm-2.ospool.osg-htc.org
+        default_ccb1=ccb-1.ospool.osg-htc.org
+        default_ccb2=ccb-2.ospool.osg-htc.org
         default_syslog_host=syslog.osg.chtc.io
         ;;
     prod-path-facility)
@@ -272,26 +276,32 @@ fi
 # Configure remote peer if applicable
 SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
 
+# default COLLECTOR_HOST
+COLLECTOR_HOST=$CONDOR_HOST
+
 if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]]; then
     # Choose a random CCB port if the user gives us a port range
     # e.g., cm.school.edu:10576
     CCB_SUFFIX=$(random_range "$CCB_RANGE_LOW" "$CCB_RANGE_HIGH")
 elif [[ $POOL =~ (itb|prod)-ospool ]]; then
-    # Choose a random OSPool collector for CCB
-    # e.g., cm-1.ospool.osg-htc.org:9619?sock=collector3
-    CCB_SUFFIX="9619?sock=collector$(random_range 1 5)"
+    # Choose a random OSPool collector for CCB and CM
+    # e.g., ccb-1.ospool.osg-htc.org?sock=collector3
+    CCB_SUFFIX="?sock=collector$(random_range 1 5)"
 elif [[ $POOL =~ (itb|prod)-path-facility ]]; then
     # Choose a random PATh facility collector for CCB
     # cm-1.facility.path-cc.io:9618?sock=collector9623
     CCB_SUFFIX="9618?sock=collector962$(random_range 0 4)"
 fi
 
-# Append the CCB suffix to each host in CONDOR_HOST, e.g.
-# "cm.school.edu:10576", or
-# "cm-1.ospool.osg-htc.org:9619?sock=collector6,cm-2.ospool.osg-htc.org:9619?sock=collector6"
-if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
-       [[ $POOL =~ (itb|prod)-ospool ]] ||
+if [[ $POOL =~ (itb|prod)-ospool ]]; then
+    # OSPools - specific CCB servers. Append the CCB suffix to each ccb host
+    COLLECTOR_HOST=$default_cm1$CCB_SUFFIX,$default_cm2$CCB_SUFFIX
+    CCB_ADDRESS=$default_ccb1$CCB_SUFFIX,$default_ccb2$CCB_SUFFIX
+elif [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
        [[ $POOL == 'prod-path-facility' ]]; then
+    # PATh facilty, or anything else: Append the CCB suffix to each host in CONDOR_HOST, e.g.
+    # "cm.school.edu:10576", or
+    # "cm-1.ospool.osg-htc.org:9619?sock=collector6,cm-2.ospool.osg-htc.org:9619?sock=collector6"
     CCB_ADDRESS=$(python3 -Sc "import re; \
 print(','.join([cm + ':$CCB_SUFFIX' \
 for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
@@ -326,6 +336,7 @@ EXECUTE = $LOCAL_DIR/execute
 
 SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
+COLLECTOR_HOST = $COLLECTOR_HOST
 CCB_ADDRESS = $CCB_ADDRESS
 
 # Let the OS pick a random shared port port so we don't collide with anything else
@@ -352,7 +363,7 @@ MASTER_ATTRS = \$(MASTER_ATTRS) AnnexName ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINU
 # policy
 use policy : Hold_If_Memory_Exceeded
 
-STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) base userenv
+STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) base userenv
 
 STARTD_CRON_base_EXECUTABLE = /usr/sbin/osgvo-advertise-base
 STARTD_CRON_base_PERIOD = 4m
