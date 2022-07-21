@@ -19,13 +19,16 @@ SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
     useradd -mG docker testuser
+    singularity=/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity
+    echo -n "Singularity version is: "
+    $singularity version
     chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
     su - testuser -c \
        "SINGULARITYENV_TOKEN=None \
        SINGULARITYENV_GLIDEIN_Site=None \
        SINGULARITYENV_GLIDEIN_ResourceName=None \
        SINGULARITYENV_GLIDEIN_Start_Extra=True \
-       /cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity \
+       $singularity \
           run \
             -B /cvmfs \
             -B $PILOT_DIR:/pilot \
@@ -60,8 +63,8 @@ function start_cvmfs {
     systemctl start autofs
     mkdir -p /etc/auto.master.d/
     echo "/cvmfs /etc/auto.cvmfs" > /etc/auto.master.d/cvmfs.autofs
-    cat << EOF > /etc/cvmfs/default.local
-CVMFS_REPOSITORIES="$((echo oasis.opensciencegrid.org;echo cms.cern.ch;ls /cvmfs)|sort -u|paste -sd ,)"
+    cat << EOF | tee /etc/cvmfs/default.local
+CVMFS_REPOSITORIES="$( (echo oasis.opensciencegrid.org;echo cms.cern.ch;ls /cvmfs) | sort -u|paste -sd ,)"
 CVMFS_QUOTA_LIMIT=2000
 CVMFS_HTTP_PROXY="DIRECT"
 EOF
@@ -147,6 +150,7 @@ function test_singularity_startup {
     logfile=$(wait_for_output 600 find $PILOT_DIR -name StartLog -size +1)
     if [[ -z $logfile ]]; then
         cat $SINGULARITY_OUTPUT
+        return 1
     fi
 
     wait_for_output 60 \
@@ -160,12 +164,11 @@ function test_singularity_startup {
 function test_singularity_HAS_SINGULARITY {
     print_test_header "Testing singularity detection inside the backfill container"
 
-    egrep -i 'HAS_SINGULARITY *= *True' $SINGULARITY_OUTPUT
-    if [[ $? -eq 0 ]]; then
+    egrep -i 'HAS_SINGULARITY *= *True' $SINGULARITY_OUTPUT; ret=$?
+    if [[ $ret -ne 0 ]]; then
         cat $SINGULARITY_OUTPUT
-        return 1
     fi
-    return 0
+    return $ret
 }
 
 if [[ $# -ne 3 ]] ||

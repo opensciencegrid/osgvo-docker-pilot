@@ -339,6 +339,9 @@ SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 COLLECTOR_HOST = $COLLECTOR_HOST
 CCB_ADDRESS = $CCB_ADDRESS
 
+# Let the OS pick a random shared port port so we don't collide with anything else
+SHARED_PORT_PORT = 0
+
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
@@ -375,6 +378,12 @@ STARTD_CRON_userenv_MODE = periodic
 STARTD_CRON_userenv_RECONFIG = true
 STARTD_CRON_userenv_KILL = true
 STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-userenv $LOCAL_DIR/glidein_config main
+
+# Manage disk usage for backfill containers:
+
+DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
+HOLD_REASON_DISK_EXCEEDED = disk usage exceeded request_disk
+use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
 
 EOF
 
@@ -464,6 +473,7 @@ else
 fi
 rm -f /tmp/stashcp-debug.txt
 
+unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/singularity
 /usr/sbin/osgvo-default-image $glidein_config
 ./main/singularity_setup.sh $glidein_config

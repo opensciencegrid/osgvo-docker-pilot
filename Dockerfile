@@ -18,7 +18,6 @@ ARG TIMESTAMP_TAG
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
  && yum -y install \
-        condor \
         osg-wn-client \
         redhat-lsb-core \
         singularity \
@@ -28,6 +27,14 @@ RUN useradd osg \
         bind-utils \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
+
+# Pull HTCondor from the proper repo. For "release" we need to use
+# osg-upcoming-testing to meet the patch tuesday requirements.
+RUN if [[ $BASE_YUM_REPO = release ]]; then \
+      yum -y --enablerepo=osg-upcoming-testing install condor; \
+    else \
+      yum -y install condor; \
+    fi
 
 # Specify RANDOM when building the image to use the cache for installing RPMs but not for downloading scripts.
 ARG RANDOM=
@@ -54,10 +61,9 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install job-wrappers/default_singularity_wrapper.sh                 /usr/sbin/osgvo-singularity-wrapper \
  && install node-check/ospool-lib                                       /gwms/client_group_main/ospool-lib \
  && install node-check/singularity-extras                               /gwms/client_group_main/singularity-extras \
- && if [[ $BASE_OSG_SERIES != "3.5" ]]; then \
-    install stashcp/stashcp                                             /gwms/client/stashcp \
-    && install stashcp/stash_plugin                                     /usr/libexec/condor/stash_plugin; \
- fi \
+ && install stashcp/stashcp                                             /gwms/client/stashcp \
+ && install stashcp/stash_plugin                                        /usr/libexec/condor/stash_plugin \
+ && ln -snf /gwms/client/stashcp                                        /usr/bin/stashcp \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
