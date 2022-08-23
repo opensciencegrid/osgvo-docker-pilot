@@ -130,6 +130,12 @@ RUN chown -R osg: ~osg
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
 
+# At Expanse, the admins provided a fixed UID/GID that the container will be run as;
+# condor fails to start if this isn't a resolvable username.  For now, create the username
+# by hand.  If we hit this at more sites, we can do a for-loop for populating /etc/{passwd,groups}
+# instead of adding individual user accounts one-by-one.
+RUN groupadd --gid 12497 g12497 && useradd --gid 12497 --create-home --uid 532362 u532362
+
 COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
 RUN chmod 04755 /usr/bin/launch_rsyslogd && \
     mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
