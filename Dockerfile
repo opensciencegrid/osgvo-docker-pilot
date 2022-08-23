@@ -14,7 +14,6 @@ ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 ARG TIMESTAMP_TAG
 
-# token auth require HTCondor 8.9.x
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
  && yum -y install \
