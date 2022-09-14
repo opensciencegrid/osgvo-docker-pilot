@@ -136,6 +136,41 @@ if [ "x$ALLOW_CPUJOB_ON_GPUSLOT" = "x" ]; then
     export ALLOW_CPUJOB_ON_GPUSLOT="0"
 fi
 
+
+#
+# Set pool defaults
+#
+
+# Default to the production OSPool
+POOL=${POOL:=prod-ospool}
+
+case ${POOL} in
+    itb-ospool)
+        default_cm1=cm-1.ospool-itb.osg-htc.org
+        default_cm2=cm-2.ospool-itb.osg-htc.org
+        default_ccb1=ccb-1.ospool-itb.osg-htc.org
+        default_ccb2=ccb-2.ospool-itb.osg-htc.org
+        default_syslog_host=syslog.osgdev.chtc.io
+        ;;
+    prod-ospool)
+        default_cm1=cm-1.ospool.osg-htc.org
+        default_cm2=cm-2.ospool.osg-htc.org
+        default_ccb1=ccb-1.ospool.osg-htc.org
+        default_ccb2=ccb-2.ospool.osg-htc.org
+        default_syslog_host=syslog.osg.chtc.io
+        ;;
+    prod-path-facility)
+        default_cm1=cm-1.facility.path-cc.io
+        default_cm2=cm-2.facility.path-cc.io
+        default_syslog_host=syslog.osg.chtc.io
+        ;;
+    *)
+        echo "Unknown pool $POOL" >&2
+        exit 1
+        ;;
+esac
+
+
 # make sure LOCAL_DIR is exported here - it is used
 # later in advertisment/condorcron scripts
 export LOCAL_DIR=$(mktemp -d /pilot/osgvo-pilot-XXXXXX)
@@ -178,6 +213,9 @@ rm -rf /pilot/{log,rsyslog}
 # Setup syslog server
 mkdir -p /pilot/{log,log/log,rsyslog,rsyslog/pid,rsyslog/workdir,rsyslog/conf}
 touch /pilot/log/{Master,Start,Proc,SharedPort,XferStats,log/Starter}Log /pilot/log/StarterLog{,.testing}
+
+# Pick server to forward syslogs to
+SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
 
 # Set some reasonable defaults for the token registry.
 if [[ "x$REGISTRY_HOST" != "x" ]]; then
@@ -235,34 +273,6 @@ fi
 # POOL CONFIGURATION #
 ######################
 
-# Default to the production OSPool
-POOL=${POOL:=prod-ospool}
-
-case ${POOL} in
-    itb-ospool)
-        default_cm1=cm-1.ospool-itb.osg-htc.org
-        default_cm2=cm-2.ospool-itb.osg-htc.org
-        default_ccb1=ccb-1.ospool-itb.osg-htc.org
-        default_ccb2=ccb-2.ospool-itb.osg-htc.org
-        default_syslog_host=syslog.osgdev.chtc.io
-        ;;
-    prod-ospool)
-        default_cm1=cm-1.ospool.osg-htc.org
-        default_cm2=cm-2.ospool.osg-htc.org
-        default_ccb1=ccb-1.ospool.osg-htc.org
-        default_ccb2=ccb-2.ospool.osg-htc.org
-        default_syslog_host=syslog.osg.chtc.io
-        ;;
-    prod-path-facility)
-        default_cm1=cm-1.facility.path-cc.io
-        default_cm2=cm-2.facility.path-cc.io
-        default_syslog_host=syslog.osg.chtc.io
-        ;;
-    *)
-        echo "Unknown pool $POOL" >&2
-        exit 1
-        ;;
-esac
 
 # Allow users to override the pool configuration
 if [[ -n $CONDOR_HOST ]]; then
@@ -272,9 +282,6 @@ if [[ -n $CONDOR_HOST ]]; then
 else
     CONDOR_HOST=$default_cm1,$default_cm2
 fi
-
-# Configure remote peer if applicable
-SYSLOG_HOST=${SYSLOG_HOST:-$default_syslog_host}
 
 # default COLLECTOR_HOST
 COLLECTOR_HOST=$CONDOR_HOST
