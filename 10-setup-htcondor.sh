@@ -454,6 +454,9 @@ export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
 if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
     OSG_DEFAULT_CONTAINER_DISTRIBUTION="30%__opensciencegrid/osgvo-el7:latest 70%__opensciencegrid/osgvo-el8:latest"
 fi
+if [[ -z $DISABLE_SINGULARITY_PID_NAMESPACES ]]; then
+    DISABLE_SINGULARITY_PID_NAMESPACES=0
+fi
 cat >$glidein_config <<EOF
 ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source
 CONDOR_VARS_FILE $condor_vars_file
