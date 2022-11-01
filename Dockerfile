@@ -45,7 +45,7 @@ RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /
  && curl -sSfL -o /gwms/.gwms.d/exec/prejob/setup_prejob.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/setup_prejob.sh \
  && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_setup.sh \
  && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_wrapper.sh \
- && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_lib.sh \
+ && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/edquist/glideinwms/SOFTWARE-5340.fix-PATH/creation/web_base/singularity_lib.sh \
  && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # osgvo scripts
