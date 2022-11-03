@@ -39,13 +39,22 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
 ARG RANDOM=
 
 # glideinwms
+ARG GWMS_REPO=edquist/glideinwms
+ARG GWMS_BRANCH=SOFTWARE-5340.fix-PATH
 RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
- && curl -sSfL -o /gwms/error_gen.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/error_gen.sh \
- && curl -sSfL -o /gwms/add_config_line.source https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/add_config_line.source \
- && curl -sSfL -o /gwms/.gwms.d/exec/prejob/setup_prejob.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/setup_prejob.sh \
- && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_setup.sh \
- && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_wrapper.sh \
- && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_lib.sh \
+ && git clone --depth=1 --branch ${GWMS_BRANCH} https://github.com/${GWMS_REPO} glideinwms \
+ && cd glideinwms \
+ && install creation/web_base/error_gen.sh            /gwms/error_gen.sh                        \
+ && install creation/web_base/add_config_line.source  /gwms/add_config_line.source              \
+ && install creation/web_base/setup_prejob.sh         /gwms/.gwms.d/exec/prejob/setup_prejob.sh \
+ && install creation/web_base/singularity_setup.sh    /gwms/main/singularity_setup.sh           \
+ && install creation/web_base/singularity_wrapper.sh  /gwms/main/singularity_wrapper.sh         \
+ && install creation/web_base/singularity_lib.sh      /gwms/main/singularity_lib.sh             \
+ && echo "GWMS_REPO = \"$GWMS_REPO\""                                       >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "GWMS_BRANCH = \"$GWMS_BRANCH\""                                   >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "GWMS_HASH = \"$(git rev-parse HEAD)\""                            >> /etc/condor/config.d/60-flock-sources.config \
+ && echo "STARTD_ATTRS = \$(STARTD_ATTRS) GWMS_REPO GWMS_BRANCH GWMS_HASH"  >> /etc/condor/config.d/60-flock-sources.config \
+ && cd .. && rm -rf glideinwms                                                                  \
  && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # osgvo scripts
