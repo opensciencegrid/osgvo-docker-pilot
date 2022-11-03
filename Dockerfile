@@ -39,13 +39,15 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
 ARG RANDOM=
 
 # glideinwms
+ARG GWMS_REPO=edquist/glideinwms
+ARG GWMS_BRANCH=SOFTWARE-5340.fix-PATH
 RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
- && curl -sSfL -o /gwms/error_gen.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/error_gen.sh \
- && curl -sSfL -o /gwms/add_config_line.source https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/add_config_line.source \
- && curl -sSfL -o /gwms/.gwms.d/exec/prejob/setup_prejob.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/setup_prejob.sh \
- && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_setup.sh \
- && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/glideinWMS/glideinwms/master/creation/web_base/singularity_wrapper.sh \
- && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/edquist/glideinwms/SOFTWARE-5340.fix-PATH/creation/web_base/singularity_lib.sh \
+ && curl -sSfL -o /gwms/error_gen.sh https://raw.githubusercontent.com/$GWMS_REPO/$GWMS_BRANCH/creation/web_base/error_gen.sh \
+ && curl -sSfL -o /gwms/add_config_line.source https://raw.githubusercontent.com/$GWMS_REPO/$GWMS_BRANCH/creation/web_base/add_config_line.source \
+ && curl -sSfL -o /gwms/.gwms.d/exec/prejob/setup_prejob.sh https://raw.githubusercontent.com/$GWMS_REPO/$GWMS_BRANCH/creation/web_base/setup_prejob.sh \
+ && curl -sSfL -o /gwms/main/singularity_setup.sh https://raw.githubusercontent.com/$GWMS_REPO/$GWMS_BRANCH/creation/web_base/singularity_setup.sh \
+ && curl -sSfL -o /gwms/main/singularity_wrapper.sh https://raw.githubusercontent.com/$GWMS_REPO/$GWMS_BRANCH/creation/web_base/singularity_wrapper.sh \
+ && curl -sSfL -o /gwms/main/singularity_lib.sh https://raw.githubusercontent.com/GWMS_REPO/GWMS_BRANCH/creation/web_base/singularity_lib.sh \
  && chmod 755 /gwms/*.sh /gwms/main/*.sh
 
 # osgvo scripts
