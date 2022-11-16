@@ -9,6 +9,8 @@ RUN apk --no-cache add gcc musl-dev && \
 
 FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
 
+ENV IS_CONTAINER_PILOT=1
+
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
