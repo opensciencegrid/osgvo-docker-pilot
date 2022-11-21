@@ -151,6 +151,7 @@ case ${POOL} in
         default_ccb1=ccb-1.ospool-itb.osg-htc.org
         default_ccb2=ccb-2.ospool-itb.osg-htc.org
         default_syslog_host=syslog.osgdev.chtc.io
+        GLIDECLIENT_Group=itb-container
         ;;
     prod-ospool)
         default_cm1=cm-1.ospool.osg-htc.org
@@ -158,11 +159,13 @@ case ${POOL} in
         default_ccb1=ccb-1.ospool.osg-htc.org
         default_ccb2=ccb-2.ospool.osg-htc.org
         default_syslog_host=syslog.osg.chtc.io
+        GLIDECLIENT_Group=main-container
         ;;
     prod-path-facility)
         default_cm1=cm-1.facility.path-cc.io
         default_cm2=cm-2.facility.path-cc.io
         default_syslog_host=syslog.osg.chtc.io
+        GLIDECLIENT_Group=path-container
         ;;
     *)
         echo "Unknown pool $POOL" >&2
@@ -357,6 +360,7 @@ START_EXTRA = $GLIDEIN_Start_Extra
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
+GLIDECLIENT_Group = "$GLIDECLIENT_Group"
 OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 
 ACCEPT_JOBS_FOR_HOURS = $ACCEPT_JOBS_FOR_HOURS
@@ -419,6 +423,7 @@ cat >$LOCAL_DIR/user-job-wrapper.sh <<EOF
 set -e
 export GLIDEIN_Site="$GLIDEIN_Site"
 export GLIDEIN_ResourceName="$GLIDEIN_ResourceName"
+export GLIDECLIENT_Group="$GLIDECLIENT_Group"
 export OSG_SITE_NAME="$GLIDEIN_ResourceName"
 export OSG_SQUID_LOCATION="$OSG_SQUID_LOCATION"
 export GWMS_DIR="$LOCAL_DIR"
