@@ -76,11 +76,11 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install node-check/ospool-lib                                       /gwms/client_group_main/ospool-lib \
  && install node-check/singularity-extras                               /gwms/client_group_main/singularity-extras \
  # itb files: \
- && install node-check/itb-osgvo-default-image                          /usr/sbin/itb-osgvo-default-image \
- && install node-check/itb-osgvo-advertise-base                         /usr/sbin/itb-osgvo-advertise-base \
- && install node-check/itb-osgvo-advertise-userenv                      /usr/sbin/itb-osgvo-advertise-userenv \
- && install node-check/itb-ospool-lib                                   /gwms/client_group_itb/itb-ospool-lib \
- && install node-check/itb-singularity-extras                           /gwms/client_group_itb/itb-singularity-extras \
+ && install ospool-pilot/itb/pilot/default-image                        /usr/sbin/itb-osgvo-default-image \
+ && install ospool-pilot/itb/pilot/advertise-base                       /usr/sbin/itb-osgvo-advertise-base \
+ && install ospool-pilot/itb/pilot/advertise-userenv                    /usr/sbin/itb-osgvo-advertise-userenv \
+ && install ospool-pilot/itb/lib/ospool-lib                             /gwms/client_group_itb/itb-ospool-lib \
+ && install ospool-pilot/itb/pilot/singularity-extras                   /gwms/client_group_itb/itb-singularity-extras \
  && install job-wrappers/itb-default_singularity_wrapper.sh             /usr/sbin/itb-osgvo-singularity-wrapper \
  # common files: \
  && install stashcp/stashcp                                             /gwms/client/stashcp \
