@@ -508,4 +508,17 @@ STARTD_ATTRS = \$(STARTD_ATTRS), $glidein_variables
 STARTER_JOB_ENVIRONMENT = "$job_env"
 EOF
 
-
+# In this container, we replace ldconfig with a wrapper; otherwise, when the nvidia hooks
+# run they will run ldconfig and have it fail (it can't write into /etc), resulting
+# in nvidia-smi being missing from the apptainer container.
+#
+# At the time of writing (apptainer 1.1.2), when apptainer runs the nvidia hooks we get
+# the following in stderr:
+#
+#  > WARNING: While finding nv bind points: could not retrieve ld cache: could not execute ldconfig: exit status 1
+#  > WARNING: Could not find any nv libraries on this host!
+#
+# It appears that something unknown is causing a failure with our ldconfig wrapper.  To
+# workaround this fact, we are pre-invoking ldconfig.  This creates the cache and helps
+# the inner singularity invocation succeed.
+/usr/local/bin/ldconfig || :
