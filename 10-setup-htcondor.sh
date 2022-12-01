@@ -355,6 +355,7 @@ NETWORK_HOSTNAME="${sanitized_resourcename}-$(hostname)"
 
 osgvo_advertise_base=${script_exec_prefix}osgvo-advertise-base
 osgvo_advertise_userenv=${script_exec_prefix}osgvo-advertise-userenv
+osgvo_additional_htcondor_config=${script_exec_prefix}osgvo-additional-htcondor-config
 osgvo_singularity_wrapper=${script_exec_prefix}osgvo-singularity-wrapper
 default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
@@ -517,6 +518,14 @@ else
     echo >&2 "stash_plugin test failed; 'stash' filetransfer plugin unavailable"
 fi
 rm -f /tmp/stashcp-debug.txt
+
+if [[ -e ${osgvo_additional_htcondor_config} ]]; then
+    echo >&2 "${osgvo_additional_htcondor_config} found; running it"
+    bash -x ${osgvo_additional_htcondor_config} $glidein_config
+    echo >&2 "${osgvo_additional_htcondor_config} done"
+else
+    echo >&2 "${osgvo_additional_htcondor_config} not found"
+fi
 
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
