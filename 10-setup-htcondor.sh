@@ -519,6 +519,7 @@ else
 fi
 rm -f /tmp/stashcp-debug.txt
 
+export IS_CONTAINER_PILOT=1
 if [[ -e ${osgvo_additional_htcondor_config} ]]; then
     echo >&2 "${osgvo_additional_htcondor_config} found; running it"
     bash -x ${osgvo_additional_htcondor_config} $glidein_config

@@ -14,8 +14,6 @@ RUN apk --no-cache add gcc musl-dev && \
 
 FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
-ENV IS_CONTAINER_PILOT=1
-
 # Set this to "1" to use ITB versions of scripts and connect to the ITB pool
 ENV ITB=
 
