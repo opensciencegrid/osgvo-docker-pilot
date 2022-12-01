@@ -154,6 +154,7 @@ else
 fi
 
 
+itb_sites_start_clause=''
 case ${POOL} in
     itb-ospool)
         default_cm1=cm-1.ospool-itb.osg-htc.org
@@ -178,7 +179,6 @@ case ${POOL} in
         default_cm2=cm-2.facility.path-cc.io
         default_syslog_host=syslog.osg.chtc.io
         GLIDECLIENT_Group=path-container
-        itb_sites_start_clause=''
         ;;
     *)
         echo "Unknown pool $POOL" >&2
