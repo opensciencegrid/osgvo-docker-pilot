@@ -139,18 +139,18 @@ fi
 #
 
 # Default to the production OSPool unless $ITB is set
-if ! is_true "$ITB"; then
-    POOL=${POOL:=prod-ospool}
-    glidein_group=main
-    glidein_group_dir=client_group_main
-    script_exec_prefix=/usr/sbin/
-    script_lib_prefix=/gwms/client_group_main/
-else
+if is_true "$ITB"; then
     POOL=${POOL:=itb-ospool}
     glidein_group=itb
     glidein_group_dir=client_group_itb
     script_exec_prefix=/usr/sbin/itb-
     script_lib_prefix=/gwms/client_group_itb/itb-
+else
+    POOL=${POOL:=prod-ospool}
+    glidein_group=main
+    glidein_group_dir=client_group_main
+    script_exec_prefix=/usr/sbin/
+    script_lib_prefix=/gwms/client_group_main/
 fi
 
 
