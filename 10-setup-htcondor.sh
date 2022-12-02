@@ -138,9 +138,23 @@ fi
 # Set pool defaults
 #
 
-# Default to the production OSPool
-POOL=${POOL:=prod-ospool}
+# Default to the production OSPool unless $ITB is set
+if is_true "$ITB"; then
+    POOL=${POOL:=itb-ospool}
+    glidein_group=itb
+    glidein_group_dir=client_group_itb
+    script_exec_prefix=/usr/sbin/itb-
+    script_lib_prefix=/gwms/client_group_itb/itb-
+else
+    POOL=${POOL:=prod-ospool}
+    glidein_group=main
+    glidein_group_dir=client_group_main
+    script_exec_prefix=/usr/sbin/
+    script_lib_prefix=/gwms/client_group_main/
+fi
 
+
+itb_sites_start_clause=''
 case ${POOL} in
     itb-ospool)
         default_cm1=cm-1.ospool-itb.osg-htc.org
@@ -149,6 +163,7 @@ case ${POOL} in
         default_ccb2=ccb-2.ospool-itb.osg-htc.org
         default_syslog_host=syslog.osgdev.chtc.io
         GLIDECLIENT_Group=itb-container
+        itb_sites_start_clause=' && (TARGET.ITB_Sites =?= True)'
         ;;
     prod-ospool)
         default_cm1=cm-1.ospool.osg-htc.org
@@ -157,6 +172,7 @@ case ${POOL} in
         default_ccb2=ccb-2.ospool.osg-htc.org
         default_syslog_host=syslog.osg.chtc.io
         GLIDECLIENT_Group=main-container
+        itb_sites_start_clause=' && (TARGET.ITB_Sites =!= True)'
         ;;
     prod-path-facility)
         default_cm1=cm-1.facility.path-cc.io
@@ -329,6 +345,15 @@ else
 fi
 NETWORK_HOSTNAME="${sanitized_resourcename}-$(hostname)"
 
+
+osgvo_advertise_base=${script_exec_prefix}osgvo-advertise-base
+osgvo_advertise_userenv=${script_exec_prefix}osgvo-advertise-userenv
+osgvo_singularity_wrapper=${script_exec_prefix}osgvo-singularity-wrapper
+default_image_executable=${script_exec_prefix}osgvo-default-image
+singularity_extras_lib=${script_lib_prefix}singularity-extras
+ospool_lib=${script_lib_prefix}ospool-lib
+
+
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
@@ -353,7 +378,7 @@ SHARED_PORT_PORT = 0
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
 # additional start expression requirements - this will be &&ed to the base one
-START_EXTRA = $GLIDEIN_Start_Extra
+START_EXTRA = $GLIDEIN_Start_Extra $itb_sites_start_clause
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
@@ -370,8 +395,7 @@ MASTER_ATTRS = \$(MASTER_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
 use policy : Hold_If_Memory_Exceeded
 
 STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) base userenv
-
-STARTD_CRON_base_EXECUTABLE = /usr/sbin/osgvo-advertise-base
+STARTD_CRON_base_EXECUTABLE = ${osgvo_advertise_base}
 STARTD_CRON_base_PERIOD = 4m
 STARTD_CRON_base_MODE = periodic
 STARTD_CRON_base_RECONFIG = true
@@ -383,7 +407,7 @@ STARTD_CRON_userenv_PERIOD = 4m
 STARTD_CRON_userenv_MODE = periodic
 STARTD_CRON_userenv_RECONFIG = true
 STARTD_CRON_userenv_KILL = true
-STARTD_CRON_userenv_ARGS = /usr/sbin/osgvo-advertise-userenv $LOCAL_DIR/glidein_config main
+STARTD_CRON_userenv_ARGS = ${osgvo_advertise_userenv} $LOCAL_DIR/glidein_config main
 
 # Manage disk usage for backfill containers:
 
@@ -398,6 +422,9 @@ if [[ $NUM_CPUS ]]; then
 fi
 if [[ $MEMORY ]]; then
     echo "MEMORY = $MEMORY" >> "$PILOT_CONFIG_FILE"
+fi
+if is_true "$ITB"; then
+    echo "Is_ITB_Site = True" >> "$PILOT_CONFIG_FILE"
 fi
 
 # ensure HTCondor knows about our squid
@@ -444,7 +471,7 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/. $LOCAL_DIR/
-cp -a /usr/sbin/osgvo-singularity-wrapper condor_job_wrapper.sh
+cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
 
 # minimum env to get glideinwms scripts to work
 export glidein_config=$LOCAL_DIR/glidein_config
@@ -469,7 +496,7 @@ SINGULARITY_DISABLE_PID_NAMESPACES $SINGULARITY_DISABLE_PID_NAMESPACES
 GWMS_SINGULARITY_PATH /usr/bin/singularity
 GLIDEIN_WORK_DIR $PWD/main
 GLIDECLIENT_WORK_DIR $PWD/client
-GLIDECLIENT_GROUP_WORK_DIR $PWD/client_group_main
+GLIDECLIENT_GROUP_WORK_DIR $PWD/$glidein_group_dir
 EOF
 touch $condor_vars_file
 
@@ -486,13 +513,13 @@ rm -f /tmp/stashcp-debug.txt
 
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/singularity
-/usr/sbin/osgvo-default-image $glidein_config
+${default_image_executable} $glidein_config
 ./main/singularity_setup.sh $glidein_config
-./client_group_main/singularity-extras $glidein_config
+${singularity_extras_lib}   $glidein_config
 
 # run the osgvo userenv advertise script
-cp /usr/sbin/osgvo-advertise-userenv .
-$PWD/main/singularity_wrapper.sh ./osgvo-advertise-userenv glidein_config osgvo-docker-pilot
+cp ${osgvo_advertise_userenv} .
+$PWD/main/singularity_wrapper.sh ./$(basename ${osgvo_advertise_userenv}) glidein_config osgvo-docker-pilot
 
 # last step - interpret the condor_vars
 set +x

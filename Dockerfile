@@ -11,6 +11,9 @@ FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
 
 ENV IS_CONTAINER_PILOT=1
 
+# Set this to "1" to use ITB versions of scripts and connect to the ITB pool
+ENV ITB=
+
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
@@ -43,7 +46,7 @@ ARG RANDOM=
 # glideinwms
 ARG GWMS_REPO=edquist/glideinwms
 ARG GWMS_BRANCH=SOFTWARE-5340.fix-PATH
-RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
+RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/client_group_itb /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
  && git clone --depth=1 --branch ${GWMS_BRANCH} https://github.com/${GWMS_REPO} glideinwms \
  && cd glideinwms \
  && install creation/web_base/error_gen.sh            /gwms/error_gen.sh                        \
@@ -65,19 +68,30 @@ ARG OSG_FLOCK_REPO=opensciencegrid/osg-flock
 ARG OSG_FLOCK_BRANCH=master
 RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} osg-flock \
  && cd osg-flock \
+ # production files: \
  && install node-check/osgvo-default-image                              /usr/sbin/osgvo-default-image \
  && install node-check/osgvo-advertise-base                             /usr/sbin/osgvo-advertise-base \
  && install node-check/osgvo-advertise-userenv                          /usr/sbin/osgvo-advertise-userenv \
  && install job-wrappers/default_singularity_wrapper.sh                 /usr/sbin/osgvo-singularity-wrapper \
  && install node-check/ospool-lib                                       /gwms/client_group_main/ospool-lib \
  && install node-check/singularity-extras                               /gwms/client_group_main/singularity-extras \
+ # itb files: \
+ && install ospool-pilot/itb/pilot/default-image                        /usr/sbin/itb-osgvo-default-image \
+ && install ospool-pilot/itb/pilot/advertise-base                       /usr/sbin/itb-osgvo-advertise-base \
+ && install ospool-pilot/itb/pilot/advertise-userenv                    /usr/sbin/itb-osgvo-advertise-userenv \
+ && install ospool-pilot/itb/lib/ospool-lib                             /gwms/client_group_itb/itb-ospool-lib \
+ && install ospool-pilot/itb/pilot/singularity-extras                   /gwms/client_group_itb/itb-singularity-extras \
+ && install job-wrappers/itb-default_singularity_wrapper.sh             /usr/sbin/itb-osgvo-singularity-wrapper \
+ # common files: \
  && install stashcp/stashcp                                             /gwms/client/stashcp \
  && install stashcp/stash_plugin                                        /usr/libexec/condor/stash_plugin \
  && ln -snf /gwms/client/stashcp                                        /usr/bin/stashcp \
+ # advertise info \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_HASH = \"$(git rev-parse HEAD)\""  >> /etc/condor/config.d/60-flock-sources.config \
  && echo "STARTD_ATTRS = \$(STARTD_ATTRS) OSG_FLOCK_REPO OSG_FLOCK_BRANCH OSG_FLOCK_HASH"  >> /etc/condor/config.d/60-flock-sources.config \
+ # cleanup \
  && cd .. && rm -rf osg-flock
 
 COPY condor_master_wrapper /usr/sbin/
