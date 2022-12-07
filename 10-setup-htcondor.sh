@@ -516,13 +516,6 @@ fi
 rm -f /tmp/stashcp-debug.txt
 
 export IS_CONTAINER_PILOT=1
-if [[ -e ${osgvo_additional_htcondor_config} ]]; then
-    echo >&2 "${osgvo_additional_htcondor_config} found; running it"
-    bash -x ${osgvo_additional_htcondor_config} $glidein_config
-    echo >&2 "${osgvo_additional_htcondor_config} done"
-else
-    echo >&2 "${osgvo_additional_htcondor_config} not found"
-fi
 
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
@@ -533,6 +526,14 @@ ${singularity_extras_lib}   $glidein_config
 # run the osgvo userenv advertise script
 cp ${osgvo_advertise_userenv} .
 $PWD/main/singularity_wrapper.sh ./$(basename ${osgvo_advertise_userenv}) glidein_config osgvo-docker-pilot
+
+if [[ -e ${osgvo_additional_htcondor_config} ]]; then
+    echo >&2 "${osgvo_additional_htcondor_config} found; running it"
+    bash -x ${osgvo_additional_htcondor_config} $glidein_config
+    echo >&2 "${osgvo_additional_htcondor_config} done"
+else
+    echo >&2 "${osgvo_additional_htcondor_config} not found"
+fi
 
 # last step - interpret the condor_vars
 set +x
