@@ -378,7 +378,7 @@ SHARED_PORT_PORT = 0
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
 # additional start expression requirements - this will be &&ed to the base one
-START_EXTRA = $GLIDEIN_Start_Extra $itb_sites_start_clause
+START_EXTRA = ($GLIDEIN_Start_Extra) $itb_sites_start_clause
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
