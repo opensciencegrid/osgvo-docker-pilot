@@ -9,14 +9,6 @@ shopt -s nullglob
 for x in /etc/osg/image-init.d/*.sh; do source "$x"; done
 shopt -u nullglob
 
-# Allow child images to add cleanup customizations
-function source_cleanup {
-    shopt -s nullglob
-    for x in /etc/osg/image-cleanup.d/*.sh; do source "$x"; done
-    shopt -u nullglob
-}
-trap source_cleanup EXIT TERM QUIT
-
 chmod go-w /etc/cron.*/* 2>/dev/null || :
 
 # Restore stdout and err to the FD we stored in FD 3&4.
