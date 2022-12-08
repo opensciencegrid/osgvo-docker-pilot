@@ -19,6 +19,8 @@ ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 ARG TIMESTAMP_TAG
 
+ARG CONTAINER_TAG=opensciencegrid/osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_YUM_REPO}-${TIMESTAMP_TAG}
+
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
  && yum -y install \
@@ -146,15 +148,8 @@ COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
 COPY rsyslog.conf /etc/
 RUN chmod 755 /bin/entrypoint.sh
+RUN sed -i "s|@CONTAINER_TAG@|${CONTAINER_TAG}|" /etc/condor/config.d/50-main.config
 
-ARG CONTAINER_TAG=
-
-RUN if [ -n "$CONTAINER_TAG" ]; then \
-        sed -i "s|@CONTAINER_TAG@|${CONTAINER_TAG}|" /etc/condor/config.d/50-main.config; \
-    else \
-        sed -i "s|@CONTAINER_TAG@|opensciencegrid/osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_YUM_REPO}-${TIMESTAMP_TAG}|" \
-               /etc/condor/config.d/50-main.config; \
-    fi
 
 RUN chown -R osg: ~osg 
 
