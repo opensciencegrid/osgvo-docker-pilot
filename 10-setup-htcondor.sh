@@ -27,7 +27,8 @@ set_var() {
         return 0
     fi
 
-    var_val=`grep "^$var_name " $glidein_config | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
+    var_name_len=${#var_name}
+    var_val=$(grep "^${var_name} " $glidein_config | tail -n 1 | cut -c $((var_name_len + 2))- )
     if [ -z "$var_val" ]; then
         if [ "$var_req" == "Y" ]; then
             # needed var, exit with error
