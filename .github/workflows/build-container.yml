@@ -39,6 +39,10 @@ jobs:
           base_os: ${{ matrix.os }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
 
+      - name: Prepare CVMFS
+        run: |
+          sudo ./tests/setup_cvmfs.sh
+
       - name: Docker + CVMFS bindmount
         env:
           CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
