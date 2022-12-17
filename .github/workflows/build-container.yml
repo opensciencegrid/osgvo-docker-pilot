@@ -39,18 +39,26 @@ jobs:
           base_os: ${{ matrix.os }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
 
-      - name: Run tests
+      - name: Docker + CVMFS bindmount
         env:
           CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
         run: |
-          for CONTAINER_RUNTIME in singularity docker; do
-            for CVMFS_INSTALL in bindmount cvmfsexec; do
-              if [[ $CVMFS_RUNTIME == 'singularity' ]] && \
-                 [[ $CVMFS_INSTALL == cvmfsexec ]]; then
-                   continue
-              fi
-              sudo ./tests/test_inside_gha.sh "$CONTAINER_RUNTIME" \
-                                              "$CVMFS_INSTALL" \
-                                              "$CONTAINER_IMAGE"
-            done
-          done
+          sudo ./tests/test_inside_gha.sh docker \
+                                          bindmount \
+                                          "$CONTAINER_IMAGE"
+
+      - name: Docker + cvmfsexec
+        env:
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
+        run: |
+          sudo ./tests/test_inside_gha.sh docker \
+                                          cvmfsexec \
+                                          "$CONTAINER_IMAGE"
+
+      - name: Singularity + CVMFS bindmount
+        env:
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
+        run: |
+          sudo ./tests/test_inside_gha.sh singularity \
+                                          bindmount \
+                                          "$CONTAINER_IMAGE"
