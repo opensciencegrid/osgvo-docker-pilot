@@ -461,7 +461,7 @@ mkdir -p `condor_config_val LOCK`
 mkdir -p `condor_config_val RUN`
 mkdir -p `condor_config_val SPOOL`
 mkdir -p `condor_config_val SEC_CREDENTIAL_DIRECTORY`
-chmod 600 `condor_config_val SEC_CREDENTIAL_DIRECTORY`
+chmod 700 `condor_config_val SEC_CREDENTIAL_DIRECTORY`
 
 echo
 echo "Will use the following token(s):"
