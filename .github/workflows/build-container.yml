@@ -44,24 +44,27 @@ jobs:
           sudo ./tests/setup_cvmfs.sh
 
       - name: Docker + CVMFS bindmount
+        id: test-docker-cvmfs
         env:
-          CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
         run: |
           sudo ./tests/test_inside_gha.sh docker \
                                           bindmount \
                                           "$CONTAINER_IMAGE"
 
       - name: Docker + cvmfsexec
+        id: test-docker-cvmfsexec
         env:
-          CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
         run: |
           sudo ./tests/test_inside_gha.sh docker \
                                           cvmfsexec \
                                           "$CONTAINER_IMAGE"
 
       - name: Singularity + CVMFS bindmount
+        id: test-singularity-cvmfs
         env:
-          CONTAINER_IMAGE: ${{ steps.build-image.outputs.tags }}
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
         run: |
           sudo ./tests/test_inside_gha.sh singularity \
                                           bindmount \
