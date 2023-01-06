@@ -24,7 +24,7 @@ RUN useradd osg \
  && yum -y install \
         osg-wn-client \
         redhat-lsb-core \
-        singularity \
+        apptainer \
         attr \
         git \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
