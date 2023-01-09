@@ -71,6 +71,10 @@ jobs:
                                           "$CONTAINER_IMAGE"
 
       - name: Harbor login
+        if: >-
+          github.ref == 'refs/heads/master' &&
+          github.event_name != 'pull_request' &&
+          github.repository_owner == 'opensciencegrid'
         uses: docker/login-action@v2
         with:
           registry: hub.opensciencegrid.org
@@ -78,6 +82,10 @@ jobs:
           password: ${{ secrets.OSG_HARBOR_ROBOT_PASSWORD }}
 
       - name: Docker login
+        if: >-
+          github.ref == 'refs/heads/master' &&
+          github.event_name != 'pull_request' &&
+          github.repository_owner == 'opensciencegrid'
         uses: docker/login-action@v2
         with:
           registry: docker.io
