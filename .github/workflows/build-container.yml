@@ -9,83 +9,102 @@ on:
   workflow_dispatch:
 
 jobs:
-  make-date-tag:
+  build-images:
     runs-on: ubuntu-latest
-    outputs:
-      dtag: ${{ steps.mkdatetag.outputs.dtag }}
-    steps:
-    - name: make date tag
-      id: mkdatetag
-      run: echo "::set-output name=dtag::$(date +%Y%m%d-%H%M)"
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [make-date-tag]
     strategy:
       fail-fast: false
       matrix:
+        os: ['el8', 'al8', 'cuda_11_8_0']
         osg_series: ['3.6']
         repo: ['development', 'testing', 'release']
     steps:
-      - uses: opensciencegrid/build-container-action@v0.4.1
-        with:
-          osg_series: ${{ matrix.osg_series }}
-          repo: ${{ matrix.repo }}
-          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
-
-  test:
-    runs-on: ubuntu-20.04
-    needs: [make-date-tag, build]
-    strategy:
-      fail-fast: false
-      matrix:
-        osg_series: ['3.6']
-        repo: ['development', 'testing', 'release']
-        runtime: ['docker', 'singularity']
-        cvmfs: ['bindmount', 'cvmfsexec']
-        exclude:
-          - runtime: singularity
-            cvmfs: cvmfsexec
-    steps:
-      - uses: opensciencegrid/load-container-action@v0.5.0
-        id: load-image
-        with:
-          osg_series: ${{ matrix.osg_series }}
-          repo: ${{ matrix.repo }}
-          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
-      - name: Run tests
+      - id: custom-image-name
         env:
-          CONTAINER_RUNTIME: ${{ matrix.runtime }}
-          CVMFS_INSTALL: ${{ matrix.cvmfs }}
-          CONTAINER_IMAGE: ${{ steps.load-image.outputs.image_tag }}
+          SERIES: ${{ matrix.osg_series }}
+          REPO: ${{ matrix.repo }}
+          OS: ${{ matrix.os }}
         run: |
-          sudo ./tests/test_inside_gha.sh "$CONTAINER_RUNTIME" \
-                                          "$CVMFS_INSTALL" \
-                                          "$CONTAINER_IMAGE"
-  push:
-    runs-on: ubuntu-latest
-    needs: [make-date-tag, build, test]
-    if: >-
-      github.ref == 'refs/heads/master' &&
-      github.event_name != 'pull_request' &&
-      github.repository_owner == 'opensciencegrid'
-    strategy:
-      matrix:
-        osg_series: ['3.6']
-        repo: ['development', 'testing', 'release']
-        registry:
-          - url: hub.opensciencegrid.org
-            username: OSG_HARBOR_ROBOT_USER
-            password: OSG_HARBOR_ROBOT_PASSWORD
-          - url: docker.io
-            username: DOCKER_USERNAME
-            password: DOCKER_PASSWORD
-    steps:
-      - uses: opensciencegrid/push-container-action@v0.7.1
+          PREFIX="output_image=${GITHUB_REPOSITORY}:${SERIES}"
+          if [[ $OS == 'el8' ]]; then
+            echo "${PREFIX}-${REPO}" >> ${GITHUB_OUTPUT}
+          else
+            echo "${PREFIX}-${OS}-${REPO}" >> ${GITHUB_OUTPUT}
+          fi
+
+      - id: build-image
+        uses: opensciencegrid/build-container-action@v0.5.0
         with:
           osg_series: ${{ matrix.osg_series }}
-          repo: ${{ matrix.repo }}
-          timestamp_tag: ${{ needs.make-date-tag.outputs.dtag }}
-          registry_url: ${{ matrix.registry.url }}
-          registry_user: ${{ secrets[matrix.registry.username] }}
-          registry_pass: ${{ secrets[matrix.registry.password] }}
+          osg_repo: ${{ matrix.repo }}
+          base_os: ${{ matrix.os }}
+          output_image: ${{ steps.custom-image-name.outputs.output_image }}
+
+      - name: Prepare CVMFS
+        run: |
+          sudo ./tests/setup_cvmfs.sh
+
+      - name: Docker + CVMFS bindmount
+        id: test-docker-cvmfs
+        env:
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
+        run: |
+          sudo ./tests/test_inside_gha.sh docker \
+                                          bindmount \
+                                          "$CONTAINER_IMAGE"
+
+      - name: Docker + cvmfsexec
+        id: test-docker-cvmfsexec
+        env:
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
+        run: |
+          sudo ./tests/test_inside_gha.sh docker \
+                                          cvmfsexec \
+                                          "$CONTAINER_IMAGE"
+
+      - name: Singularity + CVMFS bindmount
+        id: test-singularity-cvmfs
+        env:
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
+        run: |
+          sudo ./tests/test_inside_gha.sh singularity \
+                                          bindmount \
+                                          "$CONTAINER_IMAGE"
+
+      - name: Harbor login
+        if: >-
+          github.ref == 'refs/heads/master' &&
+          github.event_name != 'pull_request' &&
+          github.repository_owner == 'opensciencegrid'
+        uses: docker/login-action@v2
+        with:
+          registry: hub.opensciencegrid.org
+          username: ${{ secrets.OSG_HARBOR_ROBOT_USER }}
+          password: ${{ secrets.OSG_HARBOR_ROBOT_PASSWORD }}
+
+      - name: Docker login
+        if: >-
+          github.ref == 'refs/heads/master' &&
+          github.event_name != 'pull_request' &&
+          github.repository_owner == 'opensciencegrid'
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push to OSG Harbor
+        if: >-
+          github.ref == 'refs/heads/master' &&
+          github.event_name != 'pull_request' &&
+          github.repository_owner == 'opensciencegrid'
+        env:
+          IMAGE_LIST: ${{ steps.build-image.outputs.image-list}}
+        run: |
+          for registry in hub.opensciencegrid.org docker.io; do
+            IFS=,
+            for image in ${IMAGE_LIST}; do
+              fqin=hub.opensciencegrid.org/${image}
+              docker tag ${image} ${fqin}
+              docker push ${fqin}
+            done
+          done

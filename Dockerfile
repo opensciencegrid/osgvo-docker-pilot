@@ -1,5 +1,10 @@
 ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
+# This corresponds to the base image used by opensciencegrid/software-base
+# el8         = quay.io/centos/centos:stream8
+# al8         = quay.io/almalinux/almalinux:8
+# cuda_11_8_0 = nvidia/cuda:11.8.0-runtime-rockylinux8
+ARG BASE_OS=el8
 
 FROM alpine:latest AS compile
 COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
@@ -7,7 +12,7 @@ RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
 
-FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-el8-${BASE_YUM_REPO}
+FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
 ENV IS_CONTAINER_PILOT=1
 
