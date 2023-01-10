@@ -24,7 +24,7 @@ ARG BASE_OSG_SERIES=3.6
 ARG BASE_YUM_REPO=testing
 ARG TIMESTAMP_TAG
 
-ARG CONTAINER_TAG=opensciencegrid/osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_YUM_REPO}-${TIMESTAMP_TAG}
+ARG CONTAINER_TAG=${TIMESTAMP_TAG}
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
