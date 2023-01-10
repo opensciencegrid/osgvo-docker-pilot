@@ -103,7 +103,7 @@ jobs:
           for registry in hub.opensciencegrid.org docker.io; do
             IFS=,
             for image in ${IMAGE_LIST}; do
-              fqin=hub.opensciencegrid.org/${image}
+              fqin=${registry}/${image}
               docker tag ${image} ${fqin}
               docker push ${fqin}
             done
