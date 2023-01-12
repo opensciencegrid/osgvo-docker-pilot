@@ -23,7 +23,7 @@ ENV ITB=
 ARG BASE_OSG_SERIES=3.6
 ARG BASE_OS=el8
 ARG BASE_YUM_REPO=testing
-ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
+ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}-$(date +%Y%m%d-%H%M)
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
