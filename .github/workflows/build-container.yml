@@ -32,7 +32,7 @@ jobs:
           fi
 
       - id: build-image
-        uses: opensciencegrid/build-container-action@v0.5.0
+        uses: opensciencegrid/build-container-action@v0.6.0
         with:
           osg_series: ${{ matrix.osg_series }}
           osg_repo: ${{ matrix.repo }}
