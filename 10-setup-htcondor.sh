@@ -515,8 +515,8 @@ rm -f /tmp/stashcp-debug.txt
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/singularity
 ${default_image_executable} $glidein_config
-./main/singularity_setup.sh $glidein_config
-${singularity_extras_lib}   $glidein_config
+bash -x ./main/singularity_setup.sh $glidein_config
+bash -x ${singularity_extras_lib}   $glidein_config
 
 # run the osgvo userenv advertise script
 cp ${osgvo_advertise_userenv} .
