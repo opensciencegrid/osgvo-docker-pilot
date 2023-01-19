@@ -19,6 +19,8 @@ ENV ITB=
 
 # Set this to empty to not send syslog remotely
 ENV ENABLE_REMOTE_SYSLOG=1
+# Set this to non-blank to use the prepare-job-hook to run Singularity jobs
+ENV CONTAINER_PILOT_USE_JOB_HOOK=
 
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES=3.6
@@ -116,6 +118,8 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install ospool-pilot/itb/lib/ospool-lib                             /gwms/client_group_itb/itb-ospool-lib \
  && install ospool-pilot/itb/pilot/singularity-extras                   /gwms/client_group_itb/itb-singularity-extras \
  && install job-wrappers/itb-default_singularity_wrapper.sh             /usr/sbin/itb-osgvo-singularity-wrapper \
+ && install ospool-pilot/itb/job/prepare-hook                           /gwms/client_group_itb/itb-prepare-hook \
+ && install ospool-pilot/itb/job/simple-job-wrapper.sh                  /usr/sbin/itb-simple-job-wrapper \
  # common files: \
  && install stashcp/stashcp                                             /gwms/client/stashcp \
  && install stashcp/stash_plugin                                        /usr/libexec/condor/stash_plugin \

@@ -357,10 +357,16 @@ osgvo_advertise_base=${script_exec_prefix}osgvo-advertise-base
 osgvo_advertise_userenv=${script_exec_prefix}osgvo-advertise-userenv
 osgvo_additional_htcondor_config=${script_exec_prefix}osgvo-additional-htcondor-config
 osgvo_singularity_wrapper=${script_exec_prefix}osgvo-singularity-wrapper
+simple_job_wrapper=${script_exec_prefix}simple-job-wrapper
+prepare_hook=${script_lib_prefix}prepare-hook
 default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
 ospool_lib=${script_lib_prefix}ospool-lib
 
+if [[ $CONTAINER_PILOT_USE_JOB_HOOK && ! -e ${prepare_hook} ]]; then
+    echo >&2 "CONTAINER_PILOT_USE_JOB_HOOK requested but job hook not found at ${prepare_hook}"
+    exit 1
+fi
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
@@ -475,7 +481,11 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/. $LOCAL_DIR/
-cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
+if [[ $CONTAINER_PILOT_USE_JOB_HOOK ]]; then
+    cp -a ${simple_job_wrapper} condor_job_wrapper.sh
+else
+    cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
+fi
 
 # minimum env to get glideinwms scripts to work
 export glidein_config=$LOCAL_DIR/glidein_config
@@ -525,7 +535,7 @@ ${singularity_extras_lib}   $glidein_config
 
 # run the osgvo userenv advertise script
 cp ${osgvo_advertise_userenv} .
-$PWD/main/singularity_wrapper.sh ./$(basename ${osgvo_advertise_userenv}) glidein_config osgvo-docker-pilot
+$PWD/main/singularity_wrapper.sh ./"$(basename ${osgvo_advertise_userenv})" glidein_config osgvo-docker-pilot
 
 if [[ -e ${osgvo_additional_htcondor_config} ]]; then
     echo >&2 "${osgvo_additional_htcondor_config} found; running it"
