@@ -243,12 +243,18 @@ else
     REGISTRY_HOSTNAME="os-registry.opensciencegrid.org"
 fi
 
-if ! nslookup "$SYSLOG_HOST" >/dev/null; then
-    echo >&2 "*** SYSLOG_HOST $SYSLOG_HOST not found"
-    SYSLOG_HOST=""
+if ! is_true $ENABLE_REMOTE_SYSLOG; then
+    SYSLOG_HOST=
+    REGISTRY_HOSTNAME=
+    REGISTRY_HOST=
 else
-    # If hostcert generation fails, then we'll just skip the whole syslog thing.
-    generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" "$REGISTRY_HOSTNAME" || SYSLOG_HOST=""
+    if ! nslookup "$SYSLOG_HOST" >/dev/null; then
+        echo >&2 "*** SYSLOG_HOST $SYSLOG_HOST not found"
+        SYSLOG_HOST=""
+    else
+        # If hostcert generation fails, then we'll just skip the whole syslog thing.
+        generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" "$REGISTRY_HOSTNAME" || SYSLOG_HOST=""
+    fi
 fi
 
 if [[ "x$SYSLOG_HOST" != "x" ]]; then
