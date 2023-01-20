@@ -19,6 +19,9 @@ ENV IS_CONTAINER_PILOT=1
 # Set this to "1" to use ITB versions of scripts and connect to the ITB pool
 ENV ITB=
 
+# Set this to empty to not send syslog remotely
+ENV ENABLE_REMOTE_SYSLOG=1
+
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES=3.6
 ARG BASE_OS=el8
