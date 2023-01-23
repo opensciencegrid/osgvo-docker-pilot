@@ -4,7 +4,7 @@ ARG BASE_YUM_REPO=testing
 # el8         = quay.io/centos/centos:stream8
 # al8         = quay.io/almalinux/almalinux:8
 # cuda_11_8_0 = nvidia/cuda:11.8.0-runtime-rockylinux8
-ARG BASE_OS=el8
+ARG BASE_OS=al8
 
 FROM alpine:latest AS compile
 COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
@@ -24,7 +24,7 @@ ENV ENABLE_REMOTE_SYSLOG=1
 
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES=3.6
-ARG BASE_OS=el8
+ARG BASE_OS=al8
 ARG BASE_YUM_REPO=testing
 ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}-$(date +%Y%m%d-%H%M)
 
