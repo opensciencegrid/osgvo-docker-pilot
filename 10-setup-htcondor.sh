@@ -500,7 +500,7 @@ GLIDEIN_Singularity_Use PREFERRED
 OSG_DEFAULT_CONTAINER_DISTRIBUTION $OSG_DEFAULT_CONTAINER_DISTRIBUTION
 SINGULARITY_IMAGE_RESTRICTIONS None
 SINGULARITY_DISABLE_PID_NAMESPACES $SINGULARITY_DISABLE_PID_NAMESPACES
-GWMS_SINGULARITY_PATH /usr/bin/singularity
+GWMS_SINGULARITY_PATH /usr/bin/apptainer
 GLIDEIN_WORK_DIR $PWD/main
 GLIDECLIENT_WORK_DIR $PWD/client
 GLIDECLIENT_GROUP_WORK_DIR $PWD/$glidein_group_dir
@@ -519,7 +519,7 @@ fi
 rm -f /tmp/stashcp-debug.txt
 
 unset SINGULARITY_BIND
-export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/singularity
+export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
 ${default_image_executable} $glidein_config
 ./main/singularity_setup.sh $glidein_config
 ${singularity_extras_lib}   $glidein_config
