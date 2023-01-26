@@ -79,8 +79,8 @@ ENV CVMFS_QUOTA_LIMIT=
 ARG RANDOM=
 
 # glideinwms
-ARG GWMS_REPO=edquist/glideinwms
-ARG GWMS_BRANCH=SOFTWARE-5340.fix-PATH
+ARG GWMS_REPO=glideinWMS/glideinwms
+ARG GWMS_BRANCH=master
 RUN mkdir -p /gwms/main /gwms/client /gwms/client_group_main /gwms/client_group_itb /gwms/.gwms.d/bin /gwms/.gwms.d/exec/{cleanup,postjob,prejob,setup,setup_singularity} \
  && git clone --depth=1 --branch ${GWMS_BRANCH} https://github.com/${GWMS_REPO} glideinwms \
  && cd glideinwms \
