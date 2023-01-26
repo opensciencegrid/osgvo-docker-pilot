@@ -20,15 +20,15 @@ SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
     useradd -mG docker testuser
-    singularity=/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity
+    singularity=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
     echo -n "Singularity version is: "
     $singularity version
     chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
     su - testuser -c \
-       "SINGULARITYENV_TOKEN=None \
-       SINGULARITYENV_GLIDEIN_Site=None \
-       SINGULARITYENV_GLIDEIN_ResourceName=None \
-       SINGULARITYENV_GLIDEIN_Start_Extra=True \
+       "APPTAINERENV_TOKEN=None \
+       APPTAINERENV_GLIDEIN_Site=None \
+       APPTAINERENV_GLIDEIN_ResourceName=None \
+       APPTAINERENV_GLIDEIN_Start_Extra=True \
        $singularity \
           run \
             -B /cvmfs \
