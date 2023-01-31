@@ -337,21 +337,20 @@ print(','.join([cm + ':$CCB_SUFFIX' \
 for cm in re.split(r'[\s,]+', '$CONDOR_HOST')]))")
 fi
 
-# https://whogohost.com/host/knowledgebase/308/Valid-Domain-Name-Characters.html rules
-hostname_length=$(hostname | wc -c)
-maxlen=$(( 63 - $hostname_length ))
-if [[ $maxlen -lt 1 ]]; then
-    sanitized_resourcename=
-else
-    sanitized_resourcename=$(
-    <<<"$GLIDEIN_ResourceName" tr -cs 'a-zA-Z0-9.-' '[-*]' \
-                             | sed -e 's|^[.-]*||' \
-                                   -e 's|[.-]*$||' \
-                             | cut -c 1-$maxlen \
-    )
-fi
-NETWORK_HOSTNAME="${sanitized_resourcename}-$(hostname)"
 
+# max length of a domain name is 255; max length of an individual component is 63
+sanitized_resourcename=$(
+<<<"$GLIDEIN_ResourceName" tr -cs 'a-zA-Z0-9.-' '[-*]' \
+                         | sed -e 's|^[.-]*||' \
+                               -e 's|[.-]*$||' \
+                         | cut -c 1-63 \
+)
+if is_true "$GLIDEIN_RANDOMIZE_NAME"; then
+    random_component=$(python3 -Sc "import secrets; print(secrets.token_hex(5))")  # 10 hex characters
+    NETWORK_HOSTNAME="${sanitized_resourcename}.${random_component}.$(hostname)"
+else
+    NETWORK_HOSTNAME="${sanitized_resourcename}.$(hostname)"
+fi
 
 osgvo_advertise_base=${script_exec_prefix}osgvo-advertise-base
 osgvo_advertise_userenv=${script_exec_prefix}osgvo-advertise-userenv
