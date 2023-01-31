@@ -49,6 +49,10 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
       yum -y install condor; \
     fi
 
+# Make a /proc dir in the sandbox condor uses to test singularity so we can test proc bind mounting
+# Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574
+RUN mkdir -p /usr/libexec/condor/singularity_test_sandbox/proc
+
 RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
  && ./makedist osg \
