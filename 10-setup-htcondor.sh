@@ -542,6 +542,26 @@ if [[ -e ${osgvo_additional_htcondor_config} ]]; then
     echo >&2 "${osgvo_additional_htcondor_config} done"
 else
     echo >&2 "${osgvo_additional_htcondor_config} not found"
+    echo >&2 "Setting compat config"
+
+    # A few things were removed from 50-main.config to have
+    # ${osgvo_additional_htcondor_config} take care of them instead; if we
+    # don't have that script, we need to do them here.
+    #
+    # This can be removed once the changes in https://github.com/opensciencegrid/osg-flock/pull/212
+    # get merged into the "main" group as well, and we always use ${osgvo_additional_htcondor_config}
+    cat >>$PILOT_CONFIG_FILE <<END
+IsBlackHole = IfThenElse(RecentJobDurationAvg is undefined, false, RecentJobDurationCount >= 10 && RecentJobDurationAvg < 180)
+STARTD_ATTRS = \$(STARTD_ATTRS), IsBlackHole
+
+HasExcessiveLoad = LoadAvg > 2*DetectedCpus + 2
+STARTD_ATTRS = \$(STARTD_ATTRS), HasExcessiveLoad
+
+DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
+HOLD_REASON_DISK_EXCEEDED = disk usage exceeded request_disk
+use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
+
+END
 fi
 
 # last step - interpret the condor_vars
