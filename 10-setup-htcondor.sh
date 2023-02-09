@@ -538,7 +538,7 @@ $PWD/main/singularity_wrapper.sh ./"$(basename ${osgvo_advertise_userenv})" glid
 
 if [[ -e ${osgvo_additional_htcondor_config} ]]; then
     echo >&2 "${osgvo_additional_htcondor_config} found; running it"
-    bash -x ${osgvo_additional_htcondor_config} $glidein_config
+    bash ${osgvo_additional_htcondor_config} $glidein_config
     echo >&2 "${osgvo_additional_htcondor_config} done"
 else
     echo >&2 "${osgvo_additional_htcondor_config} not found"
