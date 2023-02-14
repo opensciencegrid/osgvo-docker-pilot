@@ -354,11 +354,18 @@ fi
 
 osgvo_advertise_base=${script_exec_prefix}osgvo-advertise-base
 osgvo_advertise_userenv=${script_exec_prefix}osgvo-advertise-userenv
+osgvo_additional_htcondor_config=${script_exec_prefix}osgvo-additional-htcondor-config
 osgvo_singularity_wrapper=${script_exec_prefix}osgvo-singularity-wrapper
+simple_job_wrapper=${script_exec_prefix}simple-job-wrapper
+prepare_hook=${script_lib_prefix}prepare-hook
 default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
 ospool_lib=${script_lib_prefix}ospool-lib
 
+if [[ $CONTAINER_PILOT_USE_JOB_HOOK && ! -e ${prepare_hook} ]]; then
+    echo >&2 "CONTAINER_PILOT_USE_JOB_HOOK requested but job hook not found at ${prepare_hook}"
+    exit 1
+fi
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
@@ -415,11 +422,7 @@ STARTD_CRON_userenv_RECONFIG = true
 STARTD_CRON_userenv_KILL = true
 STARTD_CRON_userenv_ARGS = ${osgvo_advertise_userenv} $LOCAL_DIR/glidein_config main
 
-# Manage disk usage for backfill containers:
-
-DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
-HOLD_REASON_DISK_EXCEEDED = disk usage exceeded request_disk
-use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
+# WANT_HOLD for exceeding disk is set up in 'additional-htcondor-config'
 
 EOF
 
@@ -477,7 +480,11 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/. $LOCAL_DIR/
-cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
+if [[ $CONTAINER_PILOT_USE_JOB_HOOK ]]; then
+    cp -a ${simple_job_wrapper} condor_job_wrapper.sh
+else
+    cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
+fi
 
 # minimum env to get glideinwms scripts to work
 export glidein_config=$LOCAL_DIR/glidein_config
@@ -517,6 +524,8 @@ else
 fi
 rm -f /tmp/stashcp-debug.txt
 
+export IS_CONTAINER_PILOT=1
+
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
 ${default_image_executable} $glidein_config
@@ -525,7 +534,35 @@ ${singularity_extras_lib}   $glidein_config
 
 # run the osgvo userenv advertise script
 cp ${osgvo_advertise_userenv} .
-$PWD/main/singularity_wrapper.sh ./$(basename ${osgvo_advertise_userenv}) glidein_config osgvo-docker-pilot
+$PWD/main/singularity_wrapper.sh ./"$(basename ${osgvo_advertise_userenv})" glidein_config osgvo-docker-pilot
+
+if [[ -e ${osgvo_additional_htcondor_config} ]]; then
+    echo >&2 "${osgvo_additional_htcondor_config} found; running it"
+    bash ${osgvo_additional_htcondor_config} $glidein_config
+    echo >&2 "${osgvo_additional_htcondor_config} done"
+else
+    echo >&2 "${osgvo_additional_htcondor_config} not found"
+    echo >&2 "Setting compat config"
+
+    # A few things were removed from 50-main.config to have
+    # ${osgvo_additional_htcondor_config} take care of them instead; if we
+    # don't have that script, we need to do them here.
+    #
+    # This can be removed once the changes in https://github.com/opensciencegrid/osg-flock/pull/212
+    # get merged into the "main" group as well, and we always use ${osgvo_additional_htcondor_config}
+    cat >>$PILOT_CONFIG_FILE <<END
+IsBlackHole = IfThenElse(RecentJobDurationAvg is undefined, false, RecentJobDurationCount >= 10 && RecentJobDurationAvg < 180)
+STARTD_ATTRS = \$(STARTD_ATTRS), IsBlackHole
+
+HasExcessiveLoad = LoadAvg > 2*DetectedCpus + 2
+STARTD_ATTRS = \$(STARTD_ATTRS), HasExcessiveLoad
+
+DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
+HOLD_REASON_DISK_EXCEEDED = disk usage exceeded request_disk
+use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
+
+END
+fi
 
 # last step - interpret the condor_vars
 set +x

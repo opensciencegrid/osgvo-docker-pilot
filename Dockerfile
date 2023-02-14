@@ -14,13 +14,13 @@ RUN apk --no-cache add gcc musl-dev && \
 
 FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
-ENV IS_CONTAINER_PILOT=1
-
 # Set this to "1" to use ITB versions of scripts and connect to the ITB pool
 ENV ITB=
 
 # Set this to empty to not send syslog remotely
 ENV ENABLE_REMOTE_SYSLOG=1
+# Set this to non-blank to use the prepare-job-hook to run Singularity jobs
+ENV CONTAINER_PILOT_USE_JOB_HOOK=
 
 # Set this to 1 to add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
 ENV GLIDEIN_RANDOMIZE_NAME=
@@ -51,6 +51,10 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
     else \
       yum -y install condor; \
     fi
+
+# Make a /proc dir in the sandbox condor uses to test singularity so we can test proc bind mounting
+# Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574
+RUN mkdir -p /usr/libexec/condor/singularity_test_sandbox/proc
 
 RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
@@ -117,9 +121,12 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install ospool-pilot/itb/pilot/default-image                        /usr/sbin/itb-osgvo-default-image \
  && install ospool-pilot/itb/pilot/advertise-base                       /usr/sbin/itb-osgvo-advertise-base \
  && install ospool-pilot/itb/pilot/advertise-userenv                    /usr/sbin/itb-osgvo-advertise-userenv \
+ && install ospool-pilot/itb/pilot/additional-htcondor-config           /usr/sbin/itb-osgvo-additional-htcondor-config \
  && install ospool-pilot/itb/lib/ospool-lib                             /gwms/client_group_itb/itb-ospool-lib \
  && install ospool-pilot/itb/pilot/singularity-extras                   /gwms/client_group_itb/itb-singularity-extras \
  && install job-wrappers/itb-default_singularity_wrapper.sh             /usr/sbin/itb-osgvo-singularity-wrapper \
+ && install ospool-pilot/itb/job/prepare-hook                           /gwms/client_group_itb/itb-prepare-hook \
+ && install ospool-pilot/itb/job/simple-job-wrapper.sh                  /usr/sbin/itb-simple-job-wrapper \
  # common files: \
  && install stashcp/stashcp                                             /gwms/client/stashcp \
  && install stashcp/stash_plugin                                        /usr/libexec/condor/stash_plugin \
