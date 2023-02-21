@@ -121,8 +121,13 @@ if [ "x$GLIDEIN_ResourceName" = "x" ]; then
     echo "Please specify GLIDEIN_ResourceName as an environment variable" 1>&2
     exit 1
 fi
+if [ "x$OSG_PROJECT_NAME" != "x" ]; then
+    export OSG_PROJECT_RESTRICTION="ProjectName == \"OSG_PROJECT_NAME\""
+fi
 if [ "x$GLIDEIN_Start_Extra" = "x" ]; then
     export GLIDEIN_Start_Extra="True"
+else
+    echo "GLIDEIN_Start_Extra is deprecated. Please use OSG_PROJECT_NAME to restrict the pilot." 1>&2
 fi
 if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
     export ACCEPT_JOBS_FOR_HOURS=336
@@ -165,6 +170,7 @@ case ${POOL} in
         default_syslog_host=syslog.osgdev.chtc.io
         GLIDECLIENT_Group=itb-container
         itb_sites_start_clause=' && (TARGET.ITB_Sites =?= True)'
+        OSPool="False"
         ;;
     prod-ospool)
         default_cm1=cm-1.ospool.osg-htc.org
@@ -174,12 +180,14 @@ case ${POOL} in
         default_syslog_host=syslog.osg.chtc.io
         GLIDECLIENT_Group=main-container
         itb_sites_start_clause=' && (TARGET.ITB_Sites =!= True)'
+        OSPool="True"
         ;;
     prod-path-facility)
         default_cm1=cm-1.facility.path-cc.io
         default_cm2=cm-2.facility.path-cc.io
         default_syslog_host=syslog.osg.chtc.io
         GLIDECLIENT_Group=path-container
+        OSPool="False"
         ;;
     *)
         echo "Unknown pool $POOL" >&2
@@ -187,6 +195,12 @@ case ${POOL} in
         ;;
 esac
 
+# now we should have all the information need to determine
+# if we are in OSPool fairshare mode (SOFTWARE-4803)
+if [ "x$OSG_PROJECT_RESTRICTION" != "x" -o \
+     "x$GLIDEIN_Start_Extra" != "xTrue" ]; then
+    OSPool="False"
+fi
 
 # make sure LOCAL_DIR is exported here - it is used
 # later in advertisment/condorcron scripts
@@ -390,8 +404,14 @@ SHARED_PORT_PORT = 0
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
+# restrict which project this pilot can serve
+OSG_PROJECT_RESTRICTION = $OSG_PROJECT_RESTRICTION
+
 # additional start expression requirements - this will be &&ed to the base one
 START_EXTRA = ($GLIDEIN_Start_Extra) $itb_sites_start_clause
+
+# is this an OSPool EP or not
+OSPool = $OSPool
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
