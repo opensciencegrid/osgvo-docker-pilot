@@ -121,7 +121,14 @@ if [ "x$GLIDEIN_ResourceName" = "x" ]; then
     echo "Please specify GLIDEIN_ResourceName as an environment variable" 1>&2
     exit 1
 fi
-if [ "x$GLIDEIN_Start_Extra" = "x" ]; then
+if [ "x$OSG_PROJECT_NAME" != "x" ]; then
+    export OSG_PROJECT_RESTRICTION="ProjectName == \"$OSG_PROJECT_NAME\""
+fi
+if [ "x$GLIDEIN_Start_Extra" != "x" ]; then
+    if (echo "$GLIDEIN_Start_Extra" | grep -i ProjectName) >/dev/null 2>&1; then
+        echo "Using GLIDEIN_Start_Extra for limiting on ProjectName is discouraged. Please use OSG_PROJECT_NAME to restrict the pilot." 1>&2
+    fi
+else
     export GLIDEIN_Start_Extra="True"
 fi
 if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
@@ -186,7 +193,6 @@ case ${POOL} in
         exit 1
         ;;
 esac
-
 
 # make sure LOCAL_DIR is exported here - it is used
 # later in advertisment/condorcron scripts
@@ -390,8 +396,11 @@ SHARED_PORT_PORT = 0
 # a more descriptive machine name
 NETWORK_HOSTNAME = $NETWORK_HOSTNAME
 
+# restrict which project this pilot can serve
+OSG_PROJECT_RESTRICTION = $OSG_PROJECT_RESTRICTION
+
 # additional start expression requirements - this will be &&ed to the base one
-START_EXTRA = ($GLIDEIN_Start_Extra) $itb_sites_start_clause
+START_EXTRA = $GLIDEIN_Start_Extra $itb_sites_start_clause
 
 GLIDEIN_Site = "$GLIDEIN_Site"
 GLIDEIN_ResourceName = "$GLIDEIN_ResourceName"
@@ -510,6 +519,9 @@ GWMS_SINGULARITY_PATH /usr/bin/apptainer
 GLIDEIN_WORK_DIR $PWD/main
 GLIDECLIENT_WORK_DIR $PWD/client
 GLIDECLIENT_GROUP_WORK_DIR $PWD/$glidein_group_dir
+GLIDEIN_Collector $COLLECTOR_HOST
+GLIDEIN_Start_Extra $GLIDEIN_Start_Extra
+OSG_PROJECT_NAME $OSG_PROJECT_NAME
 EOF
 touch $condor_vars_file
 
