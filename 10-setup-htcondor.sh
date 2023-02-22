@@ -122,7 +122,7 @@ if [ "x$GLIDEIN_ResourceName" = "x" ]; then
     exit 1
 fi
 if [ "x$OSG_PROJECT_NAME" != "x" ]; then
-    export OSG_PROJECT_RESTRICTION="ProjectName == \"OSG_PROJECT_NAME\""
+    export OSG_PROJECT_RESTRICTION="ProjectName == \"$OSG_PROJECT_NAME\""
 fi
 if [ "x$GLIDEIN_Start_Extra" != "x" ]; then
     if (echo "$GLIDEIN_Start_Extra" | grep -i ProjectName) >/dev/null 2>&1; then
