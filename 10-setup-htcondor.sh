@@ -128,6 +128,8 @@ if [ "x$GLIDEIN_Start_Extra" != "x" ]; then
     if (echo "$GLIDEIN_Start_Extra" | grep -i ProjectName) >/dev/null 2>&1; then
         echo "Using GLIDEIN_Start_Extra for limiting on ProjectName is discouraged. Please use OSG_PROJECT_NAME to restrict the pilot." 1>&2
     fi
+else
+    export GLIDEIN_Start_Extra="True"
 fi
 if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
     export ACCEPT_JOBS_FOR_HOURS=336
