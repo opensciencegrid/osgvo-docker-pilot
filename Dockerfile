@@ -111,12 +111,15 @@ ARG OSG_FLOCK_BRANCH=master
 RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} osg-flock \
  && cd osg-flock \
  # production files: \
- && install node-check/osgvo-default-image                              /usr/sbin/osgvo-default-image \
- && install node-check/osgvo-advertise-base                             /usr/sbin/osgvo-advertise-base \
- && install node-check/osgvo-advertise-userenv                          /usr/sbin/osgvo-advertise-userenv \
+ && install ospool-pilot/main/pilot/default-image                       /usr/sbin/osgvo-default-image \
+ && install ospool-pilot/main/pilot/advertise-base                      /usr/sbin/osgvo-advertise-base \
+ && install ospool-pilot/main/pilot/advertise-userenv                   /usr/sbin/osgvo-advertise-userenv \
+ && install ospool-pilot/main/pilot/additional-htcondor-config          /usr/sbin/osgvo-additional-htcondor-config \
+ && install ospool-pilot/main/lib/ospool-lib                            /gwms/client_group_main/ospool-lib \
+ && install ospool-pilot/main/pilot/singularity-extras                  /gwms/client_group_main/singularity-extras \
  && install job-wrappers/default_singularity_wrapper.sh                 /usr/sbin/osgvo-singularity-wrapper \
- && install node-check/ospool-lib                                       /gwms/client_group_main/ospool-lib \
- && install node-check/singularity-extras                               /gwms/client_group_main/singularity-extras \
+ && install ospool-pilot/main/job/prepare-hook                          /gwms/client_group_main/prepare-hook \
+ && install ospool-pilot/main/job/simple-job-wrapper.sh                 /usr/sbin/simple-job-wrapper \
  # itb files: \
  && install ospool-pilot/itb/pilot/default-image                        /usr/sbin/itb-osgvo-default-image \
  && install ospool-pilot/itb/pilot/advertise-base                       /usr/sbin/itb-osgvo-advertise-base \
