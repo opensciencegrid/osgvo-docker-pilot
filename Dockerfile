@@ -24,12 +24,12 @@ RUN useradd osg \
  && mkdir -p ~osg/.condor \
  && yum -y install \
         osg-wn-client \
-        redhat-lsb-core \
         apptainer \
         attr \
         git \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
+ && if [[ $BASE_OS != el9 ]]; then yum -y install redhat-lsb-core; fi \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
 
