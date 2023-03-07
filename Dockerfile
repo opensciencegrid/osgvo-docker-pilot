@@ -19,8 +19,8 @@ ENV ITB=
 
 # Set this to empty to not send syslog remotely
 ENV ENABLE_REMOTE_SYSLOG=1
-# Set this to non-blank to use the prepare-job-hook to run Singularity jobs
-ENV CONTAINER_PILOT_USE_JOB_HOOK=
+# Clear this to not use the prepare-job-hook to run Singularity jobs
+ENV CONTAINER_PILOT_USE_JOB_HOOK=1
 
 # Set this to 1 to add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
 ENV GLIDEIN_RANDOMIZE_NAME=
