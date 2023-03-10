@@ -131,9 +131,7 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install ospool-pilot/itb/job/prepare-hook                           /gwms/client_group_itb/itb-prepare-hook \
  && install ospool-pilot/itb/job/simple-job-wrapper.sh                  /usr/sbin/itb-simple-job-wrapper \
  # common files: \
- && install stashcp/stashcp                                             /gwms/client/stashcp \
- && install stashcp/stash_plugin                                        /usr/libexec/condor/stash_plugin \
- && ln -snf /gwms/client/stashcp                                        /usr/bin/stashcp \
+ && install /usr/bin/stashcp                                            /gwms/client/stashcp \
  # advertise info \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \

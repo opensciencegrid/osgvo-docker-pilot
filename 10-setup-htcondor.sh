@@ -526,16 +526,32 @@ OSG_PROJECT_NAME $OSG_PROJECT_NAME
 EOF
 touch $condor_vars_file
 
-# test and add the stash plugin
-export STASH_PLUGIN_PATH=/usr/libexec/condor/stash_plugin
-if timeout 60s "$STASH_PLUGIN_PATH" -d /osgconnect/public/dweitzel/stashcp/test.file /tmp/stashcp-test.file >/dev/null 2>/tmp/stashcp-debug.txt; then
-    rm -f /tmp/stashcp-test.file
-    echo "FILETRANSFER_PLUGINS = \$(FILETRANSFER_PLUGINS),$STASH_PLUGIN_PATH" >> "$PILOT_CONFIG_FILE"
-else
+disable_osdf_plugin () {
+    echo "$*; stash://, osdf:// URL support disabled" >&2
+    echo "STASH_PLUGIN =" >> "$PILOT_CONFIG_FILE"
+    echo "OSDF_PLUGIN =" >> "$PILOT_CONFIG_FILE"  # forward compat
+}
+
+# Test the Stash/OSDF plugin that's shipped with Condor; disable it if the test fails.
+# TODO: This should be moved to additional-htcondor-config.
+osdf_plugin=$(condor_config_val OSDF_PLUGIN 2>/dev/null || condor_config_val STASH_PLUGIN 2>/dev/null)
+if [[ ! $osdf_plugin || ! -f $osdf_plugin || ! -x $osdf_plugin ]]; then
+    # Can't run it, can't test it. No need to explicitly disable it though.
+    echo >&2 "Stash/OSDF file transfer plugin is missing or not runnable; stash://, osdf:// URL support nonfunctional"
+elif ! timeout 60s "$osdf_plugin" -d /osgconnect/public/osg/testfile.txt /tmp/stashcp-test.file >/dev/null 2>/tmp/stashcp-debug.txt; then
+    disable_osdf_plugin "Stash/OSDF file transfer test failed"
     cat >&2 /tmp/stashcp-debug.txt
-    echo >&2 "stash_plugin test failed; 'stash' filetransfer plugin unavailable"
+elif [[ ! -s /tmp/stashcp-test.file ]]; then
+    disable_osdf_plugin "Stash/OSDF file transfer test created an empty file"
+    cat >&2 /tmp/stashcp-debug.txt
+else
+    # Sanity check
+    filetransfer_plugins=$(condor_config_val FILETRANSFER_PLUGINS 2>/dev/null)
+    if [[ $filetransfer_plugins != *${osdf_plugin}* ]]; then
+        echo >&2 "Stash/OSDF file transfer plugin missing from plugins list; stash://, osdf:// URL support nonfunctional"
+    fi
 fi
-rm -f /tmp/stashcp-debug.txt
+rm -f /tmp/stashcp-test.file /tmp/stashcp-debug.txt
 
 export IS_CONTAINER_PILOT=1
 
