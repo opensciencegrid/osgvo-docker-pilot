@@ -549,6 +549,14 @@ else
     filetransfer_plugins=$(condor_config_val FILETRANSFER_PLUGINS 2>/dev/null)
     if [[ $filetransfer_plugins != *${osdf_plugin}* ]]; then
         echo >&2 "Stash/OSDF file transfer plugin missing from plugins list; stash://, osdf:// URL support nonfunctional"
+    else
+        # Everything's OK. Get the version so we can advertise it.
+        osdf_plugin_version=$("$osdf_plugin" -classad | awk '/^PluginVersion / { print $3 }' | tr -d '"')
+        if [[ $osdf_plugin_version ]]; then
+            echo "STASH_PLUGIN_VERSION = \"$osdf_plugin_version\"" >> "$PILOT_CONFIG_FILE"
+            echo "OSDF_PLUGIN_VERSION = \"$osdf_plugin_version\"" >> "$PILOT_CONFIG_FILE"  # forward compat
+            echo "STARTD_ATTRS = $(STARTD_ATTRS) STASH_PLUGIN_VERSION OSDF_PLUGIN_VERSION" >> "$PILOT_CONFIG_FILE"
+        fi
     fi
 fi
 rm -f /tmp/stashcp-test.file /tmp/stashcp-debug.txt
