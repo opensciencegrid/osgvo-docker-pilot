@@ -558,7 +558,7 @@ else
         if [[ $osdf_plugin_version ]]; then
             echo "STASH_PLUGIN_VERSION = \"$osdf_plugin_version\"" >> "$PILOT_CONFIG_FILE"
             echo "OSDF_PLUGIN_VERSION = \"$osdf_plugin_version\"" >> "$PILOT_CONFIG_FILE"  # forward compat
-            echo "STARTD_ATTRS = $(STARTD_ATTRS) STASH_PLUGIN_VERSION OSDF_PLUGIN_VERSION" >> "$PILOT_CONFIG_FILE"
+            echo "STARTD_ATTRS = \$(STARTD_ATTRS) STASH_PLUGIN_VERSION OSDF_PLUGIN_VERSION" >> "$PILOT_CONFIG_FILE"
         fi
     fi
 fi
