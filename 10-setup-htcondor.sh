@@ -497,7 +497,7 @@ export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
 if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
     OSG_DEFAULT_CONTAINER_DISTRIBUTION="30%__opensciencegrid/osgvo-el7:latest 70%__opensciencegrid/osgvo-el8:latest"
 fi
-# The glidein config expects a 1 or a 0
+# The glidein scripts expect a 1 or a 0
 if is_true "$SINGULARITY_DISABLE_PID_NAMESPACES"; then
     SINGULARITY_DISABLE_PID_NAMESPACES=1
 else
@@ -562,6 +562,10 @@ fi
 rm -f "$osdf_test_file" "$osdf_debug_log"
 
 export IS_CONTAINER_PILOT=1
+# some of the scripts use set/unset for this boolean
+if ! is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
+    unset CONTAINER_PILOT_USE_JOB_HOOK
+fi
 
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
