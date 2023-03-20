@@ -167,17 +167,15 @@ ENTRYPOINT ["/bin/entrypoint.sh"]
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
 
 
+#
+# Here are the various environment variables you can use to customize your pilot
+#
 
-# Set this to "1" to use ITB versions of scripts and connect to the ITB pool
-ENV ITB=
-
-# Set this to empty to not send syslog remotely
-ENV ENABLE_REMOTE_SYSLOG=1
-# Clear this to not use the prepare-job-hook to run Singularity jobs
-ENV CONTAINER_PILOT_USE_JOB_HOOK=1
-
-# Set this to 1 to add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
-ENV GLIDEIN_RANDOMIZE_NAME=
+# Options to limit resource usage:
+# Number of CPUs available to jobs
+ENV NUM_CPUS=
+# Amount of memory (in MB) available to jobs
+ENV MEMORY=
 
 # Space separated list of repos to mount at startup (if using cvmfsexec);
 # leave this blank to disable cvmfsexec
@@ -187,9 +185,21 @@ ENV CVMFS_HTTP_PROXY=
 # The quota limit in MB for CVMFS; leave this blank to use the default
 ENV CVMFS_QUOTA_LIMIT=
 
-# Options to limit resource usage:
-# Number of CPUs available to jobs
-ENV NUM_CPUS=
-# Amount of memory (in MB) available to jobs
-ENV MEMORY=
+# Set this to restrict this pilot to only run jobs from a specific Project
+ENV OSG_PROJECT_NAME=
+
+# Additional restrictions for your START expression
+ENV GLIDEIN_Start_Extra=
+
+# Clear this to not use the prepare-job-hook to run Singularity jobs
+ENV CONTAINER_PILOT_USE_JOB_HOOK=1
+
+# Set this to 1 to add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
+ENV GLIDEIN_RANDOMIZE_NAME=
+
+# Set this to empty to not send syslog remotely
+ENV ENABLE_REMOTE_SYSLOG=1
+
+# Set this to "1" to use ITB versions of scripts and connect to the ITB pool
+ENV ITB=
 
