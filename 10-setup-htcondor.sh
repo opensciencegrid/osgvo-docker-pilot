@@ -243,7 +243,7 @@ else
     REGISTRY_HOSTNAME="os-registry.opensciencegrid.org"
 fi
 
-if ! is_true $ENABLE_REMOTE_SYSLOG; then
+if ! is_true "$ENABLE_REMOTE_SYSLOG"; then
     SYSLOG_HOST=
     REGISTRY_HOSTNAME=
     REGISTRY_HOST=
@@ -362,7 +362,7 @@ default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
 ospool_lib=${script_lib_prefix}ospool-lib
 
-if is_true $CONTAINER_PILOT_USE_JOB_HOOK && [[ ! -e ${prepare_hook} ]]; then
+if is_true "$CONTAINER_PILOT_USE_JOB_HOOK" && [[ ! -e ${prepare_hook} ]]; then
     echo >&2 "CONTAINER_PILOT_USE_JOB_HOOK requested but job hook not found at ${prepare_hook}"
     exit 1
 fi
@@ -483,7 +483,7 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/. $LOCAL_DIR/
-if is_true $CONTAINER_PILOT_USE_JOB_HOOK; then
+if is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
     cp -a ${simple_job_wrapper} condor_job_wrapper.sh
 else
     cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
