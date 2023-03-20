@@ -185,21 +185,29 @@ ENV CVMFS_HTTP_PROXY=
 # The quota limit in MB for CVMFS; leave this blank to use the default
 ENV CVMFS_QUOTA_LIMIT=
 
+# How many hours to accept new jobs for
+ENV ACCEPT_JOBS_FOR_HOURS=336
+# Minutes to wait before shutting down due to lack of jobs
+ENV ACCEPT_IDLE_MINUTES=30
+
 # Set this to restrict this pilot to only run jobs from a specific Project
 ENV OSG_PROJECT_NAME=
 
 # Additional restrictions for your START expression
 ENV GLIDEIN_Start_Extra=
 
-# Clear this to not use the prepare-job-hook to run Singularity jobs
-ENV CONTAINER_PILOT_USE_JOB_HOOK=1
+# Allow CPU jobs on GPU slots if there are GPUs left
+ENV ALLOW_CPUJOB_ON_GPUSLOT=false
 
-# Set this to 1 to add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
-ENV GLIDEIN_RANDOMIZE_NAME=
+# Use the prepare-job-hook to run Singularity jobs
+ENV CONTAINER_PILOT_USE_JOB_HOOK=true
 
-# Set this to empty to not send syslog remotely
-ENV ENABLE_REMOTE_SYSLOG=1
+# Add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
+ENV GLIDEIN_RANDOMIZE_NAME=false
 
-# Set this to "1" to use ITB versions of scripts and connect to the ITB pool
-ENV ITB=
+# Send pilot and condor logs to a central syslog server
+ENV ENABLE_REMOTE_SYSLOG=true
+
+# Use ITB versions of scripts and connect to the ITB pool
+ENV ITB=false
 
