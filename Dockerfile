@@ -14,17 +14,6 @@ RUN apk --no-cache add gcc musl-dev && \
 
 FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
-# Set this to "1" to use ITB versions of scripts and connect to the ITB pool
-ENV ITB=
-
-# Set this to empty to not send syslog remotely
-ENV ENABLE_REMOTE_SYSLOG=1
-# Clear this to not use the prepare-job-hook to run Singularity jobs
-ENV CONTAINER_PILOT_USE_JOB_HOOK=1
-
-# Set this to 1 to add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
-ENV GLIDEIN_RANDOMIZE_NAME=
-
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES=3.6
 ARG BASE_OS=al8
@@ -72,15 +61,6 @@ RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && rm -rf ./* \
  # Again, needs to be 1777 so the unpriv user can extract into it. \
  && chmod 1777 /cvmfsexec
-
-# Space separated list of repos to mount at startup (if using cvmfsexec);
-# leave this blank to disable cvmfsexec
-ENV CVMFSEXEC_REPOS=
-# The proxy to use for CVMFS; leave this blank to use the default
-ENV CVMFS_HTTP_PROXY=
-# The quota limit in MB for CVMFS; leave this blank to use the default
-ENV CVMFS_QUOTA_LIMIT=
-
 
 # Specify RANDOM when building the image to use the cache for installing RPMs but not for downloading scripts.
 ARG RANDOM=
@@ -146,12 +126,6 @@ RUN chmod 755 /usr/sbin/condor_master_wrapper
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
 
-# Options to limit resource usage:
-# Number of CPUs available to jobs
-ENV NUM_CPUS=
-# Amount of memory (in MB) available to jobs
-ENV MEMORY=
-
 # Ensure that GPU libs can be accessed by user Singularity containers
 # running inside Singularity osgvo-docker-pilot containers
 # (SOFTWARE-4807)
@@ -191,3 +165,49 @@ WORKDIR /pilot
 ENTRYPOINT ["/bin/entrypoint.sh"]
 # Adding ENTRYPOINT clears CMD
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
+
+
+#
+# Here are the various environment variables you can use to customize your pilot
+#
+
+# Options to limit resource usage:
+# Number of CPUs available to jobs
+ENV NUM_CPUS=
+# Amount of memory (in MB) available to jobs
+ENV MEMORY=
+
+# Space separated list of repos to mount at startup (if using cvmfsexec);
+# leave this blank to disable cvmfsexec
+ENV CVMFSEXEC_REPOS=
+# The proxy to use for CVMFS; leave this blank to use the default
+ENV CVMFS_HTTP_PROXY=
+# The quota limit in MB for CVMFS; leave this blank to use the default
+ENV CVMFS_QUOTA_LIMIT=
+
+# How many hours to accept new jobs for
+ENV ACCEPT_JOBS_FOR_HOURS=336
+# Minutes to wait before shutting down due to lack of jobs
+ENV ACCEPT_IDLE_MINUTES=30
+
+# Set this to restrict this pilot to only run jobs from a specific Project
+ENV OSG_PROJECT_NAME=
+
+# Additional restrictions for your START expression
+ENV GLIDEIN_Start_Extra=
+
+# Allow CPU jobs on GPU slots if there are GPUs left
+ENV ALLOW_CPUJOB_ON_GPUSLOT=false
+
+# Use the prepare-job-hook to run Singularity jobs
+ENV CONTAINER_PILOT_USE_JOB_HOOK=true
+
+# Add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
+ENV GLIDEIN_RANDOMIZE_NAME=false
+
+# Send pilot and condor logs to a central syslog server
+ENV ENABLE_REMOTE_SYSLOG=true
+
+# Use ITB versions of scripts and connect to the ITB pool
+ENV ITB=false
+

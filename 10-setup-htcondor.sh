@@ -87,13 +87,16 @@ set_var() {
     return 0
 }
 
-
+# explicitly true:
+# y(es), t(rue), 1, on; uppercase or lowercase
 is_true () {
-    case "${1:-0}" in
-        # y(es), t(rue), 1, on; uppercase or lowercase
-        [yY]*|[tT]*|1|[Oo][Nn]) return 0 ;;
-        *) return 1 ;;
+    case "${1^^}" in         # bash-ism to uppercase the var
+        Y|YES) return 0 ;;
+        T|TRUE) return 0 ;;
+        ON) return 0 ;;
+        1) return 0 ;;
     esac
+    return 1
 }
 
 random_range () {
@@ -130,15 +133,6 @@ if [ "x$GLIDEIN_Start_Extra" != "x" ]; then
     fi
 else
     export GLIDEIN_Start_Extra="True"
-fi
-if [ "x$ACCEPT_JOBS_FOR_HOURS" = "x" ]; then
-    export ACCEPT_JOBS_FOR_HOURS=336
-fi
-if [ "x$ACCEPT_IDLE_MINUTES" = "x" ]; then
-    export ACCEPT_IDLE_MINUTES=30
-fi
-if [ "x$ALLOW_CPUJOB_ON_GPUSLOT" = "x" ]; then
-    export ALLOW_CPUJOB_ON_GPUSLOT="0"
 fi
 
 
@@ -249,7 +243,7 @@ else
     REGISTRY_HOSTNAME="os-registry.opensciencegrid.org"
 fi
 
-if ! is_true $ENABLE_REMOTE_SYSLOG; then
+if ! is_true "$ENABLE_REMOTE_SYSLOG"; then
     SYSLOG_HOST=
     REGISTRY_HOSTNAME=
     REGISTRY_HOST=
@@ -368,7 +362,7 @@ default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
 ospool_lib=${script_lib_prefix}ospool-lib
 
-if [[ $CONTAINER_PILOT_USE_JOB_HOOK && ! -e ${prepare_hook} ]]; then
+if is_true "$CONTAINER_PILOT_USE_JOB_HOOK" && [[ ! -e ${prepare_hook} ]]; then
     echo >&2 "CONTAINER_PILOT_USE_JOB_HOOK requested but job hook not found at ${prepare_hook}"
     exit 1
 fi
@@ -452,7 +446,7 @@ fi
 
 # some admins prefer to reserve gpu slots for gpu jobs, others
 # want to run cpu jobs if there are no gpu jobs available
-if [[ $ALLOW_CPUJOB_ON_GPUSLOT = "1" ]]; then
+if is_true "$ALLOW_CPUJOB_ON_GPUSLOT"; then
     echo "CPUJOB_ON_GPUSLOT = True" >> "$PILOT_CONFIG_FILE"
 else
     echo "CPUJOB_ON_GPUSLOT = ifThenElse(MY.TotalGPUs > 0 && MY.GPUs > 0, TARGET.RequestGPUs > 0, True)" >> "$PILOT_CONFIG_FILE"
@@ -489,7 +483,7 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/. $LOCAL_DIR/
-if [[ $CONTAINER_PILOT_USE_JOB_HOOK ]]; then
+if is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
     cp -a ${simple_job_wrapper} condor_job_wrapper.sh
 else
     cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
@@ -503,7 +497,10 @@ export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
 if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
     OSG_DEFAULT_CONTAINER_DISTRIBUTION="30%__opensciencegrid/osgvo-el7:latest 70%__opensciencegrid/osgvo-el8:latest"
 fi
-if [[ -z $SINGULARITY_DISABLE_PID_NAMESPACES ]]; then
+# The glidein scripts expect a 1 or a 0
+if is_true "$SINGULARITY_DISABLE_PID_NAMESPACES"; then
+    SINGULARITY_DISABLE_PID_NAMESPACES=1
+else
     SINGULARITY_DISABLE_PID_NAMESPACES=0
 fi
 cat >$glidein_config <<EOF
@@ -565,6 +562,10 @@ fi
 rm -f "$osdf_test_file" "$osdf_debug_log"
 
 export IS_CONTAINER_PILOT=1
+# some of the scripts use set/unset for this boolean
+if ! is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
+    unset CONTAINER_PILOT_USE_JOB_HOOK
+fi
 
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
