@@ -193,6 +193,9 @@ ENV ACCEPT_IDLE_MINUTES=30
 # Set this to restrict this pilot to only run jobs from a specific Project
 ENV OSG_PROJECT_NAME=
 
+# Additional paths to bind for Singularity jobs; same syntax as the -B option in singularity run
+ENV SINGULARITY_BIND_EXTRA=
+
 # Additional restrictions for your START expression
 ENV GLIDEIN_Start_Extra=
 
