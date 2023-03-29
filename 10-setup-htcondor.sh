@@ -521,6 +521,11 @@ GLIDECLIENT_Group $GLIDECLIENT_Group
 GLIDEIN_Start_Extra $GLIDEIN_Start_Extra
 OSG_PROJECT_NAME $OSG_PROJECT_NAME
 EOF
+if [[ $SINGULARITY_BIND_EXTRA ]]; then
+    cat >>$glidein_config <<EOF
+GLIDEIN_SINGULARITY_BINDPATH $SINGULARITY_BIND_EXTRA
+EOF
+fi
 touch $condor_vars_file
 
 disable_osdf_plugin () {
