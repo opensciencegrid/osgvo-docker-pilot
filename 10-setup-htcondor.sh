@@ -367,6 +367,13 @@ if is_true "$CONTAINER_PILOT_USE_JOB_HOOK" && [[ ! -e ${prepare_hook} ]]; then
     exit 1
 fi
 
+# use GLIDEIN_ToRetire - this is for aligning with GWMS glideins
+NOW=$(date +'%s')
+GLIDEIN_ToRetire=$(($NOW + $ACCEPT_JOBS_FOR_HOURS * 60 * 60))
+
+# Give the instance 24 hours to finish up before exiting
+GLIDEIN_ToDie=$(($GLIDEIN_ToRetire + 24 * 60 * 60))
+
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
@@ -404,8 +411,11 @@ OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 ACCEPT_JOBS_FOR_HOURS = $ACCEPT_JOBS_FOR_HOURS
 ACCEPT_IDLE_MINUTES = $ACCEPT_IDLE_MINUTES
 
-STARTD_ATTRS = \$(STARTD_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
-MASTER_ATTRS = \$(MASTER_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
+GLIDEIN_ToRetire = $GLIDEIN_ToRetire
+GLIDEIN_ToDie = $GLIDEIN_ToDie
+
+STARTD_ATTRS = \$(STARTD_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES GLIDEIN_ToRetire GLIDEIN_ToDie
+MASTER_ATTRS = \$(MASTER_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES GLIDEIN_ToRetire GLIDEIN_ToDie
 
 # policy
 use policy : Hold_If_Memory_Exceeded
