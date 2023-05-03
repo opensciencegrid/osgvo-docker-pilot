@@ -188,7 +188,7 @@ ENV CVMFS_QUOTA_LIMIT=
 # How many hours to accept new jobs for
 ENV ACCEPT_JOBS_FOR_HOURS=336
 # Hours to let running jobs finish during retirement
-env RETIREMENT_HOURS=24
+ENV RETIREMENT_HOURS=24
 # Minutes to wait before shutting down due to lack of jobs
 ENV ACCEPT_IDLE_MINUTES=30
 
