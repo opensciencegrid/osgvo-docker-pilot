@@ -134,6 +134,24 @@ if [ "x$GLIDEIN_Start_Extra" != "x" ]; then
 else
     export GLIDEIN_Start_Extra="True"
 fi
+if ! [[ "$ACCEPT_JOBS_FOR_HOURS" =~ ^[0-9]+$ ]]; then
+    echo "ACCEPT_JOBS_FOR_HOURS has to be a positive integer" 1>&2
+    exit 1
+else
+    if [ $ACCEPT_JOBS_FOR_HOURS -le 0 ]; then
+        echo "ACCEPT_JOBS_FOR_HOURS has to be a positive integer" 1>&2
+        exit 1
+    fi
+fi
+if ! [[ "$RETIREMENT_HOURS" =~ ^[0-9]+$ ]]; then
+    echo "RETIREMENT_HOURS has to be a positive integer" 1>&2
+    exit 1
+else
+    if [ $RETIREMENT_HOURS -le 0 ]; then
+        echo "RETIREMENT_HOURS has to be a positive integer" 1>&2
+        exit 1
+    fi
+fi
 
 
 #
@@ -367,6 +385,20 @@ if is_true "$CONTAINER_PILOT_USE_JOB_HOOK" && [[ ! -e ${prepare_hook} ]]; then
     exit 1
 fi
 
+cat <<EOF
+This pilot will accept new jobs for $ACCEPT_JOBS_FOR_HOURS hours, and
+then let running jobs finish for $RETIREMENT_HOURS hours. To control
+this behavior, you may set the ACCEPT_JOBS_FOR_HOURS and
+RETIREMENT_HOURS environment variables.
+EOF
+
+# use GLIDEIN_ToRetire - this is for aligning with GWMS glideins
+NOW=$(date +'%s')
+GLIDEIN_ToRetire=$(($NOW + $ACCEPT_JOBS_FOR_HOURS * 60 * 60))
+
+# Give the instance 24 hours to finish up before exiting
+GLIDEIN_ToDie=$(($GLIDEIN_ToRetire + $RETIREMENT_HOURS * 60 * 60))
+
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
@@ -404,8 +436,11 @@ OSG_SQUID_LOCATION = "$OSG_SQUID_LOCATION"
 ACCEPT_JOBS_FOR_HOURS = $ACCEPT_JOBS_FOR_HOURS
 ACCEPT_IDLE_MINUTES = $ACCEPT_IDLE_MINUTES
 
-STARTD_ATTRS = \$(STARTD_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
-MASTER_ATTRS = \$(MASTER_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES
+GLIDEIN_ToRetire = $GLIDEIN_ToRetire
+GLIDEIN_ToDie = $GLIDEIN_ToDie
+
+STARTD_ATTRS = \$(STARTD_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES GLIDEIN_ToRetire GLIDEIN_ToDie
+MASTER_ATTRS = \$(MASTER_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES GLIDEIN_ToRetire GLIDEIN_ToDie
 
 # policy
 use policy : Hold_If_Memory_Exceeded
