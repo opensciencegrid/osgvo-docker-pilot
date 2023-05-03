@@ -134,6 +134,24 @@ if [ "x$GLIDEIN_Start_Extra" != "x" ]; then
 else
     export GLIDEIN_Start_Extra="True"
 fi
+if ! [[ "$ACCEPT_JOBS_FOR_HOURS" =~ ^[0-9]+$ ]]; then
+    echo "ACCEPT_JOBS_FOR_HOURS has to be a positive integer" 1>&2
+    exit 1
+else
+    if [ $ACCEPT_JOBS_FOR_HOURS -le 0 ]; then
+        echo "ACCEPT_JOBS_FOR_HOURS has to be a positive integer" 1>&2
+        exit 1
+    fi
+fi
+if ! [[ "$RETIREMENT_HOURS" =~ ^[0-9]+$ ]]; then
+    echo "RETIREMENT_HOURS has to be a positive integer" 1>&2
+    exit 1
+else
+    if [ $RETIREMENT_HOURS -le 0 ]; then
+        echo "RETIREMENT_HOURS has to be a positive integer" 1>&2
+        exit 1
+    fi
+fi
 
 
 #
