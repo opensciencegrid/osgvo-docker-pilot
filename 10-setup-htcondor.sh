@@ -367,12 +367,19 @@ if is_true "$CONTAINER_PILOT_USE_JOB_HOOK" && [[ ! -e ${prepare_hook} ]]; then
     exit 1
 fi
 
+cat <<EOF
+This pilot will accept new jobs for $ACCEPT_JOBS_FOR_HOURS hours, and
+then let running jobs finish for $RETIREMENT_HOURS hours. To control
+this behavior, you may set the ACCEPT_JOBS_FOR_HOURS and
+RETIREMENT_HOURS environment variables.
+EOF
+
 # use GLIDEIN_ToRetire - this is for aligning with GWMS glideins
 NOW=$(date +'%s')
 GLIDEIN_ToRetire=$(($NOW + $ACCEPT_JOBS_FOR_HOURS * 60 * 60))
 
 # Give the instance 24 hours to finish up before exiting
-GLIDEIN_ToDie=$(($GLIDEIN_ToRetire + 24 * 60 * 60))
+GLIDEIN_ToDie=$(($GLIDEIN_ToRetire + $RETIREMENT_HOURS * 60 * 60))
 
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
