@@ -2,7 +2,6 @@
 
 OSP_TOKEN_PATH=/tmp/token
 COMMON_DOCKER_ARGS="run --user osg
-                        --rm
                         --detach
                         --security-opt apparmor=unconfined
                         --name backfill
@@ -165,6 +164,7 @@ case "$CONTAINER_RUNTIME" in
         test_docker_startup                             || exit 1
         test_docker_HAS_SINGULARITY                     || exit 1
         docker stop backfill
+        docker rm -f backfill
         ;;
     singularity)
         # we only support Singularity + bind mounted CVMFS
