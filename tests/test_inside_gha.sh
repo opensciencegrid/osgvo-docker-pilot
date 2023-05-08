@@ -58,7 +58,7 @@ function debug_docker_backfill {
 }
 
 function print_test_header {
-    msg=$@
+    msg=$*
     sep=$(python -c "print ('=' * ${#msg})")
     echo -e "$sep\n$msg\n$sep"
 }
@@ -72,13 +72,13 @@ function wait_for_output {
         if [[ -n $out ]]; then
             echo "$out"
             set -x
-            if [[ $ret == $ABORT_CODE ]]; then
+            if [[ $ret -eq $ABORT_CODE ]]; then
                 return $ABORT_CODE
             else
                 return 0
             fi
         fi
-        if [[ $ret == $ABORT_CODE ]]; then
+        if [[ $ret -eq $ABORT_CODE ]]; then
             return $ABORT_CODE
         fi
         sleep 1
@@ -91,7 +91,7 @@ function test_docker_startup {
     print_test_header "Testing container startup"
 
     logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog -size +1); ret=$?
-    if [[ $ret == $ABORT_CODE ]]; then
+    if [[ $ret -eq $ABORT_CODE ]]; then
         echo >&2 "Container check failed, aborting"
         debug_docker_backfill
         return $ABORT_CODE
@@ -107,10 +107,10 @@ function test_docker_startup {
                         grep \
                         -- \
                         'Changing activity: Benchmarking -> Idle' \
-                        $logfile; ret=$? \
+                        $logfile; ret=$?
     if [[ $ret != 0 ]]; then
         tail -n 400 $logfile
-        if [[ $ret == $ABORT_CODE ]]; then
+        if [[ $ret -eq $ABORT_CODE ]]; then
             debug_docker_backfill
             return $ABORT_CODE
         else
@@ -123,11 +123,11 @@ function test_docker_HAS_SINGULARITY {
     print_test_header "Testing singularity detection inside the backfill container"
 
     logdir=$(run_inside_backfill_container find /pilot -type d -name log); ret=$?
-    [[ $ret == $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
+    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}'); ret=$?
-    [[ $ret == $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
+    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     has_singularity=$(run_inside_backfill_container condor_status -direct $startd_addr -af HAS_SINGULARITY); ret=$?
-    [[ $ret == $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
+    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     if [[ $has_singularity == 'true' ]]; then
         return 0
     fi
