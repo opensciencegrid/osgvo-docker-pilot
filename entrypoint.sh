@@ -5,12 +5,13 @@ fail () {
     exit 1
 }
 
+config_repo=/cvmfs/config-osg.opensciencegrid.org
 cvmfsexec_root=/cvmfsexec
 cvmfsexec_tarball=/cvmfsexec.tar.gz
 cvmfsexec_local_config=$cvmfsexec_root/dist/etc/cvmfs/default.local
 htcondor_supervisord_config=/etc/supervisord.d/10-htcondor.conf
 
-if [[ -d /cvmfs/config-osg.opensciencegrid.org ]]; then
+if [[ -d $config_repo ]]; then
     echo "OSG CVMFS already available (perhaps via bind-mount),"
     echo "skipping cvmfsexec."
     exec "$@"
@@ -29,6 +30,8 @@ fi
 
 $cvmfsexec_root/cvmfsexec -N -- /bin/true || \
     fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
+$cvmfsexec_root/cvmfsexec -N -- /bin/ls -l ${config_repo}/ || \
+    fail "cvmfsexec accessing config repo failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
 
 add_or_replace () {
     local file="$1"
