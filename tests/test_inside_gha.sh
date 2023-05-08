@@ -57,6 +57,12 @@ function debug_docker_backfill {
     docker logs backfill
 }
 
+function docker_exit_with_cleanup {
+    ret=${1:-0}
+    docker rm -f backfill || :
+    exit $ret
+}
+
 function print_test_header {
     msg=$*
     sep=$(python -c "print ('=' * ${#msg})")
@@ -189,11 +195,11 @@ esac
 
 case "$CONTAINER_RUNTIME" in
     docker)
-        start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || exit $?
-        test_docker_startup                             || exit $?
-        test_docker_HAS_SINGULARITY                     || exit $?
+        start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || docker_exit_with_cleanup $?
+        test_docker_startup                             || docker_exit_with_cleanup $?
+        test_docker_HAS_SINGULARITY                     || docker_exit_with_cleanup $?
         docker stop backfill
-        docker rm -f backfill
+        docker_exit_with_cleanup 0
         ;;
     singularity)
         # we only support Singularity + bind mounted CVMFS
