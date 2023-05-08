@@ -2,7 +2,6 @@
 
 OSP_TOKEN_PATH=/tmp/token
 COMMON_DOCKER_ARGS="run --user osg
-                        --rm
                         --detach
                         --security-opt apparmor=unconfined
                         --name backfill
@@ -16,6 +15,7 @@ function usage {
     echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
 }
 
+ABORT_CODE=127
 SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
@@ -45,7 +45,11 @@ function start_docker_backfill {
 }
 
 function run_inside_backfill_container {
-    docker exec backfill "$@"
+    if ! docker exec backfill /bin/true &>/dev/null; then
+        return $ABORT_CODE
+    else
+        docker exec backfill "$@"
+    fi
 }
 
 function debug_docker_backfill {
@@ -53,8 +57,14 @@ function debug_docker_backfill {
     docker logs backfill
 }
 
+function docker_exit_with_cleanup {
+    ret=${1:-0}
+    docker rm -f backfill || :
+    exit $ret
+}
+
 function print_test_header {
-    msg=$@
+    msg=$*
     sep=$(python -c "print ('=' * ${#msg})")
     echo -e "$sep\n$msg\n$sep"
 }
@@ -64,11 +74,18 @@ function wait_for_output {
     maxtime="$1"
     shift
     for (( i=0; i<$maxtime; ++i )); do
-        out=$("$@")
+        out=$("$@"); ret=$?
         if [[ -n $out ]]; then
-            echo $out
+            echo "$out"
             set -x
-            return 0
+            if [[ $ret -eq $ABORT_CODE ]]; then
+                return $ABORT_CODE
+            else
+                return 0
+            fi
+        fi
+        if [[ $ret -eq $ABORT_CODE ]]; then
+            return $ABORT_CODE
         fi
         sleep 1
     done
@@ -79,7 +96,13 @@ function wait_for_output {
 function test_docker_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog -size +1)
+    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog -size +1); ret=$?
+    if [[ $ret -eq $ABORT_CODE ]]; then
+        echo >&2 "Container check failed, aborting"
+        debug_docker_backfill
+        return $ABORT_CODE
+    fi
+
     if [[ -z $logfile ]]; then
         debug_docker_backfill
         return 1
@@ -90,16 +113,27 @@ function test_docker_startup {
                         grep \
                         -- \
                         'Changing activity: Benchmarking -> Idle' \
-                        $logfile \
-        || (tail -n 400 $logfile && return 1)
+                        $logfile; ret=$?
+    if [[ $ret != 0 ]]; then
+        tail -n 400 $logfile
+        if [[ $ret -eq $ABORT_CODE ]]; then
+            debug_docker_backfill
+            return $ABORT_CODE
+        else
+            return 1
+        fi
+    fi
 }
 
 function test_docker_HAS_SINGULARITY {
     print_test_header "Testing singularity detection inside the backfill container"
 
-    logdir=$(run_inside_backfill_container find /pilot -type d -name log)
-    startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}')
-    has_singularity=$(run_inside_backfill_container condor_status -direct $startd_addr -af HAS_SINGULARITY)
+    logdir=$(run_inside_backfill_container find /pilot -type d -name log); ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
+    startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}'); ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
+    has_singularity=$(run_inside_backfill_container condor_status -direct $startd_addr -af HAS_SINGULARITY); ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     if [[ $has_singularity == 'true' ]]; then
         return 0
     fi
@@ -161,10 +195,11 @@ esac
 
 case "$CONTAINER_RUNTIME" in
     docker)
-        start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || exit 1
-        test_docker_startup                             || exit 1
-        test_docker_HAS_SINGULARITY                     || exit 1
+        start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || docker_exit_with_cleanup $?
+        test_docker_startup                             || docker_exit_with_cleanup $?
+        test_docker_HAS_SINGULARITY                     || docker_exit_with_cleanup $?
         docker stop backfill
+        docker_exit_with_cleanup 0
         ;;
     singularity)
         # we only support Singularity + bind mounted CVMFS
