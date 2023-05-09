@@ -1,37 +1,11 @@
 #!/bin/bash
 
-fail () {
-    echo "$@" >&2
-    exit 1
-}
-
 config_repo=/cvmfs/config-osg.opensciencegrid.org
 cvmfsexec_root=/cvmfsexec
 cvmfsexec_tarball=/cvmfsexec.tar.gz
 cvmfsexec_local_config=$cvmfsexec_root/dist/etc/cvmfs/default.local
 htcondor_supervisord_config=/etc/supervisord.d/10-htcondor.conf
 
-if [[ -d $config_repo ]]; then
-    echo "OSG CVMFS already available (perhaps via bind-mount),"
-    echo "skipping cvmfsexec."
-    exec "$@"
-elif [[ -z $CVMFSEXEC_REPOS ]]; then
-    echo "No CVMFS repos requested, skipping cvmfsexec."
-    exec "$@"
-fi
-CVMFSEXEC_REPOS=$(tr -s ',' ' ' <<<"$CVMFSEXEC_REPOS")
-
-cd "$cvmfsexec_root" || \
-    fail "Couldn't enter $cvmfsexec_root"
-if [[ ! -e $cvmfsexec_root/dist ]]; then
-    tar -xzf $cvmfsexec_tarball -C $cvmfsexec_root || \
-        fail "Couldn't extract $cvmfsexec_tarball into $cvmfsexec_root"
-fi
-
-$cvmfsexec_root/cvmfsexec -N -- /bin/true || \
-    fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
-$cvmfsexec_root/cvmfsexec -N -- /bin/ls -l ${config_repo}/ || \
-    fail "cvmfsexec accessing config repo failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
 
 add_or_replace () {
     local file="$1"
@@ -56,6 +30,34 @@ add_or_replace_quoted () {
         echo "${var}=\"${value}\"" >> "$file"
     fi
 }
+
+fail () {
+    echo "$@" >&2
+    exit 1
+}
+
+
+if [[ -d $config_repo ]]; then
+    echo "OSG CVMFS already available (perhaps via bind-mount),"
+    echo "skipping cvmfsexec."
+    exec "$@"
+elif [[ -z $CVMFSEXEC_REPOS ]]; then
+    echo "No CVMFS repos requested, skipping cvmfsexec."
+    exec "$@"
+fi
+CVMFSEXEC_REPOS=$(tr -s ',' ' ' <<<"$CVMFSEXEC_REPOS")
+
+cd "$cvmfsexec_root" || \
+    fail "Couldn't enter $cvmfsexec_root"
+if [[ ! -e $cvmfsexec_root/dist ]]; then
+    tar -xzf $cvmfsexec_tarball -C $cvmfsexec_root || \
+        fail "Couldn't extract $cvmfsexec_tarball into $cvmfsexec_root"
+fi
+
+$cvmfsexec_root/cvmfsexec -N -- /bin/true || \
+    fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
+$cvmfsexec_root/cvmfsexec -N -- /bin/ls -l ${config_repo}/ || \
+    fail "cvmfsexec accessing config repo failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
 
 if [[ -e /cvmfsexec/default.local ]]; then
     cp -f /cvmfsexec/default.local "$cvmfsexec_local_config"
