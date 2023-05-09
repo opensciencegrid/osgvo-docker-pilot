@@ -36,6 +36,17 @@ fail () {
     exit 1
 }
 
+# explicitly true:
+# y(es), t(rue), 1, on; uppercase or lowercase
+is_true () {
+    case "${1^^}" in         # bash-ism to uppercase the var
+        Y|YES) return 0 ;;
+        T|TRUE) return 0 ;;
+        ON) return 0 ;;
+        1) return 0 ;;
+    esac
+    return 1
+}
 
 if [[ -d $config_repo ]]; then
     echo "OSG CVMFS already available (perhaps via bind-mount),"
