@@ -184,6 +184,8 @@ ENV CVMFSEXEC_REPOS=
 ENV CVMFS_HTTP_PROXY=
 # The quota limit in MB for CVMFS; leave this blank to use the default
 ENV CVMFS_QUOTA_LIMIT=
+# Set this to true to turn on CVMFSEXEC debugging
+ENV CVMFSEXEC_DEBUG=false
 
 # How many hours to accept new jobs for
 ENV ACCEPT_JOBS_FOR_HOURS=336

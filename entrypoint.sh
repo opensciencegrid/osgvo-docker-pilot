@@ -31,6 +31,19 @@ add_or_replace_quoted () {
     fi
 }
 
+cvmfsexec_fail () {
+    echo "$@" >&2
+    if is_true $CVMFSEXEC_DEBUG; then
+        echo "Log dump follows:" >&2
+        for logfile in /cvmfsexec-logs/*; do
+            echo "***** $logfile *****" >&2
+            cat "$logfile" >&2
+            echo >&2
+        done
+    fi
+    exit 1
+}
+
 fail () {
     echo "$@" >&2
     exit 1
@@ -65,13 +78,12 @@ if [[ ! -e $cvmfsexec_root/dist ]]; then
         fail "Couldn't extract $cvmfsexec_tarball into $cvmfsexec_root"
 fi
 
-$cvmfsexec_root/cvmfsexec -N -- /bin/true || \
-    fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
-$cvmfsexec_root/cvmfsexec -N -- /bin/ls -l ${config_repo}/ || \
-    fail "cvmfsexec accessing config repo failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
-
 if [[ -e /cvmfsexec/default.local ]]; then
     cp -f /cvmfsexec/default.local "$cvmfsexec_local_config"
+fi
+
+if is_true "$CVMFSEXEC_DEBUG"; then
+    add_or_replace_quoted "$cvmfsexec_local_config" CVMFS_DEBUGLOG "/cvmfs-logs/debuglog"
 fi
 
 if [[ -n $CVMFS_HTTP_PROXY ]]; then
@@ -81,6 +93,11 @@ fi
 if [[ -n $CVMFS_QUOTA_LIMIT ]]; then
     add_or_replace_quoted "$cvmfsexec_local_config" CVMFS_QUOTA_LIMIT "${CVMFS_QUOTA_LIMIT}"
 fi
+
+$cvmfsexec_root/cvmfsexec -N -- /bin/true || \
+    cvmfsexec_fail "cvmfsexec smoke test failed.  You may not have the permissions to run cvmfsexec; see https://github.com/cvmfs/cvmfsexec#README for details"
+$cvmfsexec_root/cvmfsexec -N -- /bin/ls -l ${config_repo}/ || \
+    cvmfsexec_fail "cvmfsexec accessing config repo failed."
 
 if [ "x$SUPERVISORD_RESTART_POLICY" != "x" ]; then
     add_or_replace "$htcondor_supervisord_config" autorestart "${SUPERVISORD_RESTART_POLICY}"
