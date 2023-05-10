@@ -15,7 +15,7 @@ add_or_replace () {
     if grep -Eq "^${var}=" "$file"; then
         sed -i -r -e "s#^${var}=.*#${var}=${value}#" "$file"
     else
-        echo "${var}=\"${value}\"" >> "$file"
+        echo "${var}=${value}" >> "$file"
     fi
 }
 
