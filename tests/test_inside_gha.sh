@@ -189,7 +189,8 @@ case "$CVMFS_INSTALL" in
         ;;
     cvmfsexec)
         DOCKER_EXTRA_ARGS=(--privileged
-                           -e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org')
+                           -e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org'
+                           -e CVMFSEXEC_DEBUG=true)
         ;;
 esac
 
