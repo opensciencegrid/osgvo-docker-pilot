@@ -45,8 +45,10 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
 # Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574
 RUN mkdir -p /usr/libexec/condor/singularity_test_sandbox/proc
 
+ARG CVMFSEXEC_BRANCH=master
 RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
+ && git checkout $CVMFSEXEC_BRANCH \
  && ./makedist osg \
  # /cvmfs-cache and /cvmfs-logs is where the cache and logs will go; possibly bind-mounted. \
  # Needs to be 1777 so the unpriv user can use it. \
