@@ -45,7 +45,7 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
 # Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574
 RUN mkdir -p /usr/libexec/condor/singularity_test_sandbox/proc
 
-ARG CVMFSEXEC_BRANCH=v4.30
+ARG CVMFSEXEC_BRANCH=master
 RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
  && git checkout $CVMFSEXEC_BRANCH \
