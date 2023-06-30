@@ -334,7 +334,7 @@ if [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]]; then
 elif [[ $POOL =~ (itb|prod)-ospool ]]; then
     # Choose a random OSPool collector for CCB and CM
     # e.g., ccb-1.ospool.osg-htc.org?sock=collector3
-    CCB_SUFFIX="?sock=collector$(random_range 1 5)"
+    CCB_SUFFIX="?sock=collector$(random_range 1 10)"
 elif [[ $POOL =~ (itb|prod)-path-facility ]]; then
     # Choose a random PATh facility collector for CCB
     # cm-1.facility.path-cc.io:9618?sock=collector9623
