@@ -200,6 +200,13 @@ case ${POOL} in
         default_syslog_host=syslog.osg.chtc.io
         GLIDECLIENT_Group=path-container
         ;;
+    dev-path-facility)
+        default_cm1=htcondor-cm-path.osgdev.chtc.io
+        # we don't have a duplicate dev instance
+        default_cm2=htcondor-cm-path.osgdev.chtc.io
+        default_syslog_host=syslog.osgdev.chtc.io
+        GLIDECLIENT_Group=path-container
+        ;;
     *)
         echo "Unknown pool $POOL" >&2
         exit 1
@@ -335,7 +342,7 @@ elif [[ $POOL =~ (itb|prod)-ospool ]]; then
     # Choose a random OSPool collector for CCB and CM
     # e.g., ccb-1.ospool.osg-htc.org?sock=collector3
     CCB_SUFFIX="?sock=collector$(random_range 1 10)"
-elif [[ $POOL =~ (itb|prod)-path-facility ]]; then
+elif [[ $POOL =~ (dev|prod)-path-facility ]]; then
     # Choose a random PATh facility collector for CCB
     # cm-1.facility.path-cc.io:9618?sock=collector9623
     CCB_SUFFIX="9618?sock=collector962$(random_range 0 4)"
@@ -346,7 +353,7 @@ if [[ $POOL =~ (itb|prod)-ospool ]]; then
     COLLECTOR_HOST=$default_cm1$CCB_SUFFIX,$default_cm2$CCB_SUFFIX
     CCB_ADDRESS=$default_ccb1$CCB_SUFFIX,$default_ccb2$CCB_SUFFIX
 elif [[ -n $CCB_RANGE_LOW && -n $CCB_RANGE_HIGH ]] ||
-       [[ $POOL == 'prod-path-facility' ]]; then
+         [[ $POOL =~ (dev|prod)-path-facility ]]; then
     # PATh facilty, or anything else: Append the CCB suffix to each host in CONDOR_HOST, e.g.
     # "cm.school.edu:10576", or
     # "cm-1.ospool.osg-htc.org:9619?sock=collector6,cm-2.ospool.osg-htc.org:9619?sock=collector6"
