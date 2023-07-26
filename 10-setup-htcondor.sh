@@ -202,8 +202,7 @@ case ${POOL} in
         ;;
     dev-path-facility)
         default_cm1=htcondor-cm-path.osgdev.chtc.io
-        # we don't have a duplicate dev instance
-        default_cm2=htcondor-cm-path.osgdev.chtc.io
+        default_cm2=htcondor-cm-path.osg-dev.river.chtc.io
         default_syslog_host=syslog.osgdev.chtc.io
         GLIDECLIENT_Group=path-container
         ;;
