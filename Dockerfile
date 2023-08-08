@@ -26,7 +26,7 @@ RUN useradd osg \
         osg-wn-client \
         apptainer \
         attr \
-        git \
+        'git >= 2' \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
  && if [[ $BASE_OS != el9 ]]; then yum -y install redhat-lsb-core; fi \
@@ -45,9 +45,13 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
 # Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574
 RUN mkdir -p /usr/libexec/condor/singularity_test_sandbox/proc
 
-ARG CVMFSEXEC_BRANCH=master
+# CVMFSEXEC_BRANCH=TAGGED means use the highest versioned tag
+ARG CVMFSEXEC_BRANCH=TAGGED
 RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
+ && if [[ $CVMFSEXEC_BRANCH = TAGGED ]]; then \
+        CVMFSEXEC_BRANCH=$(git tag --sort=version:refname | tail -n 1); \
+    fi \
  && git checkout $CVMFSEXEC_BRANCH \
  && ./makedist osg \
  # /cvmfs-cache and /cvmfs-logs is where the cache and logs will go; possibly bind-mounted. \
