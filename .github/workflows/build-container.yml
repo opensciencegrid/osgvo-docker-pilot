@@ -31,11 +31,7 @@ jobs:
           OS: ${{ matrix.os }}
         run: |
           PREFIX="output_image=${GITHUB_REPOSITORY}:${SERIES}"
-          if [[ $OS == 'el8' ]]; then
-            echo "${PREFIX}-${REPO}" >> ${GITHUB_OUTPUT}
-          else
-            echo "${PREFIX}-${OS}-${REPO}" >> ${GITHUB_OUTPUT}
-          fi
+          echo "${PREFIX}-${OS}-${REPO}" >> ${GITHUB_OUTPUT}
 
       - id: build-image
         uses: opensciencegrid/build-container-action@v0.6.0
@@ -105,6 +101,7 @@ jobs:
           github.repository_owner == 'opensciencegrid'
         env:
           IMAGE_LIST: ${{ steps.build-image.outputs.image-list}}
+          DEFAULT_OS: al8
         run: |
           for registry in hub.opensciencegrid.org docker.io; do
             IFS=,
@@ -112,5 +109,14 @@ jobs:
               fqin=${registry}/${image}
               docker tag ${image} ${fqin}
               docker push ${fqin}
+
+              # Also tag the image for the default OS as the OS-less tag
+              # (i.e. 3.6-al8-release -> 3.6-release)
+              image2=${image/-${DEFAULT_OS}-/-}  # bash syntax for search-and-replace
+              if [[ $image2 != $image ]]; then
+                fqin2=${registry}/${image2}
+                docker tag ${image} ${fqin2}
+                docker push ${fqin2}
+              fi
             done
           done
