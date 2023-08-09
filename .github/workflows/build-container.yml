@@ -68,9 +68,14 @@ jobs:
         env:
           CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
         run: |
-          sudo ./tests/test_inside_gha.sh singularity \
-                                          bindmount \
-                                          "$CONTAINER_IMAGE"
+          if [[ $CONTAINER_IMAGE == *cuda* ]]; then
+              echo >&2 "Skipping test: \$APPTAINER_TMPDIR (${APPTAINER_TMPDIR:-/tmp}) too small for cuda-based images"
+              exit 0
+          else
+              sudo ./tests/test_inside_gha.sh singularity \
+                                              bindmount \
+                                              "$CONTAINER_IMAGE"
+          fi
 
       - name: Harbor login
         if: >-
