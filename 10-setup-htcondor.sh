@@ -536,7 +536,7 @@ export condor_vars_file=$LOCAL_DIR/main/condor_vars.lst
 
 # set some defaults for the glideinwms based scripts
 if [[ -z $OSG_DEFAULT_CONTAINER_DISTRIBUTION ]]; then
-    OSG_DEFAULT_CONTAINER_DISTRIBUTION="30%__opensciencegrid/osgvo-el7:latest 70%__opensciencegrid/osgvo-el8:latest"
+    OSG_DEFAULT_CONTAINER_DISTRIBUTION="70%__htc/rocky:8 30%__htc/rocky:9"
 fi
 # The glidein scripts expect a 1 or a 0
 if is_true "$SINGULARITY_DISABLE_PID_NAMESPACES"; then
