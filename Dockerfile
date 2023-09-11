@@ -29,6 +29,7 @@ RUN useradd osg \
         'git >= 2' \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
+        socat \
  && if [[ $BASE_OS != el9 ]]; then yum -y install redhat-lsb-core; fi \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
