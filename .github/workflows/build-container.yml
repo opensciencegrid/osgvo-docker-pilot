@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['el9', 'el8', 'al8', 'cuda_11_8_0']
+        os: ['el9', 'al8', 'cuda_11_8_0']
         osg_series: ['3.6']
         repo: ['development', 'testing', 'release']
         exclude:
