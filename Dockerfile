@@ -22,9 +22,13 @@ ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
+ && if [[ $BASE_YUM_REPO != release ]]; then \
+        yum -y install apptainer --enablerepo=epel-testing; \
+    else \
+        yum -y install apptainer; \
+    fi \
  && yum -y install \
         osg-wn-client \
-        apptainer \
         attr \
         'git >= 2' \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
