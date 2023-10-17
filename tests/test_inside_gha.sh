@@ -15,7 +15,7 @@ function usage {
     echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
 }
 
-ABORT_CODE=127
+ABORT_CODE=126
 SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
