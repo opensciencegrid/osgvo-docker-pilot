@@ -160,13 +160,17 @@ fi
 
 # Default to the production OSPool unless $ITB is set
 if is_true "$ITB"; then
-    POOL=${POOL:=itb-ospool}
+    if [[ $POOL == ospool ]]; then
+        POOL=itb-ospool
+    fi
     glidein_group=itb
     glidein_group_dir=client_group_itb
     script_exec_prefix=/usr/sbin/itb-
     script_lib_prefix=/gwms/client_group_itb/itb-
 else
-    POOL=${POOL:=prod-ospool}
+    if [[ $POOL == ospool ]]; then
+        POOL=prod-ospool
+    fi
     glidein_group=main
     glidein_group_dir=client_group_main
     script_exec_prefix=/usr/sbin/
@@ -205,6 +209,15 @@ case ${POOL} in
         default_cm2=htcondor-cm-path.osg-dev.river.chtc.io
         default_syslog_host=syslog.osgdev.chtc.io
         GLIDECLIENT_Group=path-container
+        ;;
+    *.*)
+        ENABLE_REMOTE_SYSLOG=false
+        default_cm1=$POOL
+        default_cm2=
+        ;;
+    '')
+        echo "POOL is blank" >&2
+        exit 1
         ;;
     *)
         echo "Unknown pool $POOL" >&2
@@ -327,7 +340,10 @@ if [[ -n $CONDOR_HOST ]]; then
     # so we unset it here to avoid confusion
     POOL=
 else
-    CONDOR_HOST=$default_cm1,$default_cm2
+    CONDOR_HOST=$default_cm1
+    if [[ $default_cm2 ]]; then
+        CONDOR_HOST=${CONDOR_HOST},${default_cm2}
+    fi
 fi
 
 # default COLLECTOR_HOST
@@ -420,7 +436,7 @@ EXECUTE = $LOCAL_DIR/execute
 SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
 COLLECTOR_HOST = $COLLECTOR_HOST
-CCB_ADDRESS = $CCB_ADDRESS
+${CCB_ADDRESS:+"CCB_ADDRESS = $CCB_ADDRESS"}
 
 # Let the OS pick a random shared port port so we don't collide with anything else
 SHARED_PORT_PORT = 0
