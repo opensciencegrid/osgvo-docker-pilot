@@ -170,6 +170,7 @@ RUN chmod 04755 /usr/bin/launch_rsyslogd && \
     ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
 COPY supervisord_startup.sh /usr/local/sbin/
+COPY --chmod=0755 sbin/* /usr/local/sbin/
 
 WORKDIR /pilot
 # We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)
