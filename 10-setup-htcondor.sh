@@ -651,7 +651,7 @@ use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$
 END
 fi
 
-# last step - interpret the condor_vars
+# interpret the condor_vars
 set +x
 while read line
 do
@@ -664,6 +664,15 @@ MASTER_ATTRS = \$(MASTER_ATTRS), $glidein_variables
 STARTD_ATTRS = \$(STARTD_ATTRS), $glidein_variables
 STARTER_JOB_ENVIRONMENT = "$job_env"
 EOF
+
+
+
+# Read a file for arbitrary additional attributes to insert into the startd ad
+extra_attributes_file=/etc/osg/extra-attributes.cfg
+if [[ -f $extra_attributes_file ]]; then
+    /usr/local/sbin/add-extra-attributes "$extra_attributes_file" "$PILOT_CONFIG_FILE"
+fi
+
 
 # In this container, we replace ldconfig with a wrapper; otherwise, when the nvidia hooks
 # run they will run ldconfig and have it fail (it can't write into /etc), resulting

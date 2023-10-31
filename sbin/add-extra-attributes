@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+"""Read a file containing arbitrary extra attributes to advertise in the startd,
+and add those extra attributes to the pilot config file.
+"""
+# TODO Does not support multi-line strings or escaping newlines
+
+from argparse import ArgumentParser, FileType
+import io
+import re
+import sys
+from typing import Dict
+
+
+def complain(*args, **kwargs):
+    """Print something to stderr. A wrapper around print()"""
+    kwargs['file'] = sys.stderr
+    return print(*args, **kwargs)
+
+
+def read_attributes(attribs_fh: io.TextIOBase) -> Dict:
+    """Read attributes from a filehandle to a dict"""
+    attributes = {}
+    for idx, line in enumerate(attribs_fh):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        try:
+            key, value = line.split("=", 1)
+        except ValueError:
+            complain(f"skipping invalid line {idx+1} ({line!r})")
+            continue
+        if not re.match(r"[A-Za-z_][A-Za-z0-9_]*", key):
+            print(f"line {idx+1} has invalid key ({key!r})",
+                  file=sys.stderr)
+            continue
+        attributes[key] = value
+    return attributes
+
+
+def write_config(attributes: Dict, config_fh: io.TextIOBase):
+    """Write attributes and a STARTD_ATTRS line to condor config, based on a dict"""
+    keys = sorted(attributes)
+    for key in keys:
+        config_fh.write(f"{key} = {attributes[key]}\n")
+
+    config_fh.write(f'STARTD_ATTRS = $(STARTD_ATTRS) {" ".join(keys)}\n')
+
+
+def main():
+    """Main function"""
+    parser = ArgumentParser()
+    parser.add_argument("attributes_file", type=FileType("rt"),
+                        help="The file to read extra attributes from")
+    parser.add_argument("pilot_config_file", type=FileType("at"),
+                        help="The pilot config file to append startd attributes to")
+    args = parser.parse_args()
+
+    attributes = read_attributes(args.attributes_file)
+    write_config(attributes, args.pilot_config_file)
+
+
+try:
+    sys.exit(main())
+except RuntimeError as err:
+    print(err, file=sys.stderr)
+    sys.exit(1)
