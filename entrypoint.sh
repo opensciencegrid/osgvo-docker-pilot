@@ -65,7 +65,7 @@ if [[ -d $config_repo ]]; then
     echo "OSG CVMFS already available (perhaps via bind-mount),"
     echo "skipping cvmfsexec."
     exec "$@"
-elif [[ -z $CVMFSEXEC_REPOS ]]; then
+elif [[ ! $CVMFSEXEC_REPOS =~ [a-z]+ ]]; then
     echo "No CVMFS repos requested, skipping cvmfsexec."
     exec "$@"
 fi
