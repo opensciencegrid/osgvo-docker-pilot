@@ -277,7 +277,7 @@ else
         SYSLOG_HOST=""
     else
         # If hostcert generation fails, then we'll just skip the whole syslog thing.
-        generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" "$REGISTRY_HOSTNAME" || SYSLOG_HOST=""
+        /usr/local/sbin/generate-hostcert "$_CONDOR_SEC_PASSWORD_FILE" "$REGISTRY_HOSTNAME" || SYSLOG_HOST=""
     fi
 fi
 
