@@ -140,7 +140,6 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
-COPY master_shutdown.sh /etc/condor/
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
