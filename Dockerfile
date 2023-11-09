@@ -131,9 +131,6 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  # cleanup \
  && cd .. && rm -rf osg-flock
 
-COPY condor_master_wrapper /usr/sbin/
-RUN chmod 755 /usr/sbin/condor_master_wrapper
-
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
 
