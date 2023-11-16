@@ -131,9 +131,6 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  # cleanup \
  && cd .. && rm -rf osg-flock
 
-COPY condor_master_wrapper /usr/sbin/
-RUN chmod 755 /usr/sbin/condor_master_wrapper
-
 # Override the software-base supervisord.conf to throw away supervisord logs
 COPY supervisord.conf /etc/supervisord.conf
 
@@ -143,14 +140,11 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
-COPY master_shutdown.sh /etc/condor/
-COPY generate-hostcert entrypoint.sh /bin/
 COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
 COPY rsyslog.conf /etc/
-RUN chmod 755 /bin/entrypoint.sh
 RUN sed -i "s|@CONTAINER_TAG@|${TIMESTAMP_IMAGE}|" /etc/condor/config.d/50-main.config
 
 
@@ -169,12 +163,11 @@ RUN chmod 04755 /usr/bin/launch_rsyslogd && \
     mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
     ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
-COPY supervisord_startup.sh /usr/local/sbin/
 COPY --chmod=0755 sbin/* /usr/local/sbin/
 
 WORKDIR /pilot
 # We need an ENTRYPOINT so we can use cvmfsexec with any command (such as bash for debugging purposes)
-ENTRYPOINT ["/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/sbin/entrypoint.sh"]
 # Adding ENTRYPOINT clears CMD
 CMD ["/usr/local/sbin/supervisord_startup.sh"]
 
