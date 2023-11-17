@@ -103,4 +103,10 @@ if [ "x$SUPERVISORD_RESTART_POLICY" != "x" ]; then
     add_or_replace "$htcondor_supervisord_config" autorestart "${SUPERVISORD_RESTART_POLICY}"
 fi
 
-exec $cvmfsexec_root/cvmfsexec -N $CVMFSEXEC_REPOS -- "$@"
+if [[ $1 == /usr/local/sbin/supervisord_startup.sh ]]; then
+    # If we're starting the pilot then run cvmfsexec under tini so signals are propagated
+    exec tini $cvmfsexec_root/cvmfsexec -- -N $CVMFSEXEC_REPOS -- "$@"
+else
+    # If we're exec'ing in or running an alternate command, then just run cvmfsexec.
+    exec $cvmfsexec_root/cvmfsexec -N $CVMFSEXEC_REPOS -- "$@"
+fi
