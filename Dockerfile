@@ -224,3 +224,7 @@ ENV ENABLE_REMOTE_SYSLOG=true
 # Use ITB versions of scripts and connect to the ITB pool
 ENV ITB=false
 
+# The pool to join; this can be 'itb-ospool', 'prod-ospool', 'prod-path-facility',
+# 'dev-path-facility', or the hostname or host:port of a central manager.
+# If it's set to 'ospool', then it will use 'itb-ospool'  or 'prod-ospool' depending on $ITB.
+ENV POOL=ospool
