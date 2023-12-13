@@ -209,9 +209,6 @@ ENV SINGULARITY_BIND_EXTRA=
 # Additional restrictions for your START expression
 ENV GLIDEIN_Start_Extra=
 
-# Allow CPU jobs on GPU slots if there are GPUs left
-ENV ALLOW_CPUJOB_ON_GPUSLOT=false
-
 # Use the prepare-job-hook to run Singularity jobs
 ENV CONTAINER_PILOT_USE_JOB_HOOK=true
 

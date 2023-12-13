@@ -501,14 +501,6 @@ if [ "x$OSG_SQUID_LOCATION" != "x" ]; then
     export http_proxy="$OSG_SQUID_LOCATION"
 fi
 
-# some admins prefer to reserve gpu slots for gpu jobs, others
-# want to run cpu jobs if there are no gpu jobs available
-if is_true "$ALLOW_CPUJOB_ON_GPUSLOT"; then
-    echo "CPUJOB_ON_GPUSLOT = True" >> "$PILOT_CONFIG_FILE"
-else
-    echo "CPUJOB_ON_GPUSLOT = ifThenElse(MY.TotalGPUs > 0 && MY.GPUs > 0, TARGET.RequestGPUs > 0, True)" >> "$PILOT_CONFIG_FILE"
-fi
-
 cat >$LOCAL_DIR/user-job-wrapper.sh <<EOF
 #!/bin/bash
 set -e
