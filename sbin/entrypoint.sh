@@ -8,16 +8,9 @@ htcondor_supervisord_config=/etc/supervisord.d/10-htcondor.conf
 
 
 safe_exec () {
-    local cmd
-    cmd=("$@")
-    # apptainer run sometimes sets the first argument to '--' which is a syntax error
-    if [[ ${cmd[0]} = '--' ]]; then
-        unset cmd[0]
-        cmd=("${cmd[@]}")  # fix indices
-    fi
-    exec "${cmd[@]}"
+    exec "$@"
     # we should not get here:
-    fail "Exec failed with $? on command '${cmd[*]}'"
+    fail "Exec failed with $? on command '$*'"
 }
 
 
