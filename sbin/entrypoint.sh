@@ -11,7 +11,7 @@ safe_exec () {
     local cmd
     cmd=("$@")
     # apptainer run sometimes sets the first argument to '--' which is a syntax error
-    if [[ ${cmd[0]} = -* ]]; then
+    if [[ ${cmd[0]} = '--' ]]; then
         unset cmd[0]
         cmd=("${cmd[@]}")  # fix indices
     fi
