@@ -7,6 +7,13 @@ cvmfsexec_local_config=$cvmfsexec_root/dist/etc/cvmfs/default.local
 htcondor_supervisord_config=/etc/supervisord.d/10-htcondor.conf
 
 
+safe_exec () {
+    exec "$@"
+    # we should not get here:
+    fail "Exec failed with $? on command '$*'"
+}
+
+
 add_or_replace () {
     local file="$1"
     local var="$2"
@@ -64,10 +71,10 @@ is_true () {
 if [[ -d $config_repo ]]; then
     echo "OSG CVMFS already available (perhaps via bind-mount),"
     echo "skipping cvmfsexec."
-    exec "$@"
+    safe_exec "$@"
 elif [[ ! $CVMFSEXEC_REPOS =~ [a-z]+ ]]; then
     echo "No CVMFS repos requested, skipping cvmfsexec."
-    exec "$@"
+    safe_exec "$@"
 fi
 CVMFSEXEC_REPOS=$(tr -s ',' ' ' <<<"$CVMFSEXEC_REPOS")
 
@@ -105,8 +112,8 @@ fi
 
 if [[ $1 == /usr/local/sbin/supervisord_startup.sh ]]; then
     # If we're starting the pilot then run cvmfsexec under tini so signals are propagated
-    exec tini $cvmfsexec_root/cvmfsexec -- -N $CVMFSEXEC_REPOS -- "$@"
+    safe_exec tini $cvmfsexec_root/cvmfsexec -- -N $CVMFSEXEC_REPOS -- "$@"
 else
     # If we're exec'ing in or running an alternate command, then just run cvmfsexec.
-    exec $cvmfsexec_root/cvmfsexec -N $CVMFSEXEC_REPOS -- "$@"
+    safe_exec $cvmfsexec_root/cvmfsexec -N $CVMFSEXEC_REPOS -- "$@"
 fi
