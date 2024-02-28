@@ -1,10 +1,11 @@
-ARG BASE_OSG_SERIES=3.6
+ARG BASE_OSG_SERIES=23
 ARG BASE_YUM_REPO=testing
 # This corresponds to the base image used by opensciencegrid/software-base
 # el8         = quay.io/centos/centos:stream8
 # al8         = quay.io/almalinux/almalinux:8
+# el9         = quay.io/almalinux/almalinux:9
 # cuda_11_8_0 = nvidia/cuda:11.8.0-runtime-rockylinux8
-ARG BASE_OS=al8
+ARG BASE_OS=el9
 
 FROM alpine:latest AS compile
 COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
@@ -15,9 +16,9 @@ RUN apk --no-cache add gcc musl-dev && \
 FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
 # Previous args have gone out of scope
-ARG BASE_OSG_SERIES=3.6
-ARG BASE_OS=al8
-ARG BASE_YUM_REPO=testing
+ARG BASE_OSG_SERIES
+ARG BASE_OS
+ARG BASE_YUM_REPO
 ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}-$(date +%Y%m%d-%H%M)
 
 RUN useradd osg \
