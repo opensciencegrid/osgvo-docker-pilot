@@ -158,7 +158,14 @@ RUN mkdir -p /pilot && chmod 1777 /pilot
 # condor fails to start if this isn't a resolvable username.  For now, create the username
 # by hand.  If we hit this at more sites, we can do a for-loop for populating /etc/{passwd,groups}
 # instead of adding individual user accounts one-by-one.
-RUN groupadd --gid 12497 g12497 && useradd --gid 12497 --create-home --uid 532362 u532362
+#
+# The Expanse user has such a high UID that it causes problems with people
+# running this container using UID namespaces.
+# Set NO_EXPANSE_USER when building the image to not add that user.
+ARG NO_EXPANSE_USER=
+RUN if [[ -z "$NO_EXPANSE_USER" ]]; then \
+        groupadd --gid 12497 g12497 && useradd --gid 12497 --create-home --uid 532362 u532362; \
+    fi
 
 COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
 RUN chmod 04755 /usr/bin/launch_rsyslogd && \
