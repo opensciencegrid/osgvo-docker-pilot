@@ -586,7 +586,7 @@ disable_osdf_plugin () {
 # Test the Stash/OSDF plugin that's shipped with Condor; disable it if the test fails.
 # TODO: This should be moved to additional-htcondor-config.
 osdf_plugin=$(condor_config_val OSDF_PLUGIN 2>/dev/null || condor_config_val STASH_PLUGIN 2>/dev/null)
-osdf_remote_test_file=/osgconnect/public/osg/testfile.txt
+osdf_remote_test_file="/ospool/uc-shared/public/OSG-Staff/validation/test.txt"
 osdf_test_file=$(mktemp -t osdf-test-file.XXXXXX)
 osdf_debug_log=$(mktemp -t osdf-debug-log.XXXXXX)
 if [[ ! $osdf_plugin || ! -f $osdf_plugin || ! -x $osdf_plugin ]]; then
