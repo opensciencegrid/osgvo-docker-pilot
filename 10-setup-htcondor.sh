@@ -13,6 +13,7 @@ fi
 # Set a variable read from a file
 #
 pstr='"'
+error_gen=/gwms/error_gen.sh
 set_var() {
     var_name=$1
     var_type=$2
