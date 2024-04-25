@@ -13,7 +13,6 @@ fi
 # Set a variable read from a file
 #
 pstr='"'
-error_gen=/gwms/error_gen.sh
 set_var() {
     var_name=$1
     var_type=$2
@@ -33,9 +32,7 @@ set_var() {
     if [ -z "$var_val" ]; then
         if [ "$var_req" == "Y" ]; then
             # needed var, exit with error
-            #echo "Cannot extract $var_name from '$config_file'" 1>&2
-            STR="Cannot extract $var_name from '$glidein_config'"
-            "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
+            printf "Cannot extract required variable %s from glidein config '%s'\n" "$var_name" "$glidein_config" 1>&2
             exit 1
         elif [ "$var_def" == "-" ]; then
             # no default, do not set
