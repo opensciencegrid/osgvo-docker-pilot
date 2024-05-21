@@ -26,10 +26,6 @@ jobs:
           # OSG 23 should default to EL9
           - os: 'al8'
             osg_series: '23'
-          # FIXME: disable OSG 23 dev until we have fixed the mash
-          # cache + signed RPMs issue in the prod repo
-          - osg_series: '23'
-            repo: 'development'
     steps:
       - id: custom-image-name
         env:
