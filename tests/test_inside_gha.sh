@@ -199,6 +199,7 @@ case "$CONTAINER_RUNTIME" in
     docker)
         start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || docker_exit_with_cleanup $?
         test_docker_startup                             || docker_exit_with_cleanup $?
+        run_inside_backfill_container id -un
         test_docker_HAS_SINGULARITY                     || docker_exit_with_cleanup $?
         docker stop backfill
         docker_exit_with_cleanup 0
@@ -208,6 +209,7 @@ case "$CONTAINER_RUNTIME" in
         [[ "$CVMFS_INSTALL" == "bindmount" ]]           || exit 1
         start_singularity_backfill                      || exit 1
         test_singularity_startup                        || exit 1
+        run_inside_backfill_container id -un
         test_singularity_HAS_SINGULARITY                || exit 1
         ;;
 esac
