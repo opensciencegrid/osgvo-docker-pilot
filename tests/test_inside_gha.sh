@@ -9,6 +9,7 @@ COMMON_DOCKER_ARGS="run --user osg
                         -e GLIDEIN_Site='None'
                         -e GLIDEIN_ResourceName='None'
                         -e GLIDEIN_Start_Extra='True'
+                        -e _CONDOR_STARTD_DEBUG='D_CAT,D_SUB_SECOND,D_PID,D_SECURITY'
                         -e OSG_SQUID_LOCATION='None'"
 
 function usage {
