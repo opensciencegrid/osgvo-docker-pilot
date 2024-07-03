@@ -238,10 +238,12 @@ shopt -u nullglob
 if [[ $tokens ]]; then
   cp /etc/condor/tokens-orig.d/* "$LOCAL_DIR"/condor/tokens.d/
   chmod 600 "$LOCAL_DIR"/condor/tokens.d/*
+  find "$LOCAL_DIR"/condor/tokens.d -ls
 fi
 if [[ $passwords ]]; then
   cp /etc/condor/passwords-orig.d/* "$LOCAL_DIR"/condor/passwords.d/
   chmod 600 "$LOCAL_DIR"/condor/passwords.d/*
+  find "$LOCAL_DIR"/condor/passwords.d -ls
 fi
 
 set +x  # avoid printing $TOKEN to the console
@@ -250,6 +252,7 @@ if [[ $TOKEN ]]; then
   echo >&2 'Using TOKEN from environment'
   cat >"$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org <<<"$TOKEN"
   chmod 600 "$LOCAL_DIR"/condor/tokens.d/flock.opensciencegrid.org
+  find "$LOCAL_DIR"/condor/tokens.d -ls
   TOKEN='<used>'  # done with this var; reset it so an env dump won't print it
 fi
 set -x
