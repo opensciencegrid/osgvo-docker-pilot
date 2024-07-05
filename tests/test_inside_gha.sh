@@ -69,6 +69,22 @@ function print_test_header {
     echo -e "$sep\n$msg\n$sep"
 }
 
+function condor_version_in_range {
+    local minimum maximum
+    minimum=${1:?minimum not provided to condor_version_in_range}
+    maximum=${2:-99.99.99}
+
+    local condor_version
+    condor_version=$(run_inside_backfill_container condor_version | awk '/CondorVersion/ {print $2}')
+    python3 -c '
+import sys
+minimum = [int(x) for x in sys.argv[1].split(".")]
+maximum = [int(x) for x in sys.argv[2].split(".")]
+version = [int(x) for x in sys.argv[3].split(".")]
+sys.exit(0 if minimum <= version <= maximum else 1)
+' "$minimum" "$maximum" "$condor_version"
+}
+
 function wait_for_output {
     set +x
     maxtime="$1"
@@ -128,11 +144,25 @@ function test_docker_startup {
 function test_docker_HAS_SINGULARITY {
     print_test_header "Testing singularity detection inside the backfill container"
 
+    # Condor 23.8 has a bug where condor_status -direct for startd ads still
+    # attempts to contact the collector.  Hopefully it will be fixed in 23.10;
+    # in the meantime, use -pool instead of -direct (which is a hack).
+    local direct
+    if condor_version_in_range 23.8.0 23.9.99; then
+        direct="-pool"
+    else
+        direct="-direct"
+    fi
+
     logdir=$(run_inside_backfill_container find /pilot -type d -name log); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
-    has_singularity=$(run_inside_backfill_container condor_status -direct $startd_addr -af HAS_SINGULARITY); ret=$?
+    echo "startd addr: $startd_addr"
+    has_singularity=$(run_inside_backfill_container \
+        env _CONDOR_SEC_CLIENT_AUTHENTICATION_METHODS=FS \
+        condor_status -slot "$direct" "$startd_addr" -af HAS_SINGULARITY \
+    ); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     if [[ $has_singularity == 'true' ]]; then
         return 0
