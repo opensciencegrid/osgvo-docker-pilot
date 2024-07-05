@@ -134,7 +134,7 @@ function test_docker_HAS_SINGULARITY {
     startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     echo "startd addr: $startd_addr"
-    has_singularity=$(run_inside_backfill_container env _CONDOR_SEC_CLIENT_AUTHENTICATION_METHODS=FS condor_status -slot -debug:D_SECURITY:2 -direct "$startd_addr" -af HAS_SINGULARITY); ret=$?
+    has_singularity=$(run_inside_backfill_container env _CONDOR_SEC_CLIENT_AUTHENTICATION_METHODS=FS condor_status -slot -debug:D_SECURITY:2 -pool "$startd_addr" -af HAS_SINGULARITY); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     if [[ $has_singularity == 'true' ]]; then
         return 0
