@@ -79,9 +79,9 @@ function condor_version_in_range {
     condor_version=$(run_inside_backfill_container condor_version | awk '/CondorVersion/ {print $2}')
     python3 -c '
 import sys
-minimum = [int(x) for x in ".".split(sys.argv[1])]
-maximum = [int(x) for x in ".".split(sys.argv[2])]
-version = [int(x) for x in ".".split(sys.argv[3])]
+minimum = [int(x) for x in sys.argv[1].split(".")]
+maximum = [int(x) for x in sys.argv[2].split(".")]
+version = [int(x) for x in sys.argv[3].split(".")]
 sys.exit(0 if minimum <= version <= maximum else 1)
 ' "$minimum" "$maximum" "$condor_version"
 }
