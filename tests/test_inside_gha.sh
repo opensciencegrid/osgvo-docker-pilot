@@ -148,7 +148,7 @@ function test_docker_HAS_SINGULARITY {
     # attempts to contact the collector.  Hopefully it will be fixed in 23.10;
     # in the meantime, use -pool instead of -direct (which is a hack).
     local direct
-    if condor_version_in_range 23.8.0 23.9.99; then
+    if condor_version_in_range 23.8.0 23.10.0; then
         direct="-pool"
     else
         direct="-direct"
