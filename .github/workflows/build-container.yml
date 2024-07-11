@@ -14,8 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['el9', 'al8', 'cuda_11_8_0']
-        osg_series: ['3.6', '23']
+        os: ['el9', 'cuda_11_8_0']
+        osg_series: ['23']
         repo: ['development', 'testing', 'release']
         exclude:
           # cuda builds take a super long time; only do one of them
@@ -23,9 +23,6 @@ jobs:
             repo: development
           - os: cuda_11_8_0
             repo: testing
-          # OSG 23 should default to EL9
-          - os: 'al8'
-            osg_series: '23'
     steps:
       - id: custom-image-name
         env:
@@ -112,7 +109,6 @@ jobs:
           OSG_SERIES: ${{ matrix.osg_series }}
         run: |
           case $OSG_SERIES in
-              '3.6')  DEFAULT_OS=al8 ;;
               '23' )  DEFAULT_OS=el9 ;;
               *    )  exit           ;;
           esac
@@ -124,7 +120,7 @@ jobs:
               docker push ${fqin}
 
               # Also tag the image for the default OS as the OS-less tag
-              # (i.e. 3.6-al8-release -> 3.6-release)
+              # (i.e. 23-el9-release -> 23-release)
               image2=${image/-${DEFAULT_OS}-/-}  # bash syntax for search-and-replace
               if [[ $image2 != $image ]]; then
                 fqin2=${registry}/${image2}
