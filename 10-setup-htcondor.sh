@@ -25,6 +25,14 @@ set_var() {
     if [ -z "$var_name" ]; then
         # empty line
         return 0
+    elif [[ ! $var_name =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        printf "Skipping invalid variable name '%s'\n" "$var_name" 1>&2
+        if [[ $var_req == Y ]]; then
+            # probably never happens but just in case...
+            printf "Variable named '%s' was required; exiting\n" "$var_name" 1>&2
+            exit 1
+        fi
+        return 0
     fi
 
     var_name_len=${#var_name}
@@ -38,6 +46,7 @@ set_var() {
             # no default, do not set
             return 0
         else
+            # Adding extra quoting here caused startd disconnection issues for some reason
             eval var_val=$var_def
         fi
     fi
@@ -80,8 +89,10 @@ set_var() {
         fi
     fi
 
-    # define it for future use
-    eval "$var_name='$var_val'"
+    # define it for future use; make sure it's properly quoted
+    local statement="$(printf "%q=%q" "$var_name" "$var_val")"
+    echo "setting var: $statement"
+    eval "$statement"
     return 0
 }
 
