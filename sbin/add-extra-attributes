@@ -20,18 +20,17 @@ def complain(*args, **kwargs):
 def read_attributes(attribs_fh: io.TextIOBase) -> Dict:
     """Read attributes from a filehandle to a dict"""
     attributes = {}
-    for idx, line in enumerate(attribs_fh):
+    for idx, line in enumerate(attribs_fh, start=1):
         line = line.strip()
         if not line or line.startswith("#"):
             continue
         try:
-            key, value = line.split("=", 1)
+            key, value = re.split("\s*=\s*", line, 1)
         except ValueError:
-            complain(f"skipping invalid line {idx+1} ({line!r})")
+            complain(f"skipping invalid line {idx} ({line!r})")
             continue
         if not re.match(r"[A-Za-z_][A-Za-z0-9_]*", key):
-            print(f"line {idx+1} has invalid key ({key!r})",
-                  file=sys.stderr)
+            complain(f"line {idx} has invalid key ({key!r})")
             continue
         attributes[key] = value
     return attributes
