@@ -56,6 +56,8 @@ jobs:
 
 
       - name: Prepare CVMFS
+        # TODO: For all tests, GHA currently only supports amd64 runners. We will need
+        # to re-enable tests on arm64 when ARM runners become available.
         if: ${{ matrix.platform == 'linux/amd64' }}
         run: |
           sudo ./tests/setup_cvmfs.sh
@@ -114,6 +116,10 @@ jobs:
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
 
+      # TODO: these artifacts will only be tagged if the build succeeds for every arch,
+      # and will remain as cruft in harbor unlesss manually removed in the case that
+      # some arch fails. Handling this scenario is future work: 
+      # https://opensciencegrid.atlassian.net/browse/SOFTWARE-6010
       - id: upload-by-digest-dockerhub
         if: >-
           github.ref == 'refs/heads/master' &&
@@ -190,7 +196,7 @@ jobs:
 
     - name: Check Artifact Count
       env:
-        EXPECTED: 2
+        EXPECTED: 2 # One per build arch
       working-directory: /tmp/${{ matrix.registry.url }}
       run: |
         for dir in tags digests; do

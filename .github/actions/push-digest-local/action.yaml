@@ -1,7 +1,11 @@
+# Local helper action that pushes an untagged image manifest to a registry via docker 
+# buildx, then records the digest of that manifest and expected tags as github action 
+# artifacts.  Per the docker GHA multi-platform docs, the recommended approach to multi
+# -platform builds is to push an untagged manifest for each arch, then combine them into
+# a single tagged manifest in a separate GHA job.
+
 name: 'Push Container by Digest Action'
 description: 'Pushes an image by digest to a given registry, then outputs its digest and tags as an artifact'
-
-
 
 inputs:
   registry:
