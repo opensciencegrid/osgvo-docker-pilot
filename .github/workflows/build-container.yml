@@ -44,7 +44,7 @@ jobs:
 
       - id: build-image
         name: Local image build
-        uses: opensciencegrid/build-container-action@420b64817b8a5d296a4201af6e955c4410107da5
+        uses: opensciencegrid/build-container-action@HEAD
         with:
           registry_url: hub.opensciencegrid.org
           osg_series: ${{ matrix.osg_series }}
