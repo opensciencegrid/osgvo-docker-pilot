@@ -1,0 +1,104 @@
+# Local helper action that pushes an untagged image manifest to a registry via docker 
+# buildx, then records the digest of that manifest and expected tags as github action 
+# artifacts.  Per the docker GHA multi-platform docs, the recommended approach to multi
+# -platform builds is to push an untagged manifest for each arch, then combine them into
+# a single tagged manifest in a separate GHA job.
+
+name: 'Push Container by Digest Action'
+description: 'Pushes an image by digest to a given registry, then outputs its digest and tags as an artifact'
+
+inputs:
+  registry:
+    required: true
+    default: ''
+  username:
+    required: true
+    default: ''
+  password:
+    required: true
+    default: ''
+  osg_series:
+    required: true
+    default: ''
+  osg_repo:
+    required: true
+    default: ''
+  base_os:
+    required: true
+    default: ''
+  base_tag:
+    required: true
+    default: ''
+  platform:
+    required: false
+    default: 'linux/amd64'
+  timestamp:
+    required: false
+    default: ''
+  output_image:
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+  - uses: actions/checkout@v3
+
+  - id: slash-escape
+    shell: bash
+    run: |
+      platform=${{ inputs.platform }}
+      echo "platform=${platform//\//-}" >> ${GITHUB_OUTPUT}
+
+  - name: Registry login
+    # if: >-
+    #   github.ref == 'refs/heads/master' &&
+    #   github.event_name != 'pull_request' &&
+    #   github.repository_owner == 'opensciencegrid'
+    uses: docker/login-action@v2
+    with:
+      registry: ${{ inputs.registry }}
+      username: ${{ inputs.username }}
+      password: ${{ inputs.password }}
+
+  - id: upload-image
+    uses: opensciencegrid/build-container-action@HEAD
+    with:
+      registry_url: ${{ inputs.registry }}
+      osg_series: ${{ inputs.osg_series }}
+      osg_repo: ${{ inputs.osg_repo }}
+      base_os: ${{ inputs.base_os }}
+      platform: ${{ inputs.platform }}
+      push_by_digest: true
+      timestamp: ${{ inputs.timestamp }}
+      buildx_setup: false
+      output_image: ${{ inputs.output_image }}
+
+  - name: Export digest
+    shell: bash
+    run: |
+      mkdir -p /tmp/${{ inputs.registry }}/digests
+      digest="${{ steps.upload-image.outputs.digest }}"
+      touch "/tmp/${{ inputs.registry }}/digests/${digest#sha256:}"         
+
+  - name: Upload digest
+    uses: actions/upload-artifact@v4
+    with:
+      name: digests-${{ inputs.registry }}-${{ inputs.base_tag }}-${{ steps.slash-escape.outputs.platform }}
+      path: /tmp/${{ inputs.registry }}/digests/*
+      if-no-files-found: error
+      retention-days: 1
+  
+  - name: Export tags
+    shell: bash
+    run: |
+      mkdir -p /tmp/${{ inputs.registry }}/tags/
+      echo ${{ steps.upload-image.outputs.image-list }} > /tmp/${{ inputs.registry }}/tags/${{ inputs.base_tag }}-${{ steps.slash-escape.outputs.platform }}
+    
+  - name: Upload tags
+    uses: actions/upload-artifact@v4
+    with:
+      name: tags-${{ inputs.registry }}-${{ inputs.base_tag }}-${{ steps.slash-escape.outputs.platform }}
+      path: /tmp/${{ inputs.registry }}/tags/*
+      if-no-files-found: error
+      retention-days: 1
