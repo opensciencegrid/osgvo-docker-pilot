@@ -95,9 +95,6 @@ runs:
       mkdir -p /tmp/${{ inputs.registry }}/tags/
       # In harbor, upload to osg-htc instead of opensciencegrid
       TAGS=${{ steps.upload-image.outputs.image-list }}
-      if [[ ${{ inputs.registry }} == "hub.opensciencegrid.org" ]]; then
-        TAGS=$(echo $TAGS | sed 's/\/opensciencegrid/\/osg-htc/g')
-      fi
       echo $TAGS > /tmp/${{ inputs.registry }}/tags/${{ inputs.base_tag }}-${{ steps.slash-escape.outputs.platform }}
     
   - name: Upload tags
