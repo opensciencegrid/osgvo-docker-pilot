@@ -51,10 +51,10 @@ runs:
       echo "platform=${platform//\//-}" >> ${GITHUB_OUTPUT}
 
   - name: Registry login
-    # if: >-
-    #   github.ref == 'refs/heads/master' &&
-    #   github.event_name != 'pull_request' &&
-    #   github.repository_owner == 'opensciencegrid'
+    if: >-
+      github.ref == 'refs/heads/master' &&
+      github.event_name != 'pull_request' &&
+      contains(fromJson('["opensciencegrid","osg-htc"]'), github.repository_owner)
     uses: docker/login-action@v2
     with:
       registry: ${{ inputs.registry }}
@@ -79,7 +79,7 @@ runs:
     run: |
       mkdir -p /tmp/${{ inputs.registry }}/digests
       digest="${{ steps.upload-image.outputs.digest }}"
-      touch "/tmp/${{ inputs.registry }}/digests/${digest#sha256:}"         
+      touch "/tmp/${{ inputs.registry }}/digests/${digest#sha256:}"
 
   - name: Upload digest
     uses: actions/upload-artifact@v4
