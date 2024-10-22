@@ -123,24 +123,24 @@ jobs:
       # and will remain as cruft in harbor unlesss manually removed in the case that
       # some arch fails. Handling this scenario is future work: 
       # https://opensciencegrid.atlassian.net/browse/SOFTWARE-6010
-      - id: upload-by-digest-dockerhub
-        # if: >-
-        #   github.ref == 'refs/heads/master' &&
-        #   github.event_name != 'pull_request' &&
-        #   github.repository_owner == 'opensciencegrid'
-        name: Upload By Digest to Docker Hub
-        uses: ./.github/actions/push-digest-local
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          osg_series: ${{ matrix.osg_series }}
-          osg_repo: ${{ matrix.repo }}
-          base_os: ${{ matrix.os }}
-          platform: ${{ matrix.platform }}
-          base_tag: ${{ steps.custom-image-name.outputs.base_tag }}
-          timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
-          output_image: ${{ steps.custom-image-name.outputs.output_image }}
+      # - id: upload-by-digest-dockerhub
+      #   # if: >-
+      #   #   github.ref == 'refs/heads/master' &&
+      #   #   github.event_name != 'pull_request' &&
+      #   #   github.repository_owner == 'opensciencegrid'
+      #   name: Upload By Digest to Docker Hub
+      #   uses: ./.github/actions/push-digest-local
+      #   with:
+      #     registry: docker.io
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      #     osg_series: ${{ matrix.osg_series }}
+      #     osg_repo: ${{ matrix.repo }}
+      #     base_os: ${{ matrix.os }}
+      #     platform: ${{ matrix.platform }}
+      #     base_tag: ${{ steps.custom-image-name.outputs.base_tag }}
+      #     timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
+      #     output_image: ${{ steps.custom-image-name.outputs.output_image }}
 
   merge-manifests:
     runs-on: ubuntu-latest
@@ -165,11 +165,11 @@ jobs:
             username: OSG_HARBOR_ROBOT_USER,
             password: OSG_HARBOR_ROBOT_PASSWORD
           },
-          {
-            url: docker.io,
-            username: DOCKER_USERNAME,
-            password: DOCKER_PASSWORD
-          }
+          # {
+          #   url: docker.io,
+          #   username: DOCKER_USERNAME,
+          #   password: DOCKER_PASSWORD
+          # }
         ]
         exclude:
           # cuda builds take a super long time; only do one of them
