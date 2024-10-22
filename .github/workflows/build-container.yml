@@ -228,10 +228,10 @@ jobs:
       env:
         DEFAULT_OS: el9
       run: |
-        BASE_IMG=${{ matrix.registry.url }}/opensciencegrid/osgvo-docker-pilot
-        DIGESTS=$(for digest in $(ls digests/); do echo $BASE_IMG@sha256:$digest; done)
         TAGS=$(cat tags/*-amd64)
         for tag in ${TAGS//,/ }; do 
+          BASE_IMG=${tag/:*/}
+          DIGESTS=$(for digest in $(ls digests/); do echo $BASE_IMG@sha256:$digest; done)
           docker buildx imagetools create --tag $tag $DIGESTS;
 
           # Also tag the image for the default OS as the OS-less tag
