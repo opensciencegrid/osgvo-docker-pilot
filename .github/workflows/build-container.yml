@@ -140,7 +140,7 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          osg_series: ${{ matrix.osg_series }}
+          osg_series: ${{ matrix.osg_series.series }}
           osg_repo: ${{ matrix.repo }}
           base_os: ${{ matrix.os }}
           platform: ${{ matrix.platform }}
