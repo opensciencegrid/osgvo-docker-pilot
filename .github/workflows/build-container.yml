@@ -180,6 +180,11 @@ jobs:
             repo: development
           - os: cuda_11_8_0
             repo: testing
+          - osg_series: '24'
+            registry:
+              url: docker.io
+              username: DOCKER_USERNAME
+              password: DOCKER_PASSWORD
     steps:
     - id: base-tag
       env:
