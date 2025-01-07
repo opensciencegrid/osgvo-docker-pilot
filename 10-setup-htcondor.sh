@@ -600,13 +600,13 @@ disable_osdf_plugin () {
 # Test the Stash/OSDF plugin that's shipped with Condor; disable it if the test fails.
 # TODO: This should be moved to additional-htcondor-config.
 osdf_plugin=$(condor_config_val OSDF_PLUGIN 2>/dev/null || condor_config_val STASH_PLUGIN 2>/dev/null)
-osdf_remote_test_file="/ospool/uc-shared/public/OSG-Staff/validation/test.txt"
+osdf_remote_test_url="osdf:///ospool/uc-shared/public/OSG-Staff/validation/test.txt"
 osdf_test_file=$(mktemp -t osdf-test-file.XXXXXX)
 osdf_debug_log=$(mktemp -t osdf-debug-log.XXXXXX)
 if [[ ! $osdf_plugin || ! -f $osdf_plugin || ! -x $osdf_plugin ]]; then
     # Can't run it, can't test it. No need to explicitly disable it though.
     echo >&2 "Stash/OSDF file transfer plugin is missing or not runnable; stash://, osdf:// URL support nonfunctional"
-elif ! timeout 60s "$osdf_plugin" -d "$osdf_remote_test_file" "$osdf_test_file" >/dev/null 2>"$osdf_debug_log"; then
+elif ! timeout 60s "$osdf_plugin" -d "$osdf_remote_test_url" "$osdf_test_file" >/dev/null 2>"$osdf_debug_log"; then
     disable_osdf_plugin "Stash/OSDF file transfer test failed"
     cat >&2 "$osdf_debug_log"
 elif [[ ! -s $osdf_test_file ]]; then
