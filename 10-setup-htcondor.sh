@@ -237,6 +237,11 @@ esac
 # make sure LOCAL_DIR is exported here - it is used
 # later in advertisment/condorcron scripts
 export LOCAL_DIR=$(mktemp -d /pilot/osgvo-pilot-XXXXXX)
+if [[ ! $LOCAL_DIR || ! -d $LOCAL_DIR ]]; then
+    echo "Creating LOCAL_DIR under /pilot failed" >&2
+    exit 1
+fi
+
 mkdir -p "$LOCAL_DIR"/condor/tokens.d
 mkdir -p "$LOCAL_DIR"/condor/passwords.d
 chmod 700 "$LOCAL_DIR"/condor/passwords.d
