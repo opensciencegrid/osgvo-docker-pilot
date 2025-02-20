@@ -148,7 +148,7 @@ jobs:
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
 
-  mrg-manif:
+  merge-manifests:
     runs-on: ubuntu-22.04
     if: >-
       github.ref == 'refs/heads/master' &&
