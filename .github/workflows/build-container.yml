@@ -25,7 +25,7 @@ jobs:
             image: 'osg-htc/ospool-ep'
           - series: '23'
             image: 'opensciencegrid/osgvo-docker-pilot'
-        platform: ['linux/amd64','linux/arm64']
+        arch: ['amd64','arm64']
         exclude:
           # cuda builds take a super long time; only do one of them
           - os: cuda_11_8_0
@@ -56,7 +56,7 @@ jobs:
           osg_series: ${{ matrix.osg_series.series }}
           osg_repo: ${{ matrix.repo }}
           base_os: ${{ matrix.os }}
-          platform: ${{ matrix.platform }}
+          platform: linux/${{ matrix.arch }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
 
@@ -64,12 +64,12 @@ jobs:
       - name: Prepare CVMFS
         # TODO: For all tests, GHA currently only supports amd64 runners. We will need
         # to re-enable tests on arm64 when ARM runners become available.
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.arch == 'amd64' }}
         run: |
           sudo ./tests/setup_cvmfs.sh
 
       - name: Docker + CVMFS bindmount
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.arch == 'amd64' }}
         id: test-docker-cvmfs
         env:
           CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
@@ -79,7 +79,7 @@ jobs:
                                           "$CONTAINER_IMAGE"
 
       - name: Docker + cvmfsexec        
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.arch == 'amd64' }}
         id: test-docker-cvmfsexec
         env:
           CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
@@ -89,7 +89,7 @@ jobs:
                                           "$CONTAINER_IMAGE"
 
       - name: Singularity + CVMFS bindmount
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.arch == 'amd64' }}
         id: test-singularity-cvmfs
         env:
           CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
@@ -117,7 +117,7 @@ jobs:
           osg_series: ${{ matrix.osg_series.series }}
           osg_repo: ${{ matrix.repo }}
           base_os: ${{ matrix.os }}
-          platform: ${{ matrix.platform }}
+          platform: linux/${{ matrix.arch }}
           base_tag: ${{ steps.custom-image-name.outputs.base_tag }}
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
@@ -143,7 +143,7 @@ jobs:
           osg_series: ${{ matrix.osg_series.series }}
           osg_repo: ${{ matrix.repo }}
           base_os: ${{ matrix.os }}
-          platform: ${{ matrix.platform }}
+          platform: linux/${{ matrix.arch }}
           base_tag: ${{ steps.custom-image-name.outputs.base_tag }}
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
