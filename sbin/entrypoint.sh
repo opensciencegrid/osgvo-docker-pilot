@@ -77,7 +77,7 @@ elif [[ ! $CVMFSEXEC_REPOS =~ [a-z]+ ]]; then
     safe_exec "$@"
 fi
 CVMFSEXEC_REPOS=$(tr -s ',' ' ' <<<$CVMFSEXEC_REPOS)
-CVMFSEXEC_REPOS=$(tr -d '"'"'" <<<$CMVFSEXEC_REPOS)  # delete single and double quotes (docker envfiles treat quotes literally)
+CVMFSEXEC_REPOS=$(tr -d '"'"'" <<<$CVMFSEXEC_REPOS)  # delete single and double quotes (docker envfiles treat quotes literally)
 
 cd "$cvmfsexec_root" || \
     fail "Couldn't enter $cvmfsexec_root"
