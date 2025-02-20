@@ -1,4 +1,4 @@
-name: Build and test container images
+name: B&T images
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-images:
+  build:
     runs-on: ubuntu-22.04
     # Continue to the push/tag step even if some build matrix combos fail
     # Check that all arch artifacts are present in the push/tag step
@@ -148,14 +148,14 @@ jobs:
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
 
-  merge-manifests:
+  mrg-manif:
     runs-on: ubuntu-22.04
     if: >-
       github.ref == 'refs/heads/master' &&
       github.event_name != 'pull_request' &&
       contains(fromJson('["opensciencegrid","osg-htc"]'), github.repository_owner)
     needs:
-      - build-images
+      - build
     strategy:
       fail-fast: false
       matrix:
