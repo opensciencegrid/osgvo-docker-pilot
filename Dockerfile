@@ -53,7 +53,8 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
 RUN mkdir -p /usr/libexec/condor/singularity_test_sandbox/proc
 
 # CVMFSEXEC_BRANCH=TAGGED means use the highest versioned tag
-ARG CVMFSEXEC_BRANCH=TAGGED
+# Avoid CVMFS 4.45 because it breaks the installer
+ARG CVMFSEXEC_BRANCH=v4.44
 RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
  && cd /cvmfsexec \
  && if [[ $CVMFSEXEC_BRANCH = TAGGED ]]; then \
