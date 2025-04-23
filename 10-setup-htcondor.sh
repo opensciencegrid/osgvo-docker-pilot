@@ -591,44 +591,6 @@ EOF
 fi
 touch $condor_vars_file
 
-disable_osdf_plugin () {
-    echo "$*; stash://, osdf:// URL support disabled" >&2
-    echo "STASH_PLUGIN =" >> "$PILOT_CONFIG_FILE"
-    echo "OSDF_PLUGIN =" >> "$PILOT_CONFIG_FILE"  # forward compat
-}
-
-# Test the Stash/OSDF plugin that's shipped with Condor; disable it if the test fails.
-# TODO: This should be moved to additional-htcondor-config.
-osdf_plugin=$(condor_config_val OSDF_PLUGIN 2>/dev/null || condor_config_val STASH_PLUGIN 2>/dev/null)
-osdf_remote_test_url="osdf:///ospool/uc-shared/public/OSG-Staff/validation/test.txt"
-osdf_test_file=$(mktemp -t osdf-test-file.XXXXXX)
-osdf_debug_log=$(mktemp -t osdf-debug-log.XXXXXX)
-if [[ ! $osdf_plugin || ! -f $osdf_plugin || ! -x $osdf_plugin ]]; then
-    # Can't run it, can't test it. No need to explicitly disable it though.
-    echo >&2 "Stash/OSDF file transfer plugin is missing or not runnable; stash://, osdf:// URL support nonfunctional"
-elif ! timeout 60s "$osdf_plugin" -d "$osdf_remote_test_url" "$osdf_test_file" >/dev/null 2>"$osdf_debug_log"; then
-    disable_osdf_plugin "Stash/OSDF file transfer test failed"
-    cat >&2 "$osdf_debug_log"
-elif [[ ! -s $osdf_test_file ]]; then
-    disable_osdf_plugin "Stash/OSDF file transfer test created an empty file"
-    cat >&2 "$osdf_debug_log"
-else
-    # Sanity check
-    filetransfer_plugins=$(condor_config_val FILETRANSFER_PLUGINS 2>/dev/null)
-    if [[ $filetransfer_plugins != *${osdf_plugin}* ]]; then
-        echo >&2 "Stash/OSDF file transfer plugin missing from plugins list; stash://, osdf:// URL support nonfunctional"
-    else
-        # Everything's OK. Get the version so we can advertise it.
-        osdf_plugin_version=$("$osdf_plugin" -classad | awk '/^PluginVersion / { print $3 }' | tr -d '"')
-        if [[ $osdf_plugin_version ]]; then
-            echo "STASH_PLUGIN_VERSION = \"$osdf_plugin_version\"" >> "$PILOT_CONFIG_FILE"
-            echo "OSDF_PLUGIN_VERSION = \"$osdf_plugin_version\"" >> "$PILOT_CONFIG_FILE"  # forward compat
-            echo "STARTD_ATTRS = \$(STARTD_ATTRS) STASH_PLUGIN_VERSION OSDF_PLUGIN_VERSION" >> "$PILOT_CONFIG_FILE"
-        fi
-    fi
-fi
-rm -f "$osdf_test_file" "$osdf_debug_log"
-
 export IS_CONTAINER_PILOT=1
 # some of the scripts use set/unset for this boolean
 if ! is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
