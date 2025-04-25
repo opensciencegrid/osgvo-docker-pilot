@@ -50,9 +50,9 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
     fi
 
 # Install an alternate back-version of apptainer with support for registry mirrors,
-# which was broken in the release 1.4 https://github.com/apptainer/apptainer/issues/2919
+# which was broken in the 1.4 release https://github.com/apptainer/apptainer/issues/2919
 RUN curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | \
-    bash -s - -d ${BASE_OS} -v ${LOCAL_APPTAINER_VERSION} /usr/local/
+    bash -s - -d $(cat /etc/os-release | grep PLATFORM | grep -o 'el[0-9]\+') -v ${LOCAL_APPTAINER_VERSION} /usr/local/
 
 
 # Make a /proc dir in the sandbox condor uses to test singularity so we can test proc bind mounting
