@@ -1,4 +1,4 @@
-ARG BASE_OSG_SERIES=23
+ARG BASE_OSG_SERIES=24
 ARG BASE_YUM_REPO=testing
 # This corresponds to the base image used by opensciencegrid/software-base
 # el8         = quay.io/centos/centos:stream8
@@ -23,11 +23,6 @@ ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
- && if [[ $BASE_YUM_REPO != release ]]; then \
-        yum -y install apptainer --enablerepo=epel-testing; \
-    else \
-        yum -y install apptainer; \
-    fi \
  && yum -y install \
         osg-wn-client \
         attr \
@@ -35,6 +30,7 @@ RUN useradd osg \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
         socat \
+        https://github.com/apptainer/apptainer/releases/download/v1.3.6/apptainer-1.3.6-1.x86_64.rpm \
         tini \
  && if [[ $BASE_OS != el9 ]]; then yum -y install redhat-lsb-core; fi \
  && yum clean all \
@@ -142,7 +138,7 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
-COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
+COPY 10-setup-htcondor.sh 20-setup-apptainer.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
@@ -153,6 +149,9 @@ RUN sed -i "s|@CONTAINER_TAG@|${TIMESTAMP_IMAGE}|" /etc/condor/config.d/50-main.
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
+
+# Depending on configuration, may need to write to system apptainer config directory as an unprivileged user
+RUN mkdir -p /etc/containers/registries.conf.d/ && chown osg:osg /etc/containers/registries.conf.d/
 
 # At Expanse, the admins provided a fixed UID/GID that the container will be run as;
 # condor fails to start if this isn't a resolvable username.  For now, create the username
@@ -228,6 +227,9 @@ ENV ENABLE_REMOTE_SYSLOG=true
 
 # Use ITB versions of scripts and connect to the ITB pool
 ENV ITB=false
+
+# Set a non-dockerhub container registry mirror for apptainer to avoid pull rate limits
+ENV APPTAINER_REGISTRY_MIRROR=
 
 # The pool to join; this can be 'itb-ospool', 'prod-ospool', 'prod-path-facility',
 # 'dev-path-facility', or the hostname or host:port of a central manager.
