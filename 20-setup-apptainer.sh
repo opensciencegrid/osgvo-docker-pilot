@@ -2,8 +2,6 @@
 # Currently, just set the registry mirror
 # Note that this only works in apptainer >=1.3, <1.4
 
-set -xe
-
 if [ `id -u` = 0 ]; then
     echo "Please do not run me as root!"
     exit 1

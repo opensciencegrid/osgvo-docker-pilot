@@ -13,16 +13,22 @@ RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
 
-FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
+FROM hub.opensciencegrid.org/opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES
 ARG BASE_OS
 ARG BASE_YUM_REPO
 ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}-$(date +%Y%m%d-%H%M)
+ARG LOCAL_APPTAINER_VERSION=1.3.6
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
+ && if [[ $BASE_YUM_REPO != release ]]; then \
+        yum -y install apptainer --enablerepo=epel-testing; \
+    else \
+        yum -y install apptainer; \
+    fi \
  && yum -y install \
         osg-wn-client \
         attr \
@@ -30,7 +36,6 @@ RUN useradd osg \
         rsyslog rsyslog-gnutls python3-cryptography python3-requests \
         bind-utils \
         socat \
-        https://github.com/apptainer/apptainer/releases/download/v1.3.6/apptainer-1.3.6-1.x86_64.rpm \
         tini \
  && if [[ $BASE_OS != el9 ]]; then yum -y install redhat-lsb-core; fi \
  && yum clean all \
@@ -43,6 +48,12 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
     else \
       yum -y install condor; \
     fi
+
+# Install an alternate back-version of apptainer with support for registry mirrors,
+# which was broken in the release 1.4 https://github.com/apptainer/apptainer/issues/2919
+RUN curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | \
+    bash -s - -d ${BASE_OS} -v ${LOCAL_APPTAINER_VERSION} /usr/local/
+
 
 # Make a /proc dir in the sandbox condor uses to test singularity so we can test proc bind mounting
 # Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574

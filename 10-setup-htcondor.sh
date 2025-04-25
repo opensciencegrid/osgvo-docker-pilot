@@ -566,6 +566,15 @@ if is_true "$SINGULARITY_DISABLE_PID_NAMESPACES"; then
 else
     SINGULARITY_DISABLE_PID_NAMESPACES=0
 fi
+
+APPTAINER_PATH=/usr/bin/apptainer
+# If the user requests an apptainer repository mirror, we need to point condor
+# at the back-versioned singularity installation that stil respects the mirror
+# file
+if [ -n "$APPTAINER_REGISTRY_MIRROR" ]; then
+    APPTAINER_PATH=/usr/local/bin/apptainer
+fi
+
 cat >$glidein_config <<EOF
 ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source
 CONDOR_VARS_FILE $condor_vars_file
@@ -575,7 +584,7 @@ GLIDEIN_Singularity_Use PREFERRED
 OSG_DEFAULT_CONTAINER_DISTRIBUTION $OSG_DEFAULT_CONTAINER_DISTRIBUTION
 SINGULARITY_IMAGE_RESTRICTIONS None
 SINGULARITY_DISABLE_PID_NAMESPACES $SINGULARITY_DISABLE_PID_NAMESPACES
-GWMS_SINGULARITY_PATH /usr/bin/apptainer
+GWMS_SINGULARITY_PATH $APPTAINER_PATH
 GLIDEIN_WORK_DIR $PWD/main
 GLIDECLIENT_WORK_DIR $PWD/client
 GLIDECLIENT_GROUP_WORK_DIR $PWD/$glidein_group_dir
@@ -598,7 +607,7 @@ if ! is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
 fi
 
 unset SINGULARITY_BIND
-export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=/usr/bin/apptainer
+export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=$APPTAINER_PATH
 ${default_image_executable} $glidein_config
 ./main/singularity_setup.sh $glidein_config
 ${singularity_extras_lib}   $glidein_config
