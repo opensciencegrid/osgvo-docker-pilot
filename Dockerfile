@@ -1,4 +1,4 @@
-ARG BASE_OSG_SERIES=23
+ARG BASE_OSG_SERIES=24
 ARG BASE_YUM_REPO=testing
 # This corresponds to the base image used by opensciencegrid/software-base
 # el8         = quay.io/centos/centos:stream8
@@ -13,13 +13,14 @@ RUN apk --no-cache add gcc musl-dev && \
  cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
  strip /launch_rsyslogd
 
-FROM opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
+FROM hub.opensciencegrid.org/opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
 # Previous args have gone out of scope
 ARG BASE_OSG_SERIES
 ARG BASE_OS
 ARG BASE_YUM_REPO
 ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}-$(date +%Y%m%d-%H%M)
+ARG LOCAL_APPTAINER_VERSION=1.3.6
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
@@ -47,6 +48,12 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
     else \
       yum -y install condor; \
     fi
+
+# Install an alternate back-version of apptainer with support for registry mirrors,
+# which was broken in the 1.4 release https://github.com/apptainer/apptainer/issues/2919
+RUN curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | \
+    bash -s - -d $(cat /etc/os-release | grep PLATFORM | grep -o 'el[0-9]\+') -v ${LOCAL_APPTAINER_VERSION} /usr/local/
+
 
 # Make a /proc dir in the sandbox condor uses to test singularity so we can test proc bind mounting
 # Workaround for https://opensciencegrid.atlassian.net/browse/HTCONDOR-1574
@@ -142,7 +149,7 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY ldconfig_wrapper.sh /usr/local/bin/ldconfig
 COPY 10-ldconfig-cache.sh /etc/osg/image-init.d/
 
-COPY 10-setup-htcondor.sh /etc/osg/image-init.d/
+COPY 10-setup-htcondor.sh 20-setup-apptainer.sh /etc/osg/image-init.d/
 COPY 10-cleanup-htcondor.sh /etc/osg/image-cleanup.d/
 COPY 10-htcondor.conf 10-rsyslogd.conf /etc/supervisord.d/
 COPY 50-main.config /etc/condor/config.d/
@@ -153,6 +160,9 @@ RUN sed -i "s|@CONTAINER_TAG@|${TIMESTAMP_IMAGE}|" /etc/condor/config.d/50-main.
 RUN chown -R osg: ~osg 
 
 RUN mkdir -p /pilot && chmod 1777 /pilot
+
+# Depending on configuration, may need to write to system apptainer config directory as an unprivileged user
+RUN mkdir -p /etc/containers/registries.conf.d/ && chown osg:osg /etc/containers/registries.conf.d/
 
 # At Expanse, the admins provided a fixed UID/GID that the container will be run as;
 # condor fails to start if this isn't a resolvable username.  For now, create the username
@@ -228,6 +238,9 @@ ENV ENABLE_REMOTE_SYSLOG=true
 
 # Use ITB versions of scripts and connect to the ITB pool
 ENV ITB=false
+
+# Set a non-dockerhub container registry mirror for apptainer to avoid pull rate limits
+ENV APPTAINER_REGISTRY_MIRROR=
 
 # The pool to join; this can be 'itb-ospool', 'prod-ospool', 'prod-path-facility',
 # 'dev-path-facility', or the hostname or host:port of a central manager.
