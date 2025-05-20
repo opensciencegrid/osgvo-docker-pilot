@@ -227,9 +227,6 @@ ENV SINGULARITY_BIND_EXTRA=
 # Additional restrictions for your START expression
 ENV GLIDEIN_Start_Extra=
 
-# Use the prepare-job-hook to run Singularity jobs
-ENV CONTAINER_PILOT_USE_JOB_HOOK=true
-
 # Add a random string in the NETWORK_HOSTNAME (useful if running multiple containers with the same actual hostname)
 ENV GLIDEIN_RANDOMIZE_NAME=false
 

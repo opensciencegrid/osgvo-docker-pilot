@@ -416,11 +416,6 @@ default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
 ospool_lib=${script_lib_prefix}ospool-lib
 
-if is_true "$CONTAINER_PILOT_USE_JOB_HOOK" && [[ ! -e ${prepare_hook} ]]; then
-    echo >&2 "CONTAINER_PILOT_USE_JOB_HOOK requested but job hook not found at ${prepare_hook}"
-    exit 1
-fi
-
 cat <<EOF
 This pilot will accept new jobs for $ACCEPT_JOBS_FOR_HOURS hours, and
 then let running jobs finish for $RETIREMENT_HOURS hours. To control
@@ -546,11 +541,7 @@ cd $LOCAL_DIR
 
 # gwms files in the correct location
 cp -a /gwms/. $LOCAL_DIR/
-if is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
-    cp -a ${simple_job_wrapper} condor_job_wrapper.sh
-else
-    cp -a ${osgvo_singularity_wrapper} condor_job_wrapper.sh
-fi
+cp -a ${simple_job_wrapper} condor_job_wrapper.sh
 
 # minimum env to get glideinwms scripts to work
 export glidein_config=$LOCAL_DIR/glidein_config
@@ -601,10 +592,6 @@ fi
 touch $condor_vars_file
 
 export IS_CONTAINER_PILOT=1
-# some of the scripts use set/unset for this boolean
-if ! is_true "$CONTAINER_PILOT_USE_JOB_HOOK"; then
-    unset CONTAINER_PILOT_USE_JOB_HOOK
-fi
 
 unset SINGULARITY_BIND
 export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=$APPTAINER_PATH

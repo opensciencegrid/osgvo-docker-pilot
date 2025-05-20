@@ -131,7 +131,7 @@ function test_docker_startup {
                         'Changing activity: Benchmarking -> Idle' \
                         $logfile; ret=$?
     if [[ $ret != 0 ]]; then
-        tail -n 400 $logfile
+        run_inside_backfill_container tail -n 400 $logfile
         if [[ $ret -eq $ABORT_CODE ]]; then
             debug_docker_backfill
             return $ABORT_CODE
