@@ -132,6 +132,10 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  && install ospool-pilot/itb/job/simple-job-wrapper.sh                  /usr/sbin/itb-simple-job-wrapper \
  # common files: \
  && install /usr/bin/stashcp                                            /gwms/client/stashcp \
+ && install tools/garbage_collection/garbage_collection                 /gwms/client/garbage_collection \
+ && install tools/garbage_collection/garbage_collection.aarch64         /gwms/client/garbage_collection.aarch64 \
+ && install tools/garbage_collection/garbage_collection.x86_64          /gwms/client/garbage_collection.x86_64 \
+ && install tools/garbage_collection/garbage_collection.opt-out         /gwms/client/garbage_collection.opt-out \
  # advertise info \
  && echo "OSG_FLOCK_REPO = \"$OSG_FLOCK_REPO\""        >> /etc/condor/config.d/60-flock-sources.config \
  && echo "OSG_FLOCK_BRANCH = \"$OSG_FLOCK_BRANCH\""    >> /etc/condor/config.d/60-flock-sources.config \

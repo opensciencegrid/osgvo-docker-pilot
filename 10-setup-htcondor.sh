@@ -161,7 +161,10 @@ else
         exit 1
     fi
 fi
-
+if [ "x$GARBAGE_COLLECTION" = "x" ]; then
+    # garbage collection is opt-in for now
+    export GARBAGE_COLLECTION=0
+fi
 
 #
 # Set pool defaults
@@ -576,6 +579,7 @@ OSG_DEFAULT_CONTAINER_DISTRIBUTION $OSG_DEFAULT_CONTAINER_DISTRIBUTION
 SINGULARITY_IMAGE_RESTRICTIONS None
 SINGULARITY_DISABLE_PID_NAMESPACES $SINGULARITY_DISABLE_PID_NAMESPACES
 GWMS_SINGULARITY_PATH $APPTAINER_PATH
+GLIDEIN_WORKSPACE_ORIG $PWD
 GLIDEIN_WORK_DIR $PWD/main
 GLIDECLIENT_WORK_DIR $PWD/client
 GLIDECLIENT_GROUP_WORK_DIR $PWD/$glidein_group_dir
@@ -583,6 +587,7 @@ GLIDEIN_Collector $COLLECTOR_HOST
 GLIDECLIENT_Group $GLIDECLIENT_Group
 GLIDEIN_Start_Extra $GLIDEIN_Start_Extra
 OSG_PROJECT_NAME $OSG_PROJECT_NAME
+GLIDEIN_Entry_Name $GLIDEIN_Site
 EOF
 if [[ $SINGULARITY_BIND_EXTRA ]]; then
     cat >>$glidein_config <<EOF
@@ -653,6 +658,12 @@ if [[ -f $extra_attributes_file ]]; then
     /usr/local/sbin/add-extra-attributes "$extra_attributes_file" "$PILOT_CONFIG_FILE"
 fi
 
+# cleanup leftovers from previous instances
+if is_true "$GARBAGE_COLLECTION"; then
+    ./client/garbage_collection $glidein_config
+else
+    echo "Garbage collection is disabled. Enable by setting GARBAGE_COLLECTION=1"
+fi
 
 # In this container, we replace ldconfig with a wrapper; otherwise, when the nvidia hooks
 # run they will run ldconfig and have it fail (it can't write into /etc), resulting
