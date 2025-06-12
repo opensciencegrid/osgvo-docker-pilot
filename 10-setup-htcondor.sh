@@ -162,8 +162,8 @@ else
     fi
 fi
 if [ "x$GARBAGE_COLLECTION" = "x" ]; then
-    # garbage collection is opt-in for now
-    export GARBAGE_COLLECTION=0
+    # garbage collection is opt-out
+    export GARBAGE_COLLECTION=1
 fi
 
 #
