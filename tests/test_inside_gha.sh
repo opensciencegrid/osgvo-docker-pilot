@@ -113,26 +113,11 @@ function wait_for_output {
 function test_docker_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog -size +1); ret=$?
-    if [[ $ret -eq $ABORT_CODE ]]; then
-        echo >&2 "Container check failed, aborting"
-        debug_docker_backfill
-        return $ABORT_CODE
-    fi
+    run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" -wait:120 'IsReady && STARTD_State =?= "Ready"'
+    ret=$?
 
-    if [[ -z $logfile ]]; then
-        debug_docker_backfill
-        return 1
-    fi
-
-    wait_for_output 60 \
-                    run_inside_backfill_container \
-                        grep \
-                        -- \
-                        'Changing activity: Benchmarking -> Idle' \
-                        $logfile; ret=$?
     if [[ $ret != 0 ]]; then
-        run_inside_backfill_container tail -n 400 $logfile
+        run_inside_backfill_container tail -n 400 "$CONDOR_LOGDIR/StartLog"
         if [[ $ret -eq $ABORT_CODE ]]; then
             debug_docker_backfill
             return $ABORT_CODE
