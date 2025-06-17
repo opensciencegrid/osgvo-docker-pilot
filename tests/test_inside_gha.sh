@@ -25,17 +25,28 @@ function start_singularity_backfill {
     echo -n "Singularity version is: "
     $singularity version
     chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
+
+    su - testuser -c \
+       "$singularity instance start \
+          -B /cvmfs \
+          -B $PILOT_DIR:/pilot \
+          -ci \
+          docker-daemon:$CONTAINER_IMAGE \
+          backfill"
+
+    ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && return $ABORT_CODE
+
     su - testuser -c \
        "APPTAINERENV_TOKEN=None \
        APPTAINERENV_GLIDEIN_Site=None \
        APPTAINERENV_GLIDEIN_ResourceName=None \
        APPTAINERENV_GLIDEIN_Start_Extra=True \
-       $singularity \
-          run \
-            -B /cvmfs \
-            -B $PILOT_DIR:/pilot \
-            -cip \
-            docker-daemon:$CONTAINER_IMAGE > $SINGULARITY_OUTPUT 2>&1 &"
+       $singularity exec instance://backfill /usr/local/sbin/supervisord_startup.sh > $SINGULARITY_OUTPUT 2>&1 &" 
+
+    ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && cat "$SINGULARITY_OUTPUT"
+    return $ret
 }
 
 function start_docker_backfill {
@@ -163,18 +174,19 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 1200 find $PILOT_DIR -name StartLog -size +1)
-    if [[ -z $logfile ]]; then
-        cat $SINGULARITY_OUTPUT
-        return 1
-    fi
+    singularity=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
+    # Wait for the startd to be ready
+    # N.B. we have condor dump the eval'ed STARTD_State expression
+    # because `condor_who -wait` always returns 0
+    startd_ready=$(su - testuser -c \
+                     "$singularity exec instance://backfill \
+                         condor_who -log $CONDOR_LOGDIR \
+                                    -wait:120 'IsReady && STARTD_State =?= \"Ready\"' \
+                                    -af 'STARTD_State =?= \"Ready\"'")
 
-    wait_for_output 60 \
-                    grep \
-                    -- \
-                    'Changing activity: Benchmarking -> Idle' \
-                    $logfile \
-        || (tail -n 400 $logfile && return 1)
+    if [[ $startd_ready != "true" ]]; then
+        cat "$CONDOR_LOGDIR/StartLog"
+    fi
 }
 
 function test_singularity_HAS_SINGULARITY {
