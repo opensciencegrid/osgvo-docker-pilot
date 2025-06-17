@@ -113,17 +113,21 @@ function wait_for_output {
 function test_docker_startup {
     print_test_header "Testing container startup"
 
-    run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" -wait:120 'IsReady && STARTD_State =?= "Ready"'
+    # Wait for the startd to be ready
+    # N.B. we have condor dump the eval'ed STARTD_State expression
+    # because `condor_who -wait` always returns 0
+    startd_ready=$(run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" \
+                                                            -wait:120 'IsReady && STARTD_State =?= "Ready"' \
+                                                            -af 'STARTD_State =?= "Ready"')
     ret=$?
 
-    if [[ $ret != 0 ]]; then
+    if [[ $ret -eq $ABORT_CODE ]]; then
+        debug_docker_backfill
+        return $ABORT_CODE
+    fi
+
+    if [[ $startd_ready != "true" ]]; then
         run_inside_backfill_container tail -n 400 "$CONDOR_LOGDIR/StartLog"
-        if [[ $ret -eq $ABORT_CODE ]]; then
-            debug_docker_backfill
-            return $ABORT_CODE
-        else
-            return 1
-        fi
     fi
 }
 
