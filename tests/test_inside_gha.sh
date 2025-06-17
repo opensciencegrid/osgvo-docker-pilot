@@ -1,6 +1,7 @@
 #!/bin/bash -x
 
 OSP_TOKEN_PATH=/tmp/token
+CONDOR_LOGDIR=/pilot/log
 COMMON_DOCKER_ARGS="run --user osg
                         --detach
                         --security-opt apparmor=unconfined
@@ -154,9 +155,7 @@ function test_docker_HAS_SINGULARITY {
         direct="-direct"
     fi
 
-    logdir=$(run_inside_backfill_container find /pilot -type d -name log); ret=$?
-    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
-    startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}'); ret=$?
+    startd_addr=$(run_inside_backfill_container condor_who -log $CONDOR_LOGDIR -dae | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     echo "startd addr: $startd_addr"
     has_singularity=$(run_inside_backfill_container \
