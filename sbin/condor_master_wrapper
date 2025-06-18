@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# Function to handle SIGTERM
+function exit_trap() {
+    if [ "X$SHUTDOWN_STRATEGY" = "Xpeaceful" ]; then
+        echo "Shutting down HTCondor peacefully - wait indefinitely for all jobs to finish"
+        /usr/sbin/condor_off -peaceful -startd
+    elif [ "X$SHUTDOWN_STRATEGY" = "Xgraceful" ]; then
+        echo "Shutting down HTCondor gracefully - wait for 24 hours for jobs to finish"
+        /usr/sbin/condor_off -graceful -startd
+    else
+        echo "Shutting down HTCondor fast - killing jobs"
+        /usr/sbin/condor_off -fast -startd
+    fi
+}
 
-exec /usr/sbin/condor_master -f
+trap exit_trap SIGTERM SIGINT
+
+/usr/sbin/condor_master -f &
+master_pid=$!
+
+# wait for condor_master forever, exiting is controlled by
+# condor_off in the trap above
+while kill -0 "$master_pid" 2>/dev/null; do
+    sleep 10
+done
+wait "$master_pid"
+
+exit 0
 
