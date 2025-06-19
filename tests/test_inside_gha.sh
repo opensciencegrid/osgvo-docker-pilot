@@ -29,6 +29,7 @@ function start_singularity_backfill {
     su - testuser -c \
        "$singularity instance start \
           -B /cvmfs \
+          -B /dev/fuse \
           -B $PILOT_DIR:/pilot \
           -ci \
           docker-daemon:$CONTAINER_IMAGE \
