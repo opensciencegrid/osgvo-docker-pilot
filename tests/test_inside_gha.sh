@@ -187,6 +187,7 @@ function test_singularity_startup {
     if [[ $startd_ready != "true" ]]; then
         cat $SINGULARITY_OUTPUT
         cat "$CONDOR_LOGDIR/StartLog"
+        return 1
     fi
 }
 
