@@ -1,5 +1,6 @@
 #!/bin/bash -x
 
+APPTAINER_BIN=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
 OSP_TOKEN_PATH=/tmp/token
 CONDOR_LOGDIR=/pilot/log
 COMMON_DOCKER_ARGS="run --user osg
@@ -21,13 +22,12 @@ SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
     useradd -mG docker testuser
-    singularity=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
     echo -n "Singularity version is: "
-    $singularity version
+    $APPTAINER_BIN version
     chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
 
     su - testuser -c \
-       "$singularity instance start \
+       "$APPTAINER_BIN instance start \
           -B /cvmfs \
           -B /dev/fuse \
           -B $PILOT_DIR:/pilot \
@@ -43,7 +43,7 @@ function start_singularity_backfill {
        APPTAINERENV_GLIDEIN_Site=None \
        APPTAINERENV_GLIDEIN_ResourceName=None \
        APPTAINERENV_GLIDEIN_Start_Extra=True \
-       $singularity exec instance://backfill /usr/local/sbin/supervisord_startup.sh > $SINGULARITY_OUTPUT 2>&1 &" 
+       $APPTAINER_BIN exec instance://backfill /usr/local/sbin/supervisord_startup.sh > $SINGULARITY_OUTPUT 2>&1 &" 
 
     ret=$?
     [[ $ret -eq $ABORT_CODE ]] && cat "$SINGULARITY_OUTPUT"
@@ -175,12 +175,11 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    singularity=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
     # Wait for the startd to be ready
     # N.B. we have condor dump the eval'ed STARTD_State expression
     # because `condor_who -wait` always returns 0
     startd_ready=$(su - testuser -c \
-                     "$singularity exec instance://backfill \
+                     "$APPTAINER_BIN exec instance://backfill \
                          condor_who -log $CONDOR_LOGDIR \
                                     -wait:120 'IsReady && STARTD_State =?= \"Ready\"' \
                                     -af 'STARTD_State =?= \"Ready\"'")
