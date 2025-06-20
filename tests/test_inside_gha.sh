@@ -1,6 +1,8 @@
 #!/bin/bash -x
 
+APPTAINER_BIN=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
 OSP_TOKEN_PATH=/tmp/token
+CONDOR_LOGDIR=/pilot/log
 COMMON_DOCKER_ARGS="run --user osg
                         --detach
                         --security-opt apparmor=unconfined
@@ -20,21 +22,32 @@ SINGULARITY_OUTPUT=$(mktemp)
 PILOT_DIR=$(mktemp -d)
 function start_singularity_backfill {
     useradd -mG docker testuser
-    singularity=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
     echo -n "Singularity version is: "
-    $singularity version
+    $APPTAINER_BIN version
     chown testuser: $SINGULARITY_OUTPUT $PILOT_DIR
+
+    su - testuser -c \
+       "$APPTAINER_BIN instance start \
+          -B /cvmfs \
+          -B /dev/fuse \
+          -B $PILOT_DIR:/pilot \
+          -ci \
+          docker-daemon:$CONTAINER_IMAGE \
+          backfill"
+
+    ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && return $ABORT_CODE
+
     su - testuser -c \
        "APPTAINERENV_TOKEN=None \
        APPTAINERENV_GLIDEIN_Site=None \
        APPTAINERENV_GLIDEIN_ResourceName=None \
        APPTAINERENV_GLIDEIN_Start_Extra=True \
-       $singularity \
-          run \
-            -B /cvmfs \
-            -B $PILOT_DIR:/pilot \
-            -cip \
-            docker-daemon:$CONTAINER_IMAGE > $SINGULARITY_OUTPUT 2>&1 &"
+       $APPTAINER_BIN exec instance://backfill /usr/local/sbin/supervisord_startup.sh > $SINGULARITY_OUTPUT 2>&1 &" 
+
+    ret=$?
+    [[ $ret -eq $ABORT_CODE ]] && cat "$SINGULARITY_OUTPUT"
+    return $ret
 }
 
 function start_docker_backfill {
@@ -112,32 +125,21 @@ function wait_for_output {
 function test_docker_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 600 run_inside_backfill_container find /pilot -name StartLog -size +1); ret=$?
+    # Wait for the startd to be ready
+    # N.B. we have condor dump the eval'ed STARTD_State expression
+    # because `condor_who -wait` always returns 0
+    startd_ready=$(run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" \
+                                                            -wait:120 'IsReady && STARTD_State =?= "Ready"' \
+                                                            -af 'STARTD_State =?= "Ready"')
+    ret=$?
+
     if [[ $ret -eq $ABORT_CODE ]]; then
-        echo >&2 "Container check failed, aborting"
         debug_docker_backfill
         return $ABORT_CODE
     fi
 
-    if [[ -z $logfile ]]; then
-        debug_docker_backfill
-        return 1
-    fi
-
-    wait_for_output 60 \
-                    run_inside_backfill_container \
-                        grep \
-                        -- \
-                        'Changing activity: Benchmarking -> Idle' \
-                        $logfile; ret=$?
-    if [[ $ret != 0 ]]; then
-        run_inside_backfill_container tail -n 400 $logfile
-        if [[ $ret -eq $ABORT_CODE ]]; then
-            debug_docker_backfill
-            return $ABORT_CODE
-        else
-            return 1
-        fi
+    if [[ $startd_ready != "true" ]]; then
+        run_inside_backfill_container tail -n 400 "$CONDOR_LOGDIR/StartLog"
     fi
 }
 
@@ -154,9 +156,7 @@ function test_docker_HAS_SINGULARITY {
         direct="-direct"
     fi
 
-    logdir=$(run_inside_backfill_container find /pilot -type d -name log); ret=$?
-    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
-    startd_addr=$(run_inside_backfill_container condor_who -log $logdir -dae | awk '/^Startd/ {print $6}'); ret=$?
+    startd_addr=$(run_inside_backfill_container condor_who -log $CONDOR_LOGDIR -dae | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
     echo "startd addr: $startd_addr"
     has_singularity=$(run_inside_backfill_container \
@@ -175,18 +175,20 @@ function test_docker_HAS_SINGULARITY {
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
-    logfile=$(wait_for_output 1200 find $PILOT_DIR -name StartLog -size +1)
-    if [[ -z $logfile ]]; then
+    # Wait for the startd to be ready
+    # N.B. we have condor dump the eval'ed STARTD_State expression
+    # because `condor_who -wait` always returns 0
+    startd_ready=$(su - testuser -c \
+                     "$APPTAINER_BIN exec instance://backfill \
+                         condor_who -log $CONDOR_LOGDIR \
+                                    -wait:120 'IsReady && STARTD_State =?= \"Ready\"' \
+                                    -af 'STARTD_State =?= \"Ready\"'")
+
+    if [[ $startd_ready != "true" ]]; then
         cat $SINGULARITY_OUTPUT
+        cat "$CONDOR_LOGDIR/StartLog"
         return 1
     fi
-
-    wait_for_output 60 \
-                    grep \
-                    -- \
-                    'Changing activity: Benchmarking -> Idle' \
-                    $logfile \
-        || (tail -n 400 $logfile && return 1)
 }
 
 function test_singularity_HAS_SINGULARITY {
