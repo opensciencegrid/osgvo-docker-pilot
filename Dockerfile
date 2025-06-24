@@ -44,11 +44,11 @@ RUN useradd osg \
 # Pull HTCondor from the proper repo. For "release" we need to use
 # osg-upcoming-testing to meet the patch tuesday requirements.
 RUN if [[ $BASE_YUM_REPO = release ]]; then \
-      yum -y --enablerepo=osg-upcoming-testing install condor \
-                                                       pelican-debug; \
+      yum -y --enablerepo=osg-upcoming-testing swap pelican pelican-debug && \
+      yum -y --enablerepo=osg-upcoming-testing install condor; \
     else \
-      yum -y install condor \
-                     pelican-debug;\
+      yum -y swap pelican pelican-debug && \
+      yum -y install condor; \
     fi
 
 # Install an alternate back-version of apptainer with support for registry mirrors,
