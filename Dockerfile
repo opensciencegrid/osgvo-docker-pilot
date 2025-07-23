@@ -37,6 +37,7 @@ RUN useradd osg \
         bind-utils \
         socat \
         tini \
+        delve \
  && if [[ $BASE_OS != el9 ]]; then yum -y install redhat-lsb-core; fi \
  && yum clean all \
  && mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
