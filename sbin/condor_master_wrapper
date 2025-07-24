@@ -10,7 +10,7 @@ function exit_trap() {
         /usr/sbin/condor_off -graceful -startd
     else
         echo "Shutting down HTCondor fast - killing jobs"
-        /usr/sbin/condor_off -fast -startd
+        /usr/sbin/condor_off -fast -master
     fi
 }
 
