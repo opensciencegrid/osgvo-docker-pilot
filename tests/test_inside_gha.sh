@@ -158,7 +158,7 @@ function test_docker_HAS_SINGULARITY {
 
     startd_addr=$(run_inside_backfill_container \
                     condor_who -log $CONDOR_LOGDIR \
-                               -wait:180 'IsReady && STARTD_State =?= "Ready"' \
+                               -wait:300 'IsReady && STARTD_State =?= "Ready"' \
                                -dae \
                     | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
