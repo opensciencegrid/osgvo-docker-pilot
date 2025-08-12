@@ -20,7 +20,7 @@ sys.exit(0 if minimum <= version <= maximum else 1)
 
 
 # wait for the master to come up
-master_timeout=120
+master_timeout=300
 SECONDS=0
 while [ ! -s "$CONDOR_LOGDIR/MasterLog" ]; do
     if [ $SECONDS -gt $master_timeout ]; then
