@@ -142,6 +142,16 @@ function test_docker_startup {
 function test_docker_HAS_SINGULARITY {
     print_test_header "Testing singularity detection inside the backfill container"
 
+    # Condor 23.8 has a bug where condor_status -direct for startd ads still
+    # attempts to contact the collector.  Hopefully it will be fixed in 23.10;
+    # in the meantime, use -pool instead of -direct (which is a hack).
+    local direct
+    if condor_version_in_range 23.8.0 23.10.0; then
+        direct="-pool"
+    else
+        direct="-direct"
+    fi
+
     startd_addr=$(run_inside_backfill_container /usr/local/sbin/startd_addr.sh)
     [[ $ret -ne 0 ]] && { debug_docker_backfill; return $ABORT_CODE; }
     echo "startd addr: $startd_addr"

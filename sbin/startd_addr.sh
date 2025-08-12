@@ -19,16 +19,6 @@ sys.exit(0 if minimum <= version <= maximum else 1)
 }
 
 
-# Condor 23.8 has a bug where condor_status -direct for startd ads still
-# attempts to contact the collector.  Hopefully it will be fixed in 23.10;
-# in the meantime, use -pool instead of -direct (which is a hack).
-local direct
-if condor_version_in_range 23.8.0 23.10.0; then
-    direct="-pool"
-else
-    direct="-direct"
-fi
-
 # wait for the master to come up
 master_timeout=60
 SECONDS=0
