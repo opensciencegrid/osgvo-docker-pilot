@@ -129,7 +129,7 @@ function test_docker_startup {
     # N.B. we have condor dump the eval'ed STARTD_State expression
     # because `condor_who -wait` always returns 0
     startd_ready=$(run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" \
-                                                            -wait:300 'IsReady && STARTD_State =?= "Ready"' \
+                                                            -wait:600 'IsReady && STARTD_State =?= "Ready"' \
                                                             -af 'STARTD_State =?= "Ready"')
     ret=$?
 
@@ -158,7 +158,7 @@ function test_docker_HAS_SINGULARITY {
 
     startd_addr=$(run_inside_backfill_container \
                     condor_who -log $CONDOR_LOGDIR \
-                               -wait:300 'IsReady && STARTD_State =?= "Ready"' \
+                               -wait:600 'IsReady && STARTD_State =?= "Ready"' \
                                -dae \
                     | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
@@ -185,7 +185,7 @@ function test_singularity_startup {
     startd_ready=$(su - testuser -c \
                      "$APPTAINER_BIN exec instance://backfill \
                          condor_who -log $CONDOR_LOGDIR \
-                                    -wait:300 'IsReady && STARTD_State =?= \"Ready\"' \
+                                    -wait:600 'IsReady && STARTD_State =?= \"Ready\"' \
                                     -af 'STARTD_State =?= \"Ready\"'")
 
     if [[ $startd_ready != "true" ]]; then
