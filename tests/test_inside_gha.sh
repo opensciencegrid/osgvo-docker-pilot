@@ -124,13 +124,15 @@ function wait_for_output {
 
 function test_docker_startup {
     print_test_header "Testing container startup"
+    
+    # give master some time to come up
+    sleep 60s
 
     # Wait for the startd to be ready
     # N.B. we have condor dump the eval'ed STARTD_State expression
     # because `condor_who -wait` always returns 0
-    sleep 120s
     startd_ready=$(run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" \
-                                                            -wait:600 'IsReady && STARTD_State =?= "Ready"' \
+                                                            -wait:300 'IsReady && STARTD_State =?= "Ready"' \
                                                             -af 'STARTD_State =?= "Ready"')
     ret=$?
 
@@ -157,10 +159,12 @@ function test_docker_HAS_SINGULARITY {
         direct="-direct"
     fi
 
-    sleep 120s
+    # give master some time to come up
+    sleep 60s
+
     startd_addr=$(run_inside_backfill_container \
                     condor_who -log $CONDOR_LOGDIR \
-                               -wait:600 'IsReady && STARTD_State =?= "Ready"' \
+                               -wait:300 'IsReady && STARTD_State =?= "Ready"' \
                                -dae \
                     | awk '/^Startd/ {print $6}'); ret=$?
     [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
@@ -180,15 +184,17 @@ function test_docker_HAS_SINGULARITY {
 
 function test_singularity_startup {
     print_test_header "Testing container startup"
+    
+    # give master some time to come up
+    sleep 60s
 
     # Wait for the startd to be ready
     # N.B. we have condor dump the eval'ed STARTD_State expression
     # because `condor_who -wait` always returns 0
-    sleep 120s
     startd_ready=$(su - testuser -c \
                      "$APPTAINER_BIN exec instance://backfill \
                          condor_who -log $CONDOR_LOGDIR \
-                                    -wait:600 'IsReady && STARTD_State =?= \"Ready\"' \
+                                    -wait:300 'IsReady && STARTD_State =?= \"Ready\"' \
                                     -af 'STARTD_State =?= \"Ready\"'")
 
     if [[ $startd_ready != "true" ]]; then
