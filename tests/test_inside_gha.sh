@@ -126,14 +126,10 @@ function test_docker_startup {
     print_test_header "Testing container startup"
 
     # Wait for the startd to be ready
-    # N.B. we have condor dump the eval'ed STARTD_State expression
-    # because `condor_who -wait` always returns 0
-    startd_ready=$(run_inside_backfill_container condor_who -log "$CONDOR_LOGDIR" \
-                                                            -wait:120 'IsReady && STARTD_State =?= "Ready"' \
-                                                            -af 'STARTD_State =?= "Ready"')
+    startd_addr=$(run_inside_backfill_container /usr/local/sbin/startd_addr.sh) 
     ret=$?
 
-    if [[ $ret -eq $ABORT_CODE ]]; then
+    if [[ $ret -ne 0 ]]; then
         debug_docker_backfill
         return $ABORT_CODE
     fi
@@ -156,8 +152,8 @@ function test_docker_HAS_SINGULARITY {
         direct="-direct"
     fi
 
-    startd_addr=$(run_inside_backfill_container condor_who -log $CONDOR_LOGDIR -dae | awk '/^Startd/ {print $6}'); ret=$?
-    [[ $ret -eq $ABORT_CODE ]] && { debug_docker_backfill; return $ABORT_CODE; }
+    startd_addr=$(run_inside_backfill_container /usr/local/sbin/startd_addr.sh)
+    [[ $ret -ne 0 ]] && { debug_docker_backfill; return $ABORT_CODE; }
     echo "startd addr: $startd_addr"
     has_singularity=$(run_inside_backfill_container \
         env _CONDOR_SEC_CLIENT_AUTHENTICATION_METHODS=FS \
@@ -180,11 +176,9 @@ function test_singularity_startup {
     # because `condor_who -wait` always returns 0
     startd_ready=$(su - testuser -c \
                      "$APPTAINER_BIN exec instance://backfill \
-                         condor_who -log $CONDOR_LOGDIR \
-                                    -wait:120 'IsReady && STARTD_State =?= \"Ready\"' \
-                                    -af 'STARTD_State =?= \"Ready\"'")
+                         /usr/local/sbin/startd_addr.sh")
 
-    if [[ $startd_ready != "true" ]]; then
+    if [[ -z "$startd_ready" ]]; then
         cat $SINGULARITY_OUTPUT
         cat "$CONDOR_LOGDIR/StartLog"
         return 1
