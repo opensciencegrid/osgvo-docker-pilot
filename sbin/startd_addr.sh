@@ -2,23 +2,6 @@
 
 CONDOR_LOGDIR=/pilot/log
 
-function condor_version_in_range {
-    local minimum maximum
-    minimum=${1:?minimum not provided to condor_version_in_range}
-    maximum=${2:-99.99.99}
-
-    local condor_version
-    condor_version=$(condor_version | awk '/CondorVersion/ {print $2}')
-    python3 -c '
-import sys
-minimum = [int(x) for x in sys.argv[1].split(".")]
-maximum = [int(x) for x in sys.argv[2].split(".")]
-version = [int(x) for x in sys.argv[3].split(".")]
-sys.exit(0 if minimum <= version <= maximum else 1)
-' "$minimum" "$maximum" "$condor_version"
-}
-
-
 # wait for the master to come up
 master_timeout=300
 SECONDS=0
