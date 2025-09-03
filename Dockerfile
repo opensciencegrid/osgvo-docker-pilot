@@ -20,7 +20,6 @@ ARG BASE_OSG_SERIES
 ARG BASE_OS
 ARG BASE_YUM_REPO
 ARG TIMESTAMP_IMAGE=osgvo-docker-pilot:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}-$(date +%Y%m%d-%H%M)
-ARG LOCAL_APPTAINER_VERSION=1.3.6
 
 RUN useradd osg \
  && mkdir -p ~osg/.condor \
@@ -55,11 +54,6 @@ RUN if [[ $BASE_YUM_REPO = release ]]; then \
         yum -y swap pelican pelican-debug; \
       fi; \
     fi
-
-# Install an alternate back-version of apptainer with support for registry mirrors,
-# which was broken in the 1.4 release https://github.com/apptainer/apptainer/issues/2919
-RUN curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | \
-    bash -s - -d $(cat /etc/os-release | grep PLATFORM | grep -o 'el[0-9]\+') -v ${LOCAL_APPTAINER_VERSION} /usr/local/
 
 
 # Make a /proc dir in the sandbox condor uses to test singularity so we can test proc bind mounting
