@@ -433,6 +433,9 @@ GLIDEIN_ToRetire=$(($NOW + $ACCEPT_JOBS_FOR_HOURS * 60 * 60))
 # Give the instance 24 hours to finish up before exiting
 GLIDEIN_ToDie=$(($GLIDEIN_ToRetire + $RETIREMENT_HOURS * 60 * 60))
 
+# local dir to mimic gmws - expected by some of our glidein scripts
+mkdir -p $LOCAL_DIR/condor_config.d
+
 # to avoid collisions when ~ is shared, write the config file to /tmp
 export PILOT_CONFIG_FILE=$LOCAL_DIR/condor_config.pilot
 
@@ -444,6 +447,7 @@ LOCAL_DIR = $LOCAL_DIR
 
 # mimic gwms so gwms scripts will work
 EXECUTE = $LOCAL_DIR/execute
+LOCAL_CONFIG_DIR = $LOCAL_DIR/condor_config.d
 
 SEC_TOKEN_DIRECTORY = $LOCAL_DIR/condor/tokens.d
 
@@ -476,9 +480,6 @@ GLIDEIN_ToDie = $GLIDEIN_ToDie
 STARTD_ATTRS = \$(STARTD_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES GLIDEIN_ToRetire GLIDEIN_ToDie
 MASTER_ATTRS = \$(MASTER_ATTRS) ACCEPT_JOBS_FOR_HOURS ACCEPT_IDLE_MINUTES GLIDEIN_ToRetire GLIDEIN_ToDie
 
-# policy
-use policy : Hold_If_Memory_Exceeded
-
 STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) base userenv
 STARTD_CRON_base_EXECUTABLE = ${osgvo_advertise_base}
 STARTD_CRON_base_PERIOD = 4m
@@ -493,8 +494,6 @@ STARTD_CRON_userenv_MODE = periodic
 STARTD_CRON_userenv_RECONFIG = true
 STARTD_CRON_userenv_KILL = true
 STARTD_CRON_userenv_ARGS = ${osgvo_advertise_userenv} $LOCAL_DIR/glidein_config main
-
-# WANT_HOLD for exceeding disk is set up in 'additional-htcondor-config'
 
 EOF
 
@@ -623,15 +622,11 @@ else
     # This can be removed once the changes in https://github.com/opensciencegrid/osg-flock/pull/212
     # get merged into the "main" group as well, and we always use ${osgvo_additional_htcondor_config}
     cat >>$PILOT_CONFIG_FILE <<END
-IsBlackHole = IfThenElse(RecentJobDurationAvg is undefined, false, RecentJobDurationCount >= 10 && RecentJobDurationAvg < 180)
+IsBlackHole = False
 STARTD_ATTRS = \$(STARTD_ATTRS), IsBlackHole
 
 HasExcessiveLoad = LoadAvg > 2*DetectedCpus + 2
 STARTD_ATTRS = \$(STARTD_ATTRS), HasExcessiveLoad
-
-DISK_EXCEEDED = (JobUniverse != 13 && DiskUsage =!= UNDEFINED && DiskUsage > Disk)
-HOLD_REASON_DISK_EXCEEDED = disk usage exceeded request_disk
-use POLICY : WANT_HOLD_IF( DISK_EXCEEDED, \$(HOLD_SUBCODE_DISK_EXCEEDED:104), \$(HOLD_REASON_DISK_EXCEEDED) )
 
 END
 fi
