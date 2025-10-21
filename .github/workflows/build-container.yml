@@ -17,8 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['el9', 'el10', 'cuda_11_8_0']
-        # osg_series: ['23']
+        os: ['el9', 'cuda_11_8_0']
         repo: ['development', 'testing', 'release']
         image: ['osg-htc/ospool-ep']
         osg_series: ['24', '25']
@@ -208,7 +207,7 @@ jobs:
           docker buildx imagetools create --tag $tag $DIGESTS;
 
           # Also tag the image for the default OS as the OS-less tag
-          # (i.e. 23-el9-release -> 23-release)
+          # (i.e. 25-el9-release 25-release)
           tag2=${tag/-${DEFAULT_OS}-/-}  # bash syntax for search-and-replace
           if [[ $tag2 != $tag ]]; then
             docker buildx imagetools create --tag $tag2 $DIGESTS;
