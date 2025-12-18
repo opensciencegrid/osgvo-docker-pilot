@@ -185,7 +185,7 @@ RUN if [[ -z "$NO_EXPANSE_USER" ]]; then \
     fi
 
 COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
-RUN chmod 04755 /usr/bin/launch_rsyslogd && \
+RUN chmod 755 /usr/bin/launch_rsyslogd && \
     mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
     ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
