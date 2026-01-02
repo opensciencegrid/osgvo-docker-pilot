@@ -418,6 +418,7 @@ prepare_hook=${script_lib_prefix}prepare-hook
 default_image_executable=${script_exec_prefix}osgvo-default-image
 singularity_extras_lib=${script_lib_prefix}singularity-extras
 ospool_lib=${script_lib_prefix}ospool-lib
+pelican_setup=${script_lib_prefix}pelican-setup
 
 cat <<EOF
 This pilot will accept new jobs for $ACCEPT_JOBS_FOR_HOURS hours, and
@@ -602,6 +603,9 @@ export GLIDEIN_SINGULARITY_BINARY_OVERRIDE=$APPTAINER_PATH
 ${default_image_executable} $glidein_config
 ./main/singularity_setup.sh $glidein_config
 ${singularity_extras_lib}   $glidein_config
+if [[ -e ${pelican_setup} ]]; then
+    ${pelican_setup} $glidein_config
+fi
 
 # run the osgvo userenv advertise script
 cp ${osgvo_advertise_userenv} .
