@@ -6,13 +6,6 @@ ARG BASE_YUM_REPO=testing
 # el9         = quay.io/almalinux/almalinux:9
 # cuda_11_8_0 = nvidia/cuda:11.8.0-runtime-rockylinux8
 ARG BASE_OS=el9
-
-FROM alpine:latest AS compile
-COPY launch_rsyslogd.c /tmp/launch_rsyslogd.c
-RUN apk --no-cache add gcc musl-dev && \
- cc -static -o /launch_rsyslogd /tmp/launch_rsyslogd.c && \
- strip /launch_rsyslogd
-
 FROM hub.opensciencegrid.org/opensciencegrid/software-base:${BASE_OSG_SERIES}-${BASE_OS}-${BASE_YUM_REPO}
 
 # Previous args have gone out of scope
@@ -184,9 +177,7 @@ RUN if [[ -z "$NO_EXPANSE_USER" ]]; then \
         groupadd --gid 12497 g12497 && useradd --gid 12497 --create-home --uid 532362 u532362; \
     fi
 
-COPY --from=compile /launch_rsyslogd /usr/bin/launch_rsyslogd
-RUN chmod 755 /usr/bin/launch_rsyslogd && \
-    mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
+RUN mkdir -p /etc/pki/rsyslog && chmod 01777 /etc/pki/rsyslog && \
     ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
 COPY --chmod=0755 sbin/* /usr/local/sbin/
