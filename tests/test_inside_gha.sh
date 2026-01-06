@@ -11,7 +11,8 @@ COMMON_DOCKER_ARGS="run --user osg
                         -e GLIDEIN_Site='None'
                         -e GLIDEIN_ResourceName='None'
                         -e GLIDEIN_Start_Extra='True'
-                        -e OSG_SQUID_LOCATION='None'"
+                        -e OSG_SQUID_LOCATION='None'
+                        -e ENABLE_REMOTE_SYSLOG=False"
 
 function usage {
     echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
