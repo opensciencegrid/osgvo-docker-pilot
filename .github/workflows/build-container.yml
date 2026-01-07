@@ -67,6 +67,23 @@ jobs:
         run: |
           sudo ./tests/setup_cvmfs.sh
 
+
+      - name: Pre-flight checks
+        if: ${{ matrix.arch == 'amd64' }}
+        env:
+          CONTAINER_IMAGE: ${{ steps.build-image.outputs.timestamp-image }}
+        run: |
+          errs=0
+          sudo ./tests/test_inside_gha.sh docker bindmount "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
+          echo '|'
+          sudo ./tests/test_inside_gha.sh singularity bindmount "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
+          echo '|'
+          sudo ./tests/test_inside_gha.sh docker cvmfsexec "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
+          echo '|'
+          echo "$errs tests failed overall"
+          exit $errs
+
+
       - name: Docker + CVMFS bindmount
         if: ${{ matrix.arch == 'amd64' }}
         id: test-docker-cvmfs
@@ -75,7 +92,8 @@ jobs:
         run: |
           sudo ./tests/test_inside_gha.sh docker \
                                           bindmount \
-                                          "$CONTAINER_IMAGE"
+                                          "$CONTAINER_IMAGE" \
+                                          pilot
 
       - name: Docker + cvmfsexec        
         if: ${{ matrix.arch == 'amd64' }}
@@ -85,7 +103,8 @@ jobs:
         run: |
           sudo ./tests/test_inside_gha.sh docker \
                                           cvmfsexec \
-                                          "$CONTAINER_IMAGE"
+                                          "$CONTAINER_IMAGE" \
+                                          pilot
 
       - name: Singularity + CVMFS bindmount
         if: ${{ matrix.arch == 'amd64' }}
@@ -99,7 +118,8 @@ jobs:
           else
               sudo ./tests/test_inside_gha.sh singularity \
                                               bindmount \
-                                              "$CONTAINER_IMAGE"
+                                              "$CONTAINER_IMAGE" \
+                                              pilot
           fi
 
       - id: upload-by-digest-harbor

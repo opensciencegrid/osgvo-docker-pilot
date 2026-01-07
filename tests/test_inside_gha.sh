@@ -1,22 +1,39 @@
 #!/bin/bash -x
+# shellcheck disable=SC2086
 
 APPTAINER_BIN=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
 OSP_TOKEN_PATH=/tmp/token
 CONDOR_LOGDIR=/pilot/log
-COMMON_DOCKER_ARGS="run --user osg
-                        --detach
+COMMON_APPTAINER_EXEC_ARGS="-B /cvmfs -B /dev/fuse -c -i"
+COMMON_DOCKER_RUN_ARGS="--user osg
                         --security-opt apparmor=unconfined
                         --name backfill
                         -v $OSP_TOKEN_PATH:/etc/condor/tokens-orig.d/flock.opensciencegrid.org
-                        -e GLIDEIN_Site='None'
-                        -e GLIDEIN_ResourceName='None'
-                        -e GLIDEIN_Start_Extra='True'
-                        -e OSG_SQUID_LOCATION='None'
+                        -e GLIDEIN_Site=None
+                        -e GLIDEIN_ResourceName=None
+                        -e GLIDEIN_Start_Extra=True
+                        -e OSG_SQUID_LOCATION=None
                         -e ENABLE_REMOTE_SYSLOG=False"
 
+
 function usage {
-    echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec>"
+    echo "Usage: $0 <docker|singularity> <bindmount|cvmfsexec> <container_image> <preflight|pilot>"
 }
+
+
+function add_ERR {
+    # Complain and then increase the error count.  Propagate the return code.
+    local ret=$?
+    echo -e "$@"
+    (( ERR += 1 ))
+    return $ret
+}
+
+
+function unsudo {
+    runuser -u testuser -- "$@"
+}
+
 
 ABORT_CODE=126
 SINGULARITY_OUTPUT=$(mktemp)
@@ -53,7 +70,8 @@ function start_singularity_backfill {
 
 function start_docker_backfill {
     touch $OSP_TOKEN_PATH
-    docker $COMMON_DOCKER_ARGS \
+    docker run $COMMON_DOCKER_RUN_ARGS \
+           --detach \
            "$@" \
            "$CONTAINER_IMAGE"
 }
@@ -196,16 +214,122 @@ function test_singularity_HAS_SINGULARITY {
     return $ret
 }
 
-if [[ $# -ne 3 ]] ||
+#
+# Pre-flight checks
+#
+
+function docker_preflight {
+    # Test simple /bin/true inside our container.
+    docker run \
+        $COMMON_DOCKER_RUN_ARGS \
+        --rm \
+        "${DOCKER_EXTRA_ARGS[@]}" \
+        "$CONTAINER_IMAGE" \
+        /bin/bash -c '/bin/true' \
+        || add_ERR "/bin/true in docker returned $? instead"
+
+    # Test Apptainer-in-Apptainer.
+    # First, get the version.
+    docker run \
+        $COMMON_DOCKER_RUN_ARGS \
+        --rm \
+        "${DOCKER_EXTRA_ARGS[@]}" \
+        "$CONTAINER_IMAGE" \
+        /bin/bash -c '/bin/echo -n "*** Inner Apptainer version is: "; /usr/bin/apptainer version' \
+        || add_ERR "Could not get inner Apptainer version: command returned $?"
+
+    docker run \
+        $COMMON_DOCKER_RUN_ARGS \
+        --rm \
+        "${DOCKER_EXTRA_ARGS[@]}" \
+        "$CONTAINER_IMAGE" \
+        /bin/bash -c '/usr/bin/apptainer exec -B /cvmfs /usr/libexec/condor/exit_37.sif /exit_37'
+    ret=$?
+    if [[ $ret -ne 37 ]]; then
+        add_ERR "exit_37.sif in docker returned $ret instead"
+    fi
+}
+
+
+function singularity_preflight {
+    local container_sif ret
+    # we need to be an unprivileged user here; also, the user needs access
+    # to the docker daemon
+    getent passwd testuser || useradd -mG docker testuser
+
+    container_sif=~testuser/container.sif
+
+    # If these fail, no point in doing the rest of the tests:
+    cd ~testuser || add_ERR "Could not cd into ~testuser" || return
+
+    echo -n "*** Outer Apptainer version is: "
+    $APPTAINER_BIN version || add_ERR "Could not get outer Apptainer version" || return
+
+    # Make a place to store the image that testuser can access, then pull the image.
+    # Avoids having to convert the image multiple times for each test.
+    $APPTAINER_BIN pull "$container_sif" "docker-daemon:${CONTAINER_IMAGE}" \
+        || add_ERR "Could not create $container_sif from $CONTAINER_IMAGE" \
+        || return
+
+
+    # Now for the testing.
+    # Test /bin/true in Apptainer
+    unsudo $APPTAINER_BIN exec \
+        $COMMON_APPTAINER_EXEC_ARGS \
+        "$container_sif" \
+        /bin/true \
+        || add_ERR "/bin/true in Apptainer returned $? instead"
+
+    # Test Apptainer-in-Apptainer
+    # First, get the version.
+    unsudo $APPTAINER_BIN exec \
+        $COMMON_APPTAINER_EXEC_ARGS \
+        "$container_sif" \
+        /bin/bash -c '/bin/echo -n "*** Inner Apptainer version is: " ; /usr/bin/apptainer version' \
+        || add_ERR "Could not get inner Apptainer version: command returned $?"
+
+    # Then, without /cvmfs in the inner container
+    unsudo $APPTAINER_BIN exec \
+        $COMMON_APPTAINER_EXEC_ARGS \
+        "$container_sif" \
+        /usr/bin/apptainer exec /usr/libexec/condor/exit_37.sif /exit_37
+    ret=$?
+    if [[ $ret -ne 37 ]]; then
+        add_ERR "exit_37.sif in Apptainer returned $ret instead"
+    fi
+
+    # Next, with cvmfs. Use an alpine image so we can ls.
+    unsudo $APPTAINER_BIN exec \
+        $COMMON_APPTAINER_EXEC_ARGS \
+        "$container_sif" \
+        /usr/bin/apptainer exec -B /cvmfs \
+        docker://ospool-static-registry.osg.chtc.io/alpine:latest \
+        /bin/ls -l /cvmfs/ \
+        || add_ERR "ls /cvmfs/ in Apptainer returned $?"
+
+    rm -f "$container_sif"
+}
+
+
+#
+# Argument parsing and execution
+#
+
+
+if [[ $# -ne 4 ]] ||
        ! [[ $1 =~ ^(docker|singularity)$ ]] ||
-       ! [[ $2 =~ ^(bindmount|cvmfsexec)$ ]]; then
+       ! [[ $2 =~ ^(bindmount|cvmfsexec)$ ]] ||
+       ! [[ $4 =~ ^(preflight|pilot)$ ]]; then
     usage
-    exit 1
+    exit 2
 fi
+
 
 CONTAINER_RUNTIME="$1"
 CVMFS_INSTALL="$2"
 CONTAINER_IMAGE="$3"
+TESTTYPE="$4"
+
 
 case "$CVMFS_INSTALL" in
     bindmount)
@@ -219,21 +343,49 @@ case "$CVMFS_INSTALL" in
                            -e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org'
                            -e CVMFSEXEC_DEBUG=true)
         ;;
+    *)
 esac
 
-case "$CONTAINER_RUNTIME" in
-    docker)
-        start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || docker_exit_with_cleanup $?
-        test_docker_startup                             || docker_exit_with_cleanup $?
-        test_docker_HAS_SINGULARITY                     || docker_exit_with_cleanup $?
-        docker stop backfill
-        docker_exit_with_cleanup 0
-        ;;
-    singularity)
-        # we only support Singularity + bind mounted CVMFS
-        [[ "$CVMFS_INSTALL" == "bindmount" ]]           || exit 1
-        start_singularity_backfill                      || exit 1
-        test_singularity_startup                        || exit 1
-        test_singularity_HAS_SINGULARITY                || exit 1
-        ;;
-esac
+
+if [[ $TESTTYPE == preflight ]]; then
+
+    ERR=0
+    case "$CONTAINER_RUNTIME" in
+        docker)
+            docker_preflight
+            ;;
+        singularity)
+            # we only support Singularity + bind mounted CVMFS
+            [[ "$CVMFS_INSTALL" == "bindmount" ]] || exit 1
+            singularity_preflight
+            ;;
+        *) usage; exit 2 ;;
+    esac
+    if [[ $ERR -ne 0 ]]; then
+        echo "There were $ERR errors for ${CONTAINER_RUNTIME}+${CVMFS_INSTALL}"
+        exit 3
+    else
+        echo "Pre-flight checks successful for ${CONTAINER_RUNTIME}+${CVMFS_INSTALL}"
+        exit 0
+    fi
+
+elif [[ $TESTTYPE == pilot ]]; then
+
+    case "$CONTAINER_RUNTIME" in
+        docker)
+            start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || docker_exit_with_cleanup $?
+            test_docker_startup                             || docker_exit_with_cleanup $?
+            test_docker_HAS_SINGULARITY                     || docker_exit_with_cleanup $?
+            docker stop backfill
+            docker_exit_with_cleanup 0
+            ;;
+        singularity)
+            # we only support Singularity + bind mounted CVMFS
+            [[ "$CVMFS_INSTALL" == "bindmount" ]]           || exit 1
+            start_singularity_backfill                      || exit 1
+            test_singularity_startup                        || exit 1
+            test_singularity_HAS_SINGULARITY                || exit 1
+            ;;
+    esac
+
+fi
