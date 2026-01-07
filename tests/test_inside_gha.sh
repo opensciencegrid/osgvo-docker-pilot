@@ -22,11 +22,9 @@ function usage {
 
 
 function add_ERR {
-    # Complain and then increase the error count.  Propagate the return code.
-    local ret=$?
+    # Complain and then increase the error count.
     echo -e "$@"
     (( ERR += 1 ))
-    return $ret
 }
 
 
@@ -236,7 +234,7 @@ function docker_preflight {
         "${DOCKER_EXTRA_ARGS[@]}" \
         "$CONTAINER_IMAGE" \
         /bin/bash -c '/bin/echo -n "*** Inner Apptainer version is: "; /usr/bin/apptainer version' \
-        || add_ERR "Could not get inner Apptainer version: command returned $?"
+        || { ret=$?; add_ERR "Could not get inner Apptainer version: command returned $ret"; }
 
     docker run \
         $COMMON_DOCKER_RUN_ARGS \
@@ -260,16 +258,15 @@ function singularity_preflight {
     container_sif=~testuser/container.sif
 
     # If these fail, no point in doing the rest of the tests:
-    cd ~testuser || add_ERR "Could not cd into ~testuser" || return
+    cd ~testuser || { add_ERR "Could not cd into ~testuser"; return 1; }
 
     echo -n "*** Outer Apptainer version is: "
-    $APPTAINER_BIN version || add_ERR "Could not get outer Apptainer version" || return
+    $APPTAINER_BIN version || { add_ERR "Could not get outer Apptainer version"; return 1; }
 
     # Make a place to store the image that testuser can access, then pull the image.
     # Avoids having to convert the image multiple times for each test.
     $APPTAINER_BIN pull "$container_sif" "docker-daemon:${CONTAINER_IMAGE}" \
-        || add_ERR "Could not create $container_sif from $CONTAINER_IMAGE" \
-        || return
+        || { add_ERR "Could not create $container_sif from $CONTAINER_IMAGE"; return 1; } \
 
 
     # Now for the testing.
@@ -278,7 +275,7 @@ function singularity_preflight {
         $COMMON_APPTAINER_EXEC_ARGS \
         "$container_sif" \
         /bin/true \
-        || add_ERR "/bin/true in Apptainer returned $? instead"
+        || { ret=$?; add_ERR "/bin/true in Apptainer returned $ret instead"; }
 
     # Test Apptainer-in-Apptainer
     # First, get the version.
@@ -286,7 +283,7 @@ function singularity_preflight {
         $COMMON_APPTAINER_EXEC_ARGS \
         "$container_sif" \
         /bin/bash -c '/bin/echo -n "*** Inner Apptainer version is: " ; /usr/bin/apptainer version' \
-        || add_ERR "Could not get inner Apptainer version: command returned $?"
+        || { ret=$?; add_ERR "Could not get inner Apptainer version: command returned $ret"; }
 
     # Then, without /cvmfs in the inner container
     unsudo $APPTAINER_BIN exec \
@@ -305,7 +302,7 @@ function singularity_preflight {
         /usr/bin/apptainer exec -B /cvmfs \
         docker://ospool-static-registry.osg.chtc.io/alpine:latest \
         /bin/ls -l /cvmfs/ \
-        || add_ERR "ls /cvmfs/ in Apptainer returned $?"
+        || { ret=$?; add_ERR "ls /cvmfs/ in Apptainer returned $ret"; }
 
     rm -f "$container_sif"
 }
