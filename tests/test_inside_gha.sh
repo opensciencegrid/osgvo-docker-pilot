@@ -226,7 +226,7 @@ function docker_preflight {
         "${DOCKER_EXTRA_ARGS[@]}" \
         "$CONTAINER_IMAGE" \
         /bin/bash -c '/bin/true' \
-        || add_ERR "/bin/true in docker returned $? instead"
+        || { ret=$?; add_ERR "/bin/true in docker returned $ret instead"; }
 
     # Test Apptainer-in-Apptainer.
     # First, get the version.
@@ -343,7 +343,6 @@ case "$CVMFS_INSTALL" in
                            -e CVMFSEXEC_REPOS='oasis.opensciencegrid.org singularity.opensciencegrid.org'
                            -e CVMFSEXEC_DEBUG=true)
         ;;
-    *)
 esac
 
 
