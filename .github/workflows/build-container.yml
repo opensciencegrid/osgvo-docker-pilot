@@ -76,7 +76,11 @@ jobs:
           errs=0
           sudo ./tests/test_inside_gha.sh docker bindmount "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
           echo '|'
-          sudo ./tests/test_inside_gha.sh singularity bindmount "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
+          if [[ $CONTAINER_IMAGE != *cuda* ]]; then
+            sudo ./tests/test_inside_gha.sh singularity bindmount "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
+          else
+            echo >&2 "Skipping singularity/bindmount subtest: \$APPTAINER_TMPDIR (${APPTAINER_TMPDIR:-/tmp}) too small for cuda-based images"
+          fi
           echo '|'
           sudo ./tests/test_inside_gha.sh docker cvmfsexec "$CONTAINER_IMAGE" preflight || (( errs += 1 ))
           echo '|'

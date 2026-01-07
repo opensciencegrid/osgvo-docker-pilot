@@ -67,6 +67,11 @@ function start_singularity_backfill {
 }
 
 function start_docker_backfill {
+    if [[ -d $OSP_TOKEN_PATH ]]; then
+        # Volume-mounting this in the pre-flight checks might have created
+        # this as a directory. Get rid of it so we can re-create it as a file.
+        rm -rf "$OSP_TOKEN_PATH"
+    fi
     touch $OSP_TOKEN_PATH
     docker run $COMMON_DOCKER_RUN_ARGS \
            --detach \
@@ -333,7 +338,8 @@ case "$CVMFS_INSTALL" in
         DOCKER_EXTRA_ARGS=(--security-opt seccomp=unconfined
                            --security-opt systempaths=unconfined
                            --security-opt no-new-privileges
-                           -v "/cvmfs:/cvmfs:shared")
+                           -v "/cvmfs:/cvmfs:shared"
+                           --device /dev/fuse)
         ;;
     cvmfsexec)
         DOCKER_EXTRA_ARGS=(--privileged
