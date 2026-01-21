@@ -212,7 +212,7 @@ case ${POOL} in
         ;;
     prod-path-facility)
         default_cm1=cm-1.facility.path-cc.io
-        default_cm2=cm-2.facility.path-cc.io
+        default_cm2=
         default_syslog_host=syslog.osg.chtc.io
         GLIDECLIENT_Group=path-container
         ;;
