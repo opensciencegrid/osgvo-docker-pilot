@@ -8,10 +8,9 @@ function install_cvmfs {
     fi
     set -e
     apt-get install lsb-release
-    wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest_all.deb
-    wget https://ecsft.cern.ch/dist/cvmfs/cvmfs-contrib-release/cvmfs-contrib-release-latest_all.deb
-    dpkg -i cvmfs-release-latest_all.deb cvmfs-contrib-release-latest_all.deb
-    rm -f *.deb
+    wget https://cvmrepo.s3.cern.ch/cvmrepo/apt/cvmfs-release-latest_all.deb
+    dpkg -i cvmfs-release-latest_all.deb
+    rm -f ./*.deb
     apt-get update
     apt-get install -y cvmfs-config-osg cvmfs
     set $olde
