@@ -9,7 +9,9 @@ function install_cvmfs {
     set -e
     apt-get install lsb-release
     wget https://cvmrepo.s3.cern.ch/cvmrepo/apt/cvmfs-release-latest_all.deb
-    dpkg -i cvmfs-release-latest_all.deb
+    wget --no-check-certificate https://ecsft.cern.ch/dist/cvmfs/cvmfs-contrib-release/cvmfs-contrib-release-latest_all.deb
+    # ^^ Ubuntu's trust store does not include CN=Sectigo Public Server Authentication CA OV R36,O=Sectigo Limited,C=GB
+    dpkg -i cvmfs-release-latest_all.deb cvmfs-contrib-release-latest_all.deb
     rm -f ./*.deb
     apt-get update
     apt-get install -y cvmfs-config-osg cvmfs
