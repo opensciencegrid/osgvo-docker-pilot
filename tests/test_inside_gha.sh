@@ -12,6 +12,8 @@ COMMON_DOCKER_RUN_ARGS="--user osg
                         -e GLIDEIN_Site=None
                         -e GLIDEIN_ResourceName=None
                         -e GLIDEIN_Start_Extra=True
+                        -e OSG_DEFAULT_CONTAINER_DISTRIBUTION=100%__htc/minimal:0
+                        -e OSG_DEFAULT_CONTAINER_DISTRIBUTION_GPU=100%__htc/minimal:0
                         -e OSG_SQUID_LOCATION=None
                         -e ENABLE_REMOTE_SYSLOG=False"
 
