@@ -223,6 +223,9 @@ ENV OSG_PROJECT_NAME=
 # Additional paths to bind for Singularity jobs; same syntax as the -B option in singularity run
 ENV SINGULARITY_BIND_EXTRA=
 
+# Set this to 'true' disable PID namespaces for Singularity; PID namespaces are broken on some runtimes, e.g. nvidia
+ENV SINGULARITY_DISABLE_PID_NAMESPACES=false
+
 # Additional restrictions for your START expression
 ENV GLIDEIN_Start_Extra=
 
