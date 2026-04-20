@@ -611,29 +611,9 @@ fi
 cp ${osgvo_advertise_userenv} .
 $PWD/main/singularity_wrapper.sh ./"$(basename ${osgvo_advertise_userenv})" glidein_config osgvo-docker-pilot
 
-if [[ -e ${osgvo_additional_htcondor_config} ]]; then
-    echo >&2 "${osgvo_additional_htcondor_config} found; running it"
-    bash ${osgvo_additional_htcondor_config} $glidein_config
-    echo >&2 "${osgvo_additional_htcondor_config} done"
-else
-    echo >&2 "${osgvo_additional_htcondor_config} not found"
-    echo >&2 "Setting compat config"
-
-    # A few things were removed from 50-main.config to have
-    # ${osgvo_additional_htcondor_config} take care of them instead; if we
-    # don't have that script, we need to do them here.
-    #
-    # This can be removed once the changes in https://github.com/opensciencegrid/osg-flock/pull/212
-    # get merged into the "main" group as well, and we always use ${osgvo_additional_htcondor_config}
-    cat >>$PILOT_CONFIG_FILE <<END
-IsBlackHole = False
-STARTD_ATTRS = \$(STARTD_ATTRS), IsBlackHole
-
-HasExcessiveLoad = LoadAvg > 2*DetectedCpus + 2
-STARTD_ATTRS = \$(STARTD_ATTRS), HasExcessiveLoad
-
-END
-fi
+echo >&2 "${osgvo_additional_htcondor_config} found; running it"
+bash ${osgvo_additional_htcondor_config} $glidein_config
+echo >&2 "${osgvo_additional_htcondor_config} done"
 
 # interpret the condor_vars
 set +x
