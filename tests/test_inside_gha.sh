@@ -1,7 +1,7 @@
 #!/bin/bash -x
 # shellcheck disable=SC2086
 
-APPTAINER_BIN=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/bin/apptainer
+APPTAINER_BIN=/usr/bin/apptainer
 OSP_TOKEN_PATH=/tmp/token
 CONDOR_LOGDIR=/pilot/log
 COMMON_APPTAINER_EXEC_ARGS="-B /cvmfs -B /dev/fuse -c -i"
