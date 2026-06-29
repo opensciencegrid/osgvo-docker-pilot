@@ -59,6 +59,14 @@ jobs:
           output_image: ${{ steps.custom-image-name.outputs.output_image }}
           timestamp: ${{ steps.custom-image-name.outputs.timestamp }}
 
+      
+      - name: Prepare Image
+        # TODO: For all tests, GHA currently only supports amd64 runners. We will need
+        # to re-enable tests on arm64 when ARM runners become available.
+        if: ${{ matrix.arch == 'amd64' }}
+        run: |
+          sudo ./tests/setup_gha_image.sh
+
 
       - name: Prepare CVMFS
         # TODO: For all tests, GHA currently only supports amd64 runners. We will need
