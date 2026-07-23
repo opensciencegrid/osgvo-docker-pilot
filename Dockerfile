@@ -236,6 +236,9 @@ ENV ITB=false
 # Set a non-dockerhub container registry mirror for apptainer to avoid pull rate limits
 ENV APPTAINER_REGISTRY_MIRROR=
 
+# Extra values to add to the job environment - must be in 'new' environment format, see condor_submit(1)
+ENV EXTRA_JOB_ENV=
+
 # The pool to join; this can be 'itb-ospool', 'prod-ospool', 'prod-path-facility',
 # 'dev-path-facility', or the hostname or host:port of a central manager.
 # If it's set to 'ospool', then it will use 'itb-ospool'  or 'prod-ospool' depending on $ITB.

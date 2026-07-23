@@ -623,6 +623,10 @@ do
 done <$condor_vars_file
 set -x
 
+if [[ $EXTRA_JOB_ENV ]]; then
+    job_env="$job_env $EXTRA_JOB_ENV"
+fi
+
 cat >>$PILOT_CONFIG_FILE <<EOF
 MASTER_ATTRS = \$(MASTER_ATTRS), $glidein_variables
 STARTD_ATTRS = \$(STARTD_ATTRS), $glidein_variables
