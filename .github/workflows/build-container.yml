@@ -28,6 +28,9 @@ jobs:
             repo: development
           - os: cuda_11_8_0
             repo: testing
+          # osg 26 isn't released yet
+          - osg_series: '26'
+            repo: 'release'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
