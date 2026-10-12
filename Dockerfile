@@ -123,7 +123,7 @@ RUN git clone --branch ${OSG_FLOCK_BRANCH} https://github.com/${OSG_FLOCK_REPO} 
  # common files: \
  #   pelican-execeptions is a common file from main, because we use a "find" to locate it, so we can only have one \
  && install ospool-pilot/main/etc/pelican-exceptions.csv                /gwms/client_group_main/pelican-exceptions.csv \
- && install /usr/bin/stashcp                                            /gwms/client/stashcp \
+ && ln -s   /usr/bin/pelican                                            /gwms/client/stashcp \
  && install tools/garbage_collection/garbage_collection                 /gwms/client/garbage_collection \
  && install tools/garbage_collection/garbage_collection.aarch64         /gwms/client/garbage_collection.aarch64 \
  && install tools/garbage_collection/garbage_collection.x86_64          /gwms/client/garbage_collection.x86_64 \

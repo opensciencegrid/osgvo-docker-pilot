@@ -20,7 +20,7 @@ jobs:
         os: ['el9', 'cuda_11_8_0']
         repo: ['development', 'testing', 'release']
         image: ['osg-htc/ospool-ep']
-        osg_series: ['24', '25']
+        osg_series: ['25', '26']
         arch: ['amd64','arm64']
         exclude:
           # cuda builds take a super long time; only do one of them
@@ -28,9 +28,9 @@ jobs:
             repo: development
           - os: cuda_11_8_0
             repo: testing
-          # EL10 isn't supported in OSG 24
-          - os: el10
-            osg_series: '24'
+          # osg 26 isn't released yet
+          - osg_series: '26'
+            repo: 'release'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
