@@ -51,7 +51,7 @@ jobs:
         name: Local image build
         uses: opensciencegrid/build-container-action@HEAD
         with:
-          registry_url: hub.opensciencegrid.org
+          registry_url: hub.osg-htc.org
           osg_series: ${{ matrix.osg_series }}
           osg_repo: ${{ matrix.repo }}
           base_os: ${{ matrix.os }}
