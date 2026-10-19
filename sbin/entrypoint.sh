@@ -79,6 +79,17 @@ fi
 CVMFSEXEC_REPOS=$(tr -s ',' ' ' <<<$CVMFSEXEC_REPOS)
 CVMFSEXEC_REPOS=$(tr -d '"'"'" <<<$CVMFSEXEC_REPOS)  # delete single and double quotes (docker envfiles treat quotes literally)
 
+# cvmfsexec leaves us in a nested user namespace where our uid is mapped to
+# root in the parent namespace. Apptainer >=1.5 (regression of
+# https://github.com/apptainer/apptainer/issues/1703) resolves usernames by
+# translating the uid through that mapping, so it looks up uid 0 instead of
+# ours and fails to find our user, leaving jobs with an unresolved "uid=NNNN"
+# instead of "uid=NNNN(osg)". Work around it by bind-mounting our own
+# /etc/passwd into job containers so Apptainer doesn't need to do that
+# lookup. This replaces the job image's own /etc/passwd, so it only runs
+# when cvmfsexec is actually creating that nested namespace.
+export SINGULARITY_BIND_EXTRA="${SINGULARITY_BIND_EXTRA:+$SINGULARITY_BIND_EXTRA,}/etc/passwd"
+
 cd "$cvmfsexec_root" || \
     fail "Couldn't enter $cvmfsexec_root"
 if [[ ! -e $cvmfsexec_root/dist ]]; then

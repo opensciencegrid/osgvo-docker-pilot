@@ -253,6 +253,28 @@ function docker_preflight {
     if [[ $ret -ne 37 ]]; then
         add_ERR "exit_37.sif in docker returned $ret instead"
     fi
+
+    # Test that Apptainer resolves our uid to a username inside the job
+    # container instead of leaving it as a bare number. This regresses when
+    # the unprivileged user ends up in a nested, root-mapped user namespace
+    # (as cvmfsexec creates) and Apptainer mistranslates the uid while
+    # looking up the passwd entry. See https://github.com/apptainer/apptainer/issues/1703.
+    # entrypoint.sh works around this by setting SINGULARITY_BIND_EXTRA; apply
+    # it the same way the real job wrapper would (via -B) since this test
+    # calls Apptainer directly and doesn't go through that wrapper.
+    local id_output
+    id_output=$(docker run \
+        $COMMON_DOCKER_RUN_ARGS \
+        --rm \
+        "${DOCKER_EXTRA_ARGS[@]}" \
+        "$CONTAINER_IMAGE" \
+        /bin/bash -c '/usr/bin/apptainer exec -B /cvmfs ${SINGULARITY_BIND_EXTRA:+-B "$SINGULARITY_BIND_EXTRA"} docker://ospool-static-registry.osg.chtc.io/alpine:latest id' 2>&1)
+    ret=$?
+    if [[ $ret -ne 0 ]]; then
+        add_ERR "id in Apptainer returned $ret instead:\n$id_output"
+    elif ! grep -qE 'uid=[0-9]+\(osg\)' <<<"$id_output"; then
+        add_ERR "Apptainer did not resolve the container uid to a username:\n$id_output"
+    fi
 }
 
 
