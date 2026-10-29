@@ -102,7 +102,8 @@ function docker_exit_with_cleanup {
 
 function print_test_header {
     msg=$*
-    sep=$(python3 -c "print ('=' * ${#msg})")
+    printf -v sep '%*s' "${msg}" ''
+    sep=${sep// /=}
     echo -e "$sep\n$msg\n$sep"
 }
 
