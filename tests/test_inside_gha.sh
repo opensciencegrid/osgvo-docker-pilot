@@ -2,7 +2,7 @@
 # shellcheck disable=SC2086
 
 APPTAINER_BIN=/usr/bin/apptainer
-OSP_TOKEN_PATH=/tmp/token
+OSP_TOKEN_PATH=${OSP_TOKEN_PATH:-/tmp/token}
 CONDOR_LOGDIR=/pilot/log
 COMMON_APPTAINER_EXEC_ARGS="-B /cvmfs -B /dev/fuse -c -i"
 COMMON_DOCKER_RUN_ARGS="--user osg
@@ -102,7 +102,7 @@ function docker_exit_with_cleanup {
 
 function print_test_header {
     msg=$*
-    sep=$(python -c "print ('=' * ${#msg})")
+    sep=$(python3 -c "print ('=' * ${#msg})")
     echo -e "$sep\n$msg\n$sep"
 }
 
@@ -197,7 +197,13 @@ function test_docker_passwd_bind {
     print_test_header "Testing HTCondor passwd bind under cvmfsexec"
 
     local binds
-    binds=$(run_inside_backfill_container condor_config_val SINGULARITY_BIND_EXPR) || return $?
+    binds=$(run_inside_backfill_container /bin/bash -c '
+        PILOT_CONFIG_FILE=$(find /pilot -maxdepth 2 -name condor_config.pilot -print -quit)
+        export PILOT_CONFIG_FILE
+        condor_config_val SINGULARITY_BIND_EXPR
+    ') || return $?
+    binds=${binds#\"}
+    binds=${binds%\"}
     if [[ ,$binds, != *,/etc/passwd,* ]]; then
         echo "HTCondor SINGULARITY_BIND_EXPR omits /etc/passwd: $binds" >&2
         return 1
