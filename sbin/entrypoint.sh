@@ -89,6 +89,7 @@ CVMFSEXEC_REPOS=$(tr -d '"'"'" <<<$CVMFSEXEC_REPOS)  # delete single and double 
 # lookup. This replaces the job image's own /etc/passwd, so it only runs
 # when cvmfsexec is actually creating that nested namespace.
 export SINGULARITY_BIND_EXTRA="${SINGULARITY_BIND_EXTRA:+$SINGULARITY_BIND_EXTRA,}/etc/passwd"
+export CVMFSEXEC_PASSWD_BIND=1
 
 cd "$cvmfsexec_root" || \
     fail "Couldn't enter $cvmfsexec_root"

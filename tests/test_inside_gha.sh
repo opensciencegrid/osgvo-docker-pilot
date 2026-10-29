@@ -192,6 +192,18 @@ function test_docker_HAS_SINGULARITY {
     return 1
 }
 
+function test_docker_passwd_bind {
+    [[ $CVMFS_INSTALL == cvmfsexec ]] || return 0
+    print_test_header "Testing HTCondor passwd bind under cvmfsexec"
+
+    local binds
+    binds=$(run_inside_backfill_container condor_config_val SINGULARITY_BIND_EXPR) || return $?
+    if [[ ,$binds, != *,/etc/passwd,* ]]; then
+        echo "HTCondor SINGULARITY_BIND_EXPR omits /etc/passwd: $binds" >&2
+        return 1
+    fi
+}
+
 function test_singularity_startup {
     print_test_header "Testing container startup"
 
@@ -402,6 +414,7 @@ elif [[ $TESTTYPE == pilot ]]; then
             start_docker_backfill "${DOCKER_EXTRA_ARGS[@]}" || docker_exit_with_cleanup $?
             test_docker_startup                             || docker_exit_with_cleanup $?
             test_docker_HAS_SINGULARITY                     || docker_exit_with_cleanup $?
+            test_docker_passwd_bind                          || docker_exit_with_cleanup $?
             docker stop backfill
             docker_exit_with_cleanup 0
             ;;

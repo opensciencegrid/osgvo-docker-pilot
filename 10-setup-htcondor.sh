@@ -627,6 +627,17 @@ do
 done <$condor_vars_file
 set -x
 
+# osg-flock's additional-htcondor-config only adds directories from
+# GLIDEIN_SINGULARITY_BINDPATH to SINGULARITY_BIND_EXPR.  Its file check drops
+# /etc/passwd, which the native HTCondor container path also needs when
+# cvmfsexec created a nested user namespace.  The GlideinWMS wrapper reads
+# GLIDEIN_SINGULARITY_BINDPATH directly and already receives this bind.
+if [[ $CVMFSEXEC_PASSWD_BIND == 1 ]]; then
+    singularity_bind_expr=${SINGULARITY_BIND_EXPR#\"}
+    singularity_bind_expr=${singularity_bind_expr%\"}
+    echo "SINGULARITY_BIND_EXPR = \"${singularity_bind_expr},/etc/passwd\"" >> "$PILOT_CONFIG_FILE"
+fi
+
 if [[ $EXTRA_JOB_ENV ]]; then
     job_env="$job_env $EXTRA_JOB_ENV"
 fi
