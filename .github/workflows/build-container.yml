@@ -28,7 +28,7 @@ jobs:
             repo: development
           - os: cuda_11_8_0
             repo: testing
-            # osg 26 isn't released yet
+          # osg 26 isn't released yet
           - osg_series: '26'
             repo: 'release'
             # EL10 isn't supported in OSG 24
