@@ -168,7 +168,7 @@ jobs:
       matrix:
         os: ['el9', 'cuda_11_8_0']
         repo: ['development', 'testing', 'release']
-        osg_series: ['24', '25']
+        osg_series: ['24', '25', '26']
         registry: [
           {
             url: hub.opensciencegrid.org,
@@ -184,6 +184,9 @@ jobs:
             repo: testing
           - os: el10
             osg_series: '24'
+          # osg 26 isn't released yet
+          - osg_series: '26'
+            repo: 'release'
     steps:
     - id: base-tag
       env:
