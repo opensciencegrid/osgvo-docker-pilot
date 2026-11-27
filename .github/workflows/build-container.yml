@@ -245,17 +245,17 @@ jobs:
           tag_name=${tag##*:}
           alias_tag=
           case "$tag_name" in
-            "$LATEST_SERIES-${DEFAULT_OS}-release")
+            "${LATEST_SERIES}-${DEFAULT_OS}-release")
               alias_tag=latest
               ;;
-            "$LATEST_SERIES-${DEFAULT_OS}-release-"*)
-              alias_tag="latest-${tag_name#"$LATEST_SERIES-${DEFAULT_OS}-release-"}"
+            "${LATEST_SERIES}-${DEFAULT_OS}-release-"*)
+              alias_tag="latest-${tag_name#"${LATEST_SERIES}-${DEFAULT_OS}-release-"}"
               ;;
-            "$LATEST_SERIES-${DEFAULT_NVIDIA_OS}-release")
+            "${LATEST_SERIES}-${DEFAULT_NVIDIA_OS}-release")
               alias_tag=nvidia-latest
               ;;
-            "$LATEST_SERIES-${DEFAULT_NVIDIA_OS}-release-"*)
-              alias_tag="nvidia-latest-${tag_name#"$LATEST_SERIES-${DEFAULT_NVIDIA_OS}-release-"}"
+            "${LATEST_SERIES}-${DEFAULT_NVIDIA_OS}-release-"*)
+              alias_tag="nvidia-latest-${tag_name#"${LATEST_SERIES}-${DEFAULT_NVIDIA_OS}-release-"}"
               ;;
           esac
           if [[ -n $alias_tag ]]; then
