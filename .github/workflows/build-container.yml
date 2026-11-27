@@ -226,6 +226,8 @@ jobs:
       working-directory: /tmp/${{ matrix.registry.url }}
       env:
         DEFAULT_OS: el9
+        DEFAULT_NVIDIA_OS: cuda_11_8_0
+        LATEST_SERIES: '26'
       run: |
         TAGS=$(cat tags/*-amd64)
         for tag in ${TAGS//,/ }; do 
@@ -243,17 +245,17 @@ jobs:
           tag_name=${tag##*:}
           alias_tag=
           case "$tag_name" in
-            26-el9-release)
+            "$LATEST_SERIES-${DEFAULT_OS}-release")
               alias_tag=latest
               ;;
-            26-el9-release-*)
-              alias_tag="latest-${tag_name#26-el9-release-}"
+            "$LATEST_SERIES-${DEFAULT_OS}-release-"*)
+              alias_tag="latest-${tag_name#"$LATEST_SERIES-${DEFAULT_OS}-release-"}"
               ;;
-            26-cuda_11_8_0-release)
+            "$LATEST_SERIES-${DEFAULT_NVIDIA_OS}-release")
               alias_tag=nvidia-latest
               ;;
-            26-cuda_11_8_0-release-*)
-              alias_tag="nvidia-latest-${tag_name#26-cuda_11_8_0-release-}"
+            "$LATEST_SERIES-${DEFAULT_NVIDIA_OS}-release-"*)
+              alias_tag="nvidia-latest-${tag_name#"$LATEST_SERIES-${DEFAULT_NVIDIA_OS}-release-"}"
               ;;
           esac
           if [[ -n $alias_tag ]]; then
