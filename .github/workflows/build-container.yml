@@ -239,5 +239,25 @@ jobs:
           if [[ $tag2 != $tag ]]; then
             docker buildx imagetools create --tag $tag2 $DIGESTS;
           fi
+
+          tag_name=${tag##*:}
+          alias_tag=
+          case "$tag_name" in
+            26-el9-release)
+              alias_tag=latest
+              ;;
+            26-el9-release-*)
+              alias_tag="latest-${tag_name#26-el9-release-}"
+              ;;
+            26-cuda_11_8_0-release)
+              alias_tag=nvidia-latest
+              ;;
+            26-cuda_11_8_0-release-*)
+              alias_tag="nvidia-latest-${tag_name#26-cuda_11_8_0-release-}"
+              ;;
+          esac
+          if [[ -n $alias_tag ]]; then
+            docker buildx imagetools create --tag "${BASE_IMG}:${alias_tag}" $DIGESTS
+          fi
         done
         
